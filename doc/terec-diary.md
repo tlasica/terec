@@ -35,3 +35,7 @@ Nice to read tutorial for the microservices polylith app with REST APIs and queu
 (https://github.com/ttamg/python-polylith-microservices-example)
 
 
+## Questions
+
+1. how to run pylint on poetry 
+2. how to run tests on poetry poly?

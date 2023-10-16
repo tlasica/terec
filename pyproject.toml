@@ -5,7 +5,9 @@ description = "TEst REsult Collector"
 authors = ["Tomek Lasica <tlasica@life.pl>"]
 license = "MIT"
 readme = "README.md"
-packages = []
+packages = [
+    {include = "terec/database", from = "components"},    
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"
