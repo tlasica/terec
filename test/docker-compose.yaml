@@ -8,6 +8,6 @@ services:
       - "9042:9042"
     healthcheck:
       test: ["CMD", "cqlsh", "127.0.0.1", "-e", "SHOW VERSION;"]
-      interval: 30s
+      interval: 60s
       timeout: 10s
       retries: 3
