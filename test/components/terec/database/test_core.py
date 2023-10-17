@@ -1,5 +1,7 @@
-from terec.database import core
+from terec.database import cassandra_session
 
 
-def test_sample():
-    assert core is not None
+def test_cassandra_connection_with_default_settings():
+    conn = cassandra_session()
+    assert not conn.is_shutdown, "Connection is in shutdown state."
+
