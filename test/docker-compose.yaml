@@ -6,3 +6,8 @@ services:
       - JVM_OPTS=-Dcassandra.skip_wait_for_gossip_to_settle=0
     ports:
       - "9042:9042"
+    healthcheck:
+      test: ["CMD", "cqlsh", "127.0.0.1", "-e", "SHOW VERSION;"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
