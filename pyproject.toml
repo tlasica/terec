@@ -6,7 +6,7 @@ authors = ["Tomek Lasica <tlasica@life.pl>"]
 license = "MIT"
 readme = "README.md"
 packages = [
-    {include = "terec/database", from = "components"},    
+    {include = "terec/database", from = "components"},
     {include = "terec/model", from = "components"},
 ]
 
@@ -28,6 +28,7 @@ black = "^23.9.1"
 ipykernel = "^6.25.2"
 pytest-docker-fixtures = "^1.3.17"
 pytest-docker = "^2.0.1"
+pre-commit = "^3.5.0"
 
 [build-system]
 requires = ["poetry-core"]
