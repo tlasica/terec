@@ -5,7 +5,9 @@ fake = Faker()
 
 
 def test_create_org(cassandra_model):
-    org = structure.Org.create(name=fake.company(), full_name="My Organisation", url="https://my.org/")
+    org = structure.Org.create(
+        name=fake.company(), full_name="My Organisation", url="https://my.org/"
+    )
     assert org is not None
 
 
@@ -31,7 +33,9 @@ def test_create_projects_in_org(cassandra_model):
     org_name = fake.company()
     prj_name = fake.domain_word()
     structure.Org.create(name=org_name, full_name="My Org", url="https://my.org/")
-    structure.Project.create(org_name=org_name, prj_name=prj_name, full_name="My Project")
+    structure.Project.create(
+        org_name=org_name, prj_name=prj_name, full_name="My Project"
+    )
     for i in range(0, 10):
         structure.Project.create(org_name=org_name, prj_name=fake.company())
     # when projects in org are searched then it has all inserted

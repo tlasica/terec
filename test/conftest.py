@@ -38,8 +38,8 @@ def cassandra(docker_services) -> Session:
 def cassandra_model(cassandra) -> Session:
     keyspace = "terec"
     replication_strategy = {
-        'class': 'SimpleStrategy',
-        'replication_factor': 1  # Adjust replication factor as needed
+        "class": "SimpleStrategy",
+        "replication_factor": 1,  # Adjust replication factor as needed
     }
     # Create the keyspace if it doesn't exist
     query = f"CREATE KEYSPACE IF NOT EXISTS {keyspace} WITH replication = {str(replication_strategy)}"
