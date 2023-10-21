@@ -14,10 +14,11 @@ CASSANDRA_HOSTS = os.getenv("CASSANDRA_HOSTS", None)
 CASSANDRA_PORT = os.getenv("CASSANDRA_PORT", None)
 CASSANDRA_USER = os.getenv("CASSANDRA_USER", None)
 CASSANDRA_PASSWORD = os.getenv("CASSANDRA_PASS", None)
+CASSANDRA_KEYSPACE = os.getenv("CASSANDRA_KEYSPACE", "terec")
 
 
 def cassandra_cluster() -> Cluster:
-    options = {}
+    options = {"protocol_version": 5}
     if CASSANDRA_HOSTS:
         options["contact_points"] = CASSANDRA_HOSTS.split(",")
     if CASSANDRA_PORT:
@@ -30,12 +31,20 @@ def cassandra_cluster() -> Cluster:
             username=CASSANDRA_USER, password=CASSANDRA_PASSWORD
         )
         options["auth_provider"] = auth_provider
-    # return Cluster(**options)
     return Cluster(**options)
 
 
 def cassandra_session() -> Session:
     """
-    Return connection to the database
+    Return connection to the database with keyspace created if not exists
     """
-    return cassandra_cluster().connect()
+    session = cassandra_cluster().connect()
+    replication_strategy = {
+        "class": "SimpleStrategy",
+        "replication_factor": 1,  # Adjust replication factor as needed
+    }
+    # Create the keyspace if it doesn't exist
+    query = f"CREATE KEYSPACE IF NOT EXISTS {CASSANDRA_KEYSPACE} WITH replication = {str(replication_strategy)}"
+    session.execute(query)
+    session.set_keyspace(CASSANDRA_KEYSPACE)
+    return session

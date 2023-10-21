@@ -8,6 +8,7 @@ readme = "README.md"
 packages = [
     {include = "terec/database", from = "components"},
     {include = "terec/model", from = "components"},
+    {include = "terec/api", from = "bases"},
 ]
 
 [tool.poetry.dependencies]

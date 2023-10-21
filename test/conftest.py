@@ -1,3 +1,4 @@
+import logging
 import os
 import pytest
 
@@ -25,7 +26,8 @@ def cassandra(docker_services) -> Session:
         try:
             cassandra_session()
             return True
-        except Exception:
+        except Exception as ex:
+            logging.warning(ex)
             return False
 
     docker_services.wait_until_responsive(
@@ -36,15 +38,6 @@ def cassandra(docker_services) -> Session:
 
 @pytest.fixture(scope="session")
 def cassandra_model(cassandra) -> Session:
-    keyspace = "terec"
-    replication_strategy = {
-        "class": "SimpleStrategy",
-        "replication_factor": 1,  # Adjust replication factor as needed
-    }
-    # Create the keyspace if it doesn't exist
-    query = f"CREATE KEYSPACE IF NOT EXISTS {keyspace} WITH replication = {str(replication_strategy)}"
-    cassandra.execute(query)
-    cassandra.set_keyspace(keyspace)
     connection.set_session(cassandra)
     sync_table(structure.Org)
     sync_table(structure.Project)

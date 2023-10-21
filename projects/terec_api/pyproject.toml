@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "terec_api"
+version = "0.1.0"
+description = ""
+authors = ['Tomek Lasica <tlasica@life.pl>']
+license = "MIT"
+
+packages = [
+    {include = "terec/database", from = "../../components"},
+    {include = "terec/model", from = "../../components"},
+    {include = "terec/api", from = "../../bases"},
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.103.2"
+uvicorn = "^0.23.2"
+cassandra-driver = "^3.28.0"
+
+[tool.poetry.group.dev.dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
