@@ -9,7 +9,6 @@ packages = [
     {include = "terec/api", from = "bases"},
     {include = "terec/database", from = "components"},
     {include = "terec/model", from = "components"},
-    {include = "terec/results_api",from = "bases"},
 ]
 
 [tool.poetry.dependencies]
