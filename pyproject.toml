@@ -6,7 +6,7 @@ authors = ["Tomek Lasica <tlasica@life.pl>"]
 license = "MIT"
 readme = "README.md"
 packages = [
-    {include = "terec/dupa", from = "bases"},
+    {include = "terec/api", from = "bases"},
     {include = "terec/database", from = "components"},
     {include = "terec/model", from = "components"},
 ]
