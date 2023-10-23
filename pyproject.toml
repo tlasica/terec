@@ -6,9 +6,9 @@ authors = ["Tomek Lasica <tlasica@life.pl>"]
 license = "MIT"
 readme = "README.md"
 packages = [
+    {include = "terec/dupa", from = "bases"},
     {include = "terec/database", from = "components"},
     {include = "terec/model", from = "components"},
-    {include = "terec/api", from = "bases"},
 ]
 
 [tool.poetry.dependencies]
@@ -20,6 +20,7 @@ faker = "^19.10.0"
 cassandra-driver = "^3.28.0"
 tenacity = "^8.2.3"
 flake8 = "^6.1.0"
+httpx = "^0.25.0"
 
 
 [tool.poetry.group.dev.dependencies]

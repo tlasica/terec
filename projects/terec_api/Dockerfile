@@ -9,4 +9,4 @@ WORKDIR /code
 COPY ./dist/$wheel /code/$wheel
 RUN pip install --no-cache-dir --upgrade /code/$wheel
 
-CMD ["uvicorn", "terec.api.structure_api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "terec.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
