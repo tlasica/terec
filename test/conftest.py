@@ -5,7 +5,7 @@ import pytest
 from cassandra.cluster import Session
 
 from terec.database import cassandra_session
-from terec.model import structure
+from terec.model.projects import Org, Project
 from terec.model.util import cqlengine_init
 
 
@@ -42,9 +42,7 @@ def cassandra_model(cassandra: Session) -> Session:
 
 
 @pytest.fixture(scope="session")
-def test_project(cassandra_model) -> structure.Project:
-    org = structure.Org.create(
-        name="MyOrg", full_name="My Organisation", url="http://my.org"
-    )
-    prj = structure.Project.create(org_name=org.name, prj_name="TestProject")
+def test_project(cassandra_model) -> Project:
+    org = Org.create(name="MyOrg", full_name="My Organisation", url="http://my.org")
+    prj = Project.create(org_name=org.name, prj_name="TestProject")
     return prj

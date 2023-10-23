@@ -2,7 +2,7 @@ import os
 
 from cassandra.cqlengine import connection
 from cassandra.cqlengine.management import sync_table
-from terec.model import structure, results
+from terec.model import projects, results
 
 
 def cqlengine_init(cassandra):
@@ -12,8 +12,8 @@ def cqlengine_init(cassandra):
     if os.getenv("CQLENG_ALLOW_SCHEMA_MANAGEMENT") is None:
         os.environ["CQLENG_ALLOW_SCHEMA_MANAGEMENT"] = "1"
     connection.set_session(cassandra)
-    sync_table(structure.Org)
-    sync_table(structure.Project)
+    sync_table(projects.Org)
+    sync_table(projects.Project)
     sync_table(results.TestSuite)
     sync_table(results.TestSuiteRun)
     sync_table(results.TestCaseRun)

@@ -1,3 +1,3 @@
-from terec.model import structure, results, util
+from terec.model import projects, results, util
 
-__all__ = ["structure", "results", "util"]
+__all__ = ["projects.py", "results", "util"]

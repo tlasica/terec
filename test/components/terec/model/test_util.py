@@ -1,5 +1,5 @@
 from terec.model.util import model_to_dict
-from terec.model.structure import Org
+from terec.model.projects import Org
 
 
 def test_model_to_dict():

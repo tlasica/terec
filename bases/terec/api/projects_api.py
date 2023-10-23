@@ -5,7 +5,7 @@ from cassandra.cqlengine.management import sync_table
 from pydantic import BaseModel
 
 from terec.database import cassandra_session
-from terec.model import structure, results, model_to_dict
+from terec.model import projects, results, model_to_dict
 
 # TODO: move it to external file like main or core and use routing
 app = fastapi.FastAPI()
