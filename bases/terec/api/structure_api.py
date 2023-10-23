@@ -3,19 +3,22 @@ import fastapi
 from cassandra.cqlengine import connection
 from cassandra.cqlengine.management import sync_table
 from pydantic import BaseModel
-from typing import Optional
 
 from terec.database import cassandra_session
-from terec.model import structure, model_to_dict
+from terec.model import structure, results, model_to_dict
 
 # TODO: move it to external file like main or core and use routing
 app = fastapi.FastAPI()
 
 # TODO: do we need to run sync? on table Org?
+# TODO: remove code duplication - move this initialization somewhere
 cassandra = cassandra_session()
 connection.set_session(cassandra)
 sync_table(structure.Org)
 sync_table(structure.Project)
+sync_table(tests.TestSuite)
+sync_table(tests.TestSuiteRun)
+sync_table(tests.TestCaseRun)
 
 
 class ProjectInfo(BaseModel):

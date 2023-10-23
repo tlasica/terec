@@ -3,11 +3,10 @@ import os
 import pytest
 
 from cassandra.cluster import Session
-from cassandra.cqlengine import connection
-from cassandra.cqlengine.management import sync_table
 
 from terec.database import cassandra_session
 from terec.model import structure
+from terec.model.util import cqlengine_init
 
 
 @pytest.fixture(scope="session")
@@ -37,7 +36,15 @@ def cassandra(docker_services) -> Session:
 
 
 @pytest.fixture(scope="session")
-def cassandra_model(cassandra) -> Session:
-    connection.set_session(cassandra)
-    sync_table(structure.Org)
-    sync_table(structure.Project)
+def cassandra_model(cassandra: Session) -> Session:
+    cqlengine_init(cassandra)
+    return cassandra
+
+
+@pytest.fixture(scope="session")
+def test_project(cassandra_model) -> structure.Project:
+    org = structure.Org.create(
+        name="MyOrg", full_name="My Organisation", url="http://my.org"
+    )
+    prj = structure.Project.create(org_name=org.name, prj_name="TestProject")
+    return prj
