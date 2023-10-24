@@ -48,7 +48,7 @@ def get_project_suites(org_name: str, prj_name: str) -> list[TestSuiteInfo]:
 
 
 @router.get("/org/{org_name}/projects/{prj_name}/suites/{suite_name}")
-def get_project_suites(org_name: str, prj_name: str, suite_name: str) -> TestSuiteInfo:
+def get_project_suite(org_name: str, prj_name: str, suite_name: str) -> TestSuiteInfo:
     get_org_or_raise(org_name)
     ret = TestSuite.objects(org_name=org_name, prj_name=prj_name, suite_name=suite_name)
     assert len(ret) <= 1
@@ -64,7 +64,7 @@ def create_suite(org_name: str, body: TestSuiteInfo) -> TestSuiteInfo:
     return TestSuite.create(**params)
 
 
-@router.post("org/{org_name}/runs")
+@router.post("/org/{org_name}/runs")
 def create_suite_run(org_name: str, body: TestSuiteRunInfo) -> None:
     # validate
     org = get_org_or_raise(org_name)

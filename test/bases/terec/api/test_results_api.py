@@ -1,14 +1,21 @@
 import json
 
+import faker.generator
 from faker import Faker
 from fastapi.testclient import TestClient
 from terec.api.core import create_app
 from terec.api.routers.results import TestSuiteInfo
 from terec.model.projects import Org, Project
+from terec.model.results import TestSuite, TestSuiteRun
 
 
 def not_none(d: dict) -> dict:
     return {k: v for k, v in d.items() if v is not None}
+
+
+def expect_error_404(api_client: TestClient, url: str) -> None:
+    response = api_client.get(url)
+    assert response.status_code == 404
 
 
 class TestResultsSuitesApi:
@@ -16,13 +23,9 @@ class TestResultsSuitesApi:
     api_app = create_app()
     api_client = TestClient(api_app)
 
-    def _expect_404(self, uri):
-        response = self.api_client.get(uri)
-        assert response.status_code == 404
-
     def test_should_raise_for_not_existing_org(self, cassandra_model) -> None:
-        self._expect_404("/org/not-existing/suites")
-        self._expect_404("/org/not-existing/projects/a/suites")
+        expect_error_404(self.api_client, "/org/not-existing/suites")
+        expect_error_404(self.api_client, "/org/not-existing/projects/a/suites")
 
     def test_create_suite_in_org(self, cassandra_model):
         # given an organization
@@ -55,34 +58,56 @@ class TestResultsSuitesApi:
         TestSuiteInfo.model_validate_json(json.dumps(ret))
         return ret
 
-    # def test_get_all_org_projects(self, cassandra_model) -> None:
-    #     org = Org.create(name=self.fake.company())
-    #     response = self.api_client.get(f"/org/{org.name}/projects")
-    #     assert response.is_success
-    #     assert response.json() == []
-    #     prj_a = {
-    #         "org_name": org.name,
-    #         "prj_name": "a",
-    #         "full_name": "Project A",
-    #         "description":  "descr"
-    #     }
-    #     prj_b = {
-    #         "org_name": org.name,
-    #         "prj_name": "b",
-    #         "full_name": "Project B",
-    #         "url": "http://project.b.org"
-    #     }
-    #     Project.create(**prj_a)
-    #     Project.create(**prj_b)
-    #     response = self.api_client.get(f"/org/{org.name}/projects")
-    #     assert response.is_success
-    #     assert len(response.json()) == 2
-    #     a = [x for x in response.json() if x["prj_name"] == "a"][0]
-    #     b = [x for x in response.json() if x["prj_name"] == "b"][0]
-    #     assert not_none(a) == not_none(prj_a)
-    #     assert not_none(b) == not_none(prj_b)
-    #
-    #
-    #
-    #
-    #
+
+class TestSuiteRunsApi:
+    fake = Faker()
+    api_app = create_app()
+    api_client = TestClient(api_app)
+
+    def test_should_create_run_and_suite_if_not_exists(self):
+        org = Org.create(name=self.fake.company())
+        new_prj = self.fake.user_name()
+        suite_run = self._random_suite_run(org.name, new_prj, "ci", run_id=7)
+        response = self.api_client.post(f"/org/{org.name}/runs", content=json.dumps(suite_run))
+        assert response.status_code == 200, response.text
+        # then the suit is created
+        suite = TestSuite.objects(org_name=org.name, prj_name=new_prj, suite_name="ci")
+        assert len(suite) == 1
+        # and the run is created as well
+        runs = TestSuiteRun.objects(org_name=org.name, prj_name=new_prj, suite_name="ci")
+        assert len(runs) == 1
+        assert runs[0].run_id == 7, f"Expected run with id 7 but got: {runs[0]}"
+
+    def test_should_create_runs_in_existing_suite(self):
+        # given an existing suite
+        org = Org.create(name=self.fake.company())
+        prj = Project.create(org_name=org.name, prj_name=self.fake.user_name())
+        TestSuite.create(org_name=org.name, prj_name=self.fake.user_name(), suite_name="ci")
+        # when we add some test suite runs
+        for run_id in range(1, 6):
+            suite_run = self._random_suite_run(org.name, prj.prj_name, "ci", run_id=run_id)
+            response = self.api_client.post(f"/org/{org.name}/runs", content=json.dumps(suite_run))
+            assert response.status_code == 200, response.text
+        # then they can be found in the db in run_id decreasing order
+        runs = TestSuiteRun.objects(org_name=org.name, prj_name=prj.prj_name, suite_name="ci")
+        assert len(runs) == 5
+        assert [x.run_id for x in runs] == [5, 4, 3, 2, 1]
+
+    # TODO: we need to add and test get methods
+
+    def _random_suite_run(self, org_name: str, prj_name:str, suite_name: str, run_id: int) -> dict:
+        run = {
+            "org_name": org_name,
+            "prj_name": prj_name,
+            "suite_name": suite_name,
+            "run_id": run_id,
+            "tstamp": str(self.fake.date_time_this_month()),
+            "branch": "main",
+            "commit": self.fake.md5(),
+            "url": self.fake.url(),
+            "passed_tests": self.fake.random.randint(10, 100),
+            "failed_tests": self.fake.random.randint(1, 10),
+            "skipped_tests": self.fake.random.randint(1, 10),
+            "duration_sec": self.fake.random.randint(60, 120)
+        }
+        return run
