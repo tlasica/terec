@@ -2,6 +2,13 @@
 
 `poetry run pytest` should be enough to run full test suite.
 
+`poetry run pytest --keepalive` will run the tests and keep docker compose up.
+
+### Troubleshooting
+
+1. If port 9042 is used stop docker `docker kill pytest-terec-cassandra-1` or run `docker ps` and kill test containers.
+2. In case of the `cqlengine` sync failure run `cqlsh` and `DROP KEYSPACE terec` to cleanup schema.
+
 ### Integration Tests
 
 Integration tests required docker containers for example for the database.
