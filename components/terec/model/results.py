@@ -17,7 +17,7 @@ class TestSuite(Model):
     url = columns.Text()
 
     def __str__(self):
-        return f"{self.org_id}::{self.prj_id}::{self.suite_name}"
+        return f"{self.org_name}::{self.prj_name}::{self.suite_name}"
 
 
 class TestSuiteRun(Model):
@@ -42,7 +42,7 @@ class TestSuiteRun(Model):
     duration_sec = columns.Integer()
 
     def test_suite_str(self) -> str:
-        return f"{self.org_id}::{self.prj_id}::{self.suite_name}"
+        return f"{self.org_name}::{self.prj_name}::{self.suite_name}"
 
     def __str__(self):
         return f"{self.test_suite_str()}::{self.run_id}"
@@ -55,10 +55,11 @@ class TestCaseRun(Model):
     suite_name = columns.Text(partition_key=True)
     run_id = columns.Integer(partition_key=True)
     package = columns.Text(primary_key=True, clustering_order="ASC")
-    suite = columns.Text(primary_key=True, clustering_order="ASC")
+    test_suite = columns.Text(primary_key=True, clustering_order="ASC")
     test_case = columns.Text(primary_key=True, clustering_order="ASC")
     test_config = columns.Text(primary_key=True, clustering_order="ASC")
     result = columns.Text(required=True)
+    test_group = columns.Text()
     tstamp = columns.DateTime()
     duration_sec = columns.Integer()
     std_out = columns.Text()
@@ -66,10 +67,12 @@ class TestCaseRun(Model):
     stack_trace = columns.Text()
 
     def test_suite_str(self) -> str:
-        return f""
+        return f"{self.org_name}::{self.prj_name}::{self.suite_name}"
 
     def test_case_str(self) -> str:
-        return f""
+        case = f"{self.package}::{self.test_suite}::{self.test_case}"
+        case += f"::{self.test_config}" if self.test_config else ""
+        return f"{self.test_suite_str()}::{case}"
 
     def __str__(self):
         return ""
