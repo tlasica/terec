@@ -12,7 +12,6 @@ def not_none(d: dict) -> dict:
 
 
 class TestResultsSuitesApi:
-
     fake = Faker()
     api_app = create_app()
     api_client = TestClient(api_app)
@@ -31,7 +30,9 @@ class TestResultsSuitesApi:
         # when 3 suites in project a and 2 in project b are created
         for p in ["a", "b", "a", "a", "b"]:
             suite = self._random_suite(org.name, p)
-            response = self.api_client.post(url=f"/org/{org.name}/suites", content=json.dumps(suite))
+            response = self.api_client.post(
+                url=f"/org/{org.name}/suites", content=json.dumps(suite)
+            )
             assert response.status_code == 200, response.text
         # then we can retrieve them
         self._expect_get_to_return_n(url=f"/org/{org.name}/suites", n=5)
@@ -48,12 +49,11 @@ class TestResultsSuitesApi:
             "org_name": org_name,
             "prj_name": prj_name,
             "suite_name": self.fake.word(),
-            "url": self.fake.url()
+            "url": self.fake.url(),
         }
         TestSuiteInfo.model_validate(ret)
         TestSuiteInfo.model_validate_json(json.dumps(ret))
         return ret
-
 
     # def test_get_all_org_projects(self, cassandra_model) -> None:
     #     org = Org.create(name=self.fake.company())

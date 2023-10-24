@@ -17,7 +17,13 @@ def pytest_addoption(parser):
     Add the --keepalive option for pytest.
     """
 
-    parser.addoption("--keepalive", "-K", action="store_true", default=False, help="Keep Docker containers alive")
+    parser.addoption(
+        "--keepalive",
+        "-K",
+        action="store_true",
+        default=False,
+        help="Keep Docker containers alive",
+    )
 
 
 @pytest.fixture(scope="session")

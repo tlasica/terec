@@ -9,7 +9,6 @@ def not_none(d: dict) -> dict:
 
 
 class TestGetOrgProjectsApi:
-
     fake = Faker()
     api_app = create_app()
     api_client = TestClient(api_app)
@@ -27,13 +26,13 @@ class TestGetOrgProjectsApi:
             "org_name": org.name,
             "prj_name": "a",
             "full_name": "Project A",
-            "description":  "descr"
+            "description": "descr",
         }
         prj_b = {
             "org_name": org.name,
             "prj_name": "b",
             "full_name": "Project B",
-            "url": "http://project.b.org"
+            "url": "http://project.b.org",
         }
         Project.create(**prj_a)
         Project.create(**prj_b)
@@ -44,8 +43,3 @@ class TestGetOrgProjectsApi:
         b = [x for x in response.json() if x["prj_name"] == "b"][0]
         assert not_none(a) == not_none(prj_a)
         assert not_none(b) == not_none(prj_b)
-
-
-
-
-

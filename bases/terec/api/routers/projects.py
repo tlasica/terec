@@ -37,6 +37,8 @@ def create_project(org_name: str, project_info: ProjectInfo) -> ProjectInfo:
     """
     get_org_or_raise(org_name)
     project_info.org_name = project_info.org_name or org_name
-    assert project_info.org_name == org_name, "org name in body does not match the one in path"
+    assert (
+        project_info.org_name == org_name
+    ), "org name in body does not match the one in path"
     params = project_info.model_dump(exclude_none=True)
     return Project.create(**params)

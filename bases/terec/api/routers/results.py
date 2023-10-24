@@ -12,7 +12,6 @@ router = APIRouter()
 
 
 class TestSuiteInfo(BaseModel):
-
     __test__ = False
     org_name: str
     prj_name: str
@@ -21,7 +20,6 @@ class TestSuiteInfo(BaseModel):
 
 
 class TestSuiteRunInfo(BaseModel):
-
     __test__ = False
     org_name: str
     prj_name: str
