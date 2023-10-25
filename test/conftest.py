@@ -84,7 +84,7 @@ def cassandra(docker_services) -> Session:
     docker_services.wait_until_responsive(
         timeout=120.0, pause=3.0, check=lambda: is_cassandra_responsive()
     )
-    return cassandra_session()
+    return cassandra_session(drop_keyspace=True)
 
 
 @pytest.fixture(scope="session")

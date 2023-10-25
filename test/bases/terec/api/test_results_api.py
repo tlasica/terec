@@ -1,11 +1,12 @@
 import json
+from unittest import SkipTest
 
 from faker import Faker
 from fastapi.testclient import TestClient
 from terec.api.core import create_app
 from terec.api.routers.results import TestSuiteInfo
 from terec.model.projects import Org, Project
-from terec.model.results import TestSuite, TestSuiteRun
+from terec.model.results import TestSuite, TestSuiteRun, TestSuiteRunStatus
 
 
 def not_none(d: dict) -> dict:
@@ -17,7 +18,7 @@ def expect_error_404(api_client: TestClient, url: str) -> None:
     assert response.status_code == 404
 
 
-class TestResultsSuitesApi:
+class TestResultsSuitesAPI:
     fake = Faker()
     api_app = create_app()
     api_client = TestClient(api_app)
@@ -58,7 +59,7 @@ class TestResultsSuitesApi:
         return ret
 
 
-class TestSuiteRunsApi:
+class TestSuiteRunsAPI:
     fake = Faker()
     api_app = create_app()
     api_client = TestClient(api_app)
@@ -107,6 +108,17 @@ class TestSuiteRunsApi:
             "passed_tests": self.fake.random.randint(10, 100),
             "failed_tests": self.fake.random.randint(1, 10),
             "skipped_tests": self.fake.random.randint(1, 10),
-            "duration_sec": self.fake.random.randint(60, 120)
+            "duration_sec": self.fake.random.randint(60, 120),
+            "status": self.fake.random.choice([s.value for s in TestSuiteRunStatus])
         }
         return run
+
+
+class TestIgnoreSuiteRunAPI:
+
+    def test_ignore_suite_run(self, cassandra_model, test_project):
+        # create suite run
+        # should not be ignored by default
+        # mark it ignored and check it is indeed
+        # remove ignored status and check it is not ignored
+        raise SkipTest("ignore api not implemented")

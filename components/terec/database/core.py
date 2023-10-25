@@ -34,11 +34,14 @@ def cassandra_cluster() -> Cluster:
     return Cluster(**options)
 
 
-def cassandra_session() -> Session:
+def cassandra_session(drop_keyspace: bool = False) -> Session:
     """
     Return connection to the database with keyspace created if not exists
+    TODO: keyspace management should be moved outside
     """
     session = cassandra_cluster().connect()
+    if drop_keyspace:
+        session.execute(f"DROP KEYSPACE IF EXISTS {CASSANDRA_KEYSPACE};")
     replication_strategy = {
         "class": "SimpleStrategy",
         "replication_factor": 1,  # Adjust replication factor as needed

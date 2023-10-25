@@ -1,3 +1,5 @@
+from enum import Enum
+
 from cassandra.cqlengine import columns
 from cassandra.cqlengine.models import Model
 
@@ -20,6 +22,15 @@ class TestSuite(Model):
         return f"{self.org}::{self.project}::{self.suite}"
 
 
+class TestSuiteRunStatus(str, Enum):
+
+    __test__ = False
+    SUCCESS = "SUCCESS",    # full success, all tests passed
+    FAILURE = "FAILURE",    # some tests failed
+    ERROR = "ERROR"         # some error hit, not sure if we can analyze results
+    IN_PROGRESS = "IN_PROGRESS"
+
+
 class TestSuiteRun(Model):
     """
     TestSuiteRun is a certain run of certain suite, for example CI build no 57 of branch B of project P.
@@ -40,12 +51,23 @@ class TestSuiteRun(Model):
     failed_tests = columns.Integer()
     skipped_tests = columns.Integer()
     duration_sec = columns.Integer()
+    status = columns.Text()                     # CI-provided status of the run
+    ignore = columns.Boolean(default=False)     # if this suite result should be ignored by terec, even if imported
+    ignore_details = columns.Text()             # why it should be ignored, user-provided
 
     def test_suite_str(self) -> str:
-        return f"{self.org_name}::{self.prj_name}::{self.suite_name}"
+        return f"{self.org}::{self.project}::{self.suite}"
 
     def __str__(self):
         return f"{self.test_suite_str()}::{self.run_id}"
+
+
+class TestCaseRunStatus(str, Enum):
+
+    __test__ = False
+    PASS = "PASS",
+    FAIL = "FAIL",
+    SKIP = "SKIP"
 
 
 class TestCaseRun(Model):
@@ -66,6 +88,7 @@ class TestCaseRun(Model):
     stderr = columns.Text()
     error_stacktrace = columns.Text()
     error_details = columns.Text()
+    skip_details = columns.Text()
 
     def test_suite_str(self) -> str:
         return f"{self.org}::{self.project}::{self.suite}"

@@ -4,7 +4,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 
 from terec.api.routers.util import get_org_or_raise
-from terec.model.results import TestSuite, TestSuiteRun
+from terec.model.results import TestSuite, TestSuiteRun, TestCaseRunStatus, TestSuiteRunStatus
 
 router = APIRouter()
 
@@ -33,6 +33,24 @@ class TestSuiteRunInfo(BaseModel):
     failed_tests: int | None = None
     skipped_tests: int | None = None
     duration_sec: int | None = None
+    status: TestSuiteRunStatus
+    ignore: bool = False
+    ignore_details: str | None = None
+
+
+class TestCaseRunInfo(BaseModel):
+    test_package: str
+    test_suite: str
+    test_case: str
+    test_config: str
+    result: TestCaseRunStatus
+    test_group: str | None = None
+    tstamp: datetime.datetime
+    duration_ms: int | None = None
+    stdout: str | None = None
+    stderr: str | None = None
+    error_stacktrace: str | None = None
+    error_details: str | None = None
 
 
 @router.get("/org/{org_name}/suites")
@@ -76,4 +94,6 @@ def create_suite_run(org_name: str, body: TestSuiteRunInfo) -> None:
     TestSuite.create(**suite_params)
     # create run
     run_params = body.model_dump(exclude_none=True)
+    if "status" in run_params:
+        run_params["status"] = run_params["status"].value
     TestSuiteRun.create(**run_params)
