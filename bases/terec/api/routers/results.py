@@ -29,9 +29,10 @@ class TestSuiteRunInfo(BaseModel):
     url: str | None = None
     branch: str | None = None
     commit: str | None = None
-    passed_tests: int | None = None
-    failed_tests: int | None = None
-    skipped_tests: int | None = None
+    pass_count: int | None = None
+    fail_count: int | None = None
+    skip_count: int | None = None
+    total_count: int | None = None
     duration_sec: int | None = None
     status: TestSuiteRunStatus
     ignore: bool = False
