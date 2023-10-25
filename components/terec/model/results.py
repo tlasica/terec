@@ -11,13 +11,13 @@ class TestSuite(Model):
     """
 
     __test__ = False
-    org_name = columns.Text(partition_key=True)
-    prj_name = columns.Text(primary_key=True, clustering_order="ASC")
-    suite_name = columns.Text(primary_key=True, clustering_order="ASC")
+    org = columns.Text(partition_key=True)
+    project = columns.Text(primary_key=True, clustering_order="ASC")
+    suite = columns.Text(primary_key=True, clustering_order="ASC")
     url = columns.Text()
 
     def __str__(self):
-        return f"{self.org_name}::{self.prj_name}::{self.suite_name}"
+        return f"{self.org}::{self.project}::{self.suite}"
 
 
 class TestSuiteRun(Model):
@@ -28,9 +28,9 @@ class TestSuiteRun(Model):
     """
 
     __test__ = False
-    org_name = columns.Text(partition_key=True)
-    prj_name = columns.Text(partition_key=True)
-    suite_name = columns.Text(partition_key=True)
+    org = columns.Text(partition_key=True)
+    project = columns.Text(partition_key=True)
+    suite = columns.Text(partition_key=True)
     run_id = columns.Integer(primary_key=True, clustering_order="DESC")
     tstamp = columns.DateTime()
     branch = columns.Text()
@@ -50,27 +50,28 @@ class TestSuiteRun(Model):
 
 class TestCaseRun(Model):
     __test__ = False
-    org_name = columns.Text(partition_key=True)
-    prj_name = columns.Text(partition_key=True)
-    suite_name = columns.Text(partition_key=True)
+    org = columns.Text(partition_key=True)
+    project = columns.Text(partition_key=True)
+    suite = columns.Text(partition_key=True)
     run_id = columns.Integer(partition_key=True)
-    package = columns.Text(primary_key=True, clustering_order="ASC")
+    test_package = columns.Text(primary_key=True, clustering_order="ASC")
     test_suite = columns.Text(primary_key=True, clustering_order="ASC")
     test_case = columns.Text(primary_key=True, clustering_order="ASC")
     test_config = columns.Text(primary_key=True, clustering_order="ASC")
-    result = columns.Text(required=True)
+    result = columns.Text(required=True)    # PASSed, FAILed, SKIPped
     test_group = columns.Text()
     tstamp = columns.DateTime()
-    duration_sec = columns.Integer()
-    std_out = columns.Text()
-    std_err = columns.Text()
-    stack_trace = columns.Text()
+    duration_ms = columns.Integer()
+    stdout = columns.Text()
+    stderr = columns.Text()
+    error_stacktrace = columns.Text()
+    error_details = columns.Text()
 
     def test_suite_str(self) -> str:
-        return f"{self.org_name}::{self.prj_name}::{self.suite_name}"
+        return f"{self.org}::{self.project}::{self.suite}"
 
     def test_case_str(self) -> str:
-        case = f"{self.package}::{self.test_suite}::{self.test_case}"
+        case = f"{self.test_package}::{self.test_suite}::{self.test_case}"
         case += f"::{self.test_config}" if self.test_config else ""
         return f"{self.test_suite_str()}::{case}"
 

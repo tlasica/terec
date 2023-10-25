@@ -23,14 +23,14 @@ class TestGetOrgProjectsApi:
         assert response.is_success
         assert response.json() == []
         prj_a = {
-            "org_name": org.name,
-            "prj_name": "a",
+            "org": org.name,
+            "name": "a",
             "full_name": "Project A",
             "description": "descr",
         }
         prj_b = {
-            "org_name": org.name,
-            "prj_name": "b",
+            "org": org.name,
+            "name": "b",
             "full_name": "Project B",
             "url": "http://project.b.org",
         }
@@ -39,7 +39,7 @@ class TestGetOrgProjectsApi:
         response = self.api_client.get(f"/org/{org.name}/projects")
         assert response.is_success
         assert len(response.json()) == 2
-        a = [x for x in response.json() if x["prj_name"] == "a"][0]
-        b = [x for x in response.json() if x["prj_name"] == "b"][0]
+        a = [x for x in response.json() if x["name"] == "a"][0]
+        b = [x for x in response.json() if x["name"] == "b"][0]
         assert not_none(a) == not_none(prj_a)
         assert not_none(b) == not_none(prj_b)

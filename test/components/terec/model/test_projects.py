@@ -33,14 +33,14 @@ def test_create_projects_in_org(cassandra_model):
     org_name = fake.company()
     prj_name = fake.domain_word()
     Org.create(name=org_name, full_name="My Org", url="https://my.org/")
-    Project.create(org_name=org_name, prj_name=prj_name, full_name="My Project")
+    Project.create(org=org_name, name=prj_name, full_name="My Project")
     for i in range(0, 10):
-        Project.create(org_name=org_name, prj_name=fake.company())
+        Project.create(org=org_name, name=fake.company())
     # when projects in org are searched then it has all inserted
-    projects = Project.objects(org_name=org_name)
+    projects = Project.objects(org=org_name)
     assert projects.count() == 11
     # when certain project is searched by name then it is found
-    my_project = Project.objects(org_name=org_name, prj_name=prj_name)
+    my_project = Project.objects(org=org_name, name=prj_name)
     assert my_project.count() == 1
     my_project = my_project[0]
     assert my_project.full_name == "My Project"

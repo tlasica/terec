@@ -25,8 +25,8 @@ class Project(Model):
     It can also have a PerformanceTests or maybe DeploymentTests.
     """
 
-    org_name = columns.Text(primary_key=True)
-    prj_name = columns.Text(primary_key=True, clustering_order="ASC")
+    org = columns.Text(primary_key=True)
+    name = columns.Text(primary_key=True, clustering_order="ASC")
     full_name = columns.Text()
     description = columns.Text()
     url = columns.Text()

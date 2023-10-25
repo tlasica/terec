@@ -1,5 +1,8 @@
 import logging
+import math
 import os
+import time
+
 import pytest
 
 from cassandra.cluster import Session
@@ -92,6 +95,7 @@ def cassandra_model(cassandra: Session) -> Session:
 
 @pytest.fixture(scope="session")
 def test_project(cassandra_model) -> Project:
-    org = Org.create(name="MyOrg", full_name="My Organisation", url="http://my.org")
-    prj = Project.create(org_name=org.name, prj_name="TestProject")
+    org_name = f"org-{math.floor(time.time())}"
+    org = Org.create(name=org_name, full_name="My Organisation", url="http://my.org")
+    prj = Project.create(org=org.name, name="TestProject")
     return prj

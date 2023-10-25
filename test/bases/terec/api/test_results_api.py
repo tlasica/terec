@@ -1,6 +1,5 @@
 import json
 
-import faker.generator
 from faker import Faker
 from fastapi.testclient import TestClient
 from terec.api.core import create_app
@@ -49,9 +48,9 @@ class TestResultsSuitesApi:
 
     def _random_suite(self, org_name: str, prj_name: str) -> dict:
         ret = {
-            "org_name": org_name,
-            "prj_name": prj_name,
-            "suite_name": self.fake.word(),
+            "org": org_name,
+            "project": prj_name,
+            "suite": self.fake.word(),
             "url": self.fake.url(),
         }
         TestSuiteInfo.model_validate(ret)
@@ -71,25 +70,25 @@ class TestSuiteRunsApi:
         response = self.api_client.post(f"/org/{org.name}/runs", content=json.dumps(suite_run))
         assert response.status_code == 200, response.text
         # then the suit is created
-        suite = TestSuite.objects(org_name=org.name, prj_name=new_prj, suite_name="ci")
+        suite = TestSuite.objects(org=org.name, project=new_prj, suite="ci")
         assert len(suite) == 1
         # and the run is created as well
-        runs = TestSuiteRun.objects(org_name=org.name, prj_name=new_prj, suite_name="ci")
+        runs = TestSuiteRun.objects(org=org.name, project=new_prj, suite="ci")
         assert len(runs) == 1
         assert runs[0].run_id == 7, f"Expected run with id 7 but got: {runs[0]}"
 
     def test_should_create_runs_in_existing_suite(self):
         # given an existing suite
         org = Org.create(name=self.fake.company())
-        prj = Project.create(org_name=org.name, prj_name=self.fake.user_name())
-        TestSuite.create(org_name=org.name, prj_name=self.fake.user_name(), suite_name="ci")
+        prj = Project.create(org=org.name, name=self.fake.user_name())
+        TestSuite.create(org=org.name, project=self.fake.user_name(), suite="ci")
         # when we add some test suite runs
         for run_id in range(1, 6):
-            suite_run = self._random_suite_run(org.name, prj.prj_name, "ci", run_id=run_id)
+            suite_run = self._random_suite_run(org.name, prj.name, "ci", run_id=run_id)
             response = self.api_client.post(f"/org/{org.name}/runs", content=json.dumps(suite_run))
             assert response.status_code == 200, response.text
         # then they can be found in the db in run_id decreasing order
-        runs = TestSuiteRun.objects(org_name=org.name, prj_name=prj.prj_name, suite_name="ci")
+        runs = TestSuiteRun.objects(org=org.name, project=prj.name, suite="ci")
         assert len(runs) == 5
         assert [x.run_id for x in runs] == [5, 4, 3, 2, 1]
 
@@ -97,9 +96,9 @@ class TestSuiteRunsApi:
 
     def _random_suite_run(self, org_name: str, prj_name:str, suite_name: str, run_id: int) -> dict:
         run = {
-            "org_name": org_name,
-            "prj_name": prj_name,
-            "suite_name": suite_name,
+            "org": org_name,
+            "project": prj_name,
+            "suite": suite_name,
             "run_id": run_id,
             "tstamp": str(self.fake.date_time_this_month()),
             "branch": "main",

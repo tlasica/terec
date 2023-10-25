@@ -10,30 +10,30 @@ def test_get_test_suites_for_project(cassandra_model, test_project):
     suite_names = ["fast-ci", "full-ci"]
     for name in suite_names:
         TestSuite.create(
-            org_name=test_project.org_name,
-            prj_name=test_project.prj_name,
-            suite_name=name,
+            org=test_project.org,
+            project=test_project.name,
+            suite=name,
         )
     suites = TestSuite.objects(
-        org_name=test_project.org_name, prj_name=test_project.prj_name
+        org=test_project.org, project=test_project.name
     )
     assert len(suites) == 2
-    assert suites[0].suite_name == suite_names[0]
-    assert suites[1].suite_name == suite_names[1]
+    assert suites[0].suite == suite_names[0]
+    assert suites[1].suite == suite_names[1]
 
 
 def test_get_test_suites_for_org(cassandra_model, test_project):
     suite_names = ["fast-ci", "full-ci"]
     for name in suite_names:
         TestSuite.create(
-            org_name=test_project.org_name,
-            prj_name=test_project.prj_name,
-            suite_name=name,
+            org=test_project.org,
+            project=test_project.name,
+            suite=name,
         )
-    suites = TestSuite.objects(org_name=test_project.org_name)
+    suites = TestSuite.objects(org=test_project.org)
     assert len(suites) == 2
-    assert suites[0].suite_name == suite_names[0]
-    assert suites[1].suite_name == suite_names[1]
+    assert suites[0].suite == suite_names[0]
+    assert suites[1].suite == suite_names[1]
 
 
 def test_create_test_suite_without_name_should_fail(cassandra_model, test_project):
@@ -41,9 +41,9 @@ def test_create_test_suite_without_name_should_fail(cassandra_model, test_projec
 
     with pytest.raises(InvalidRequest):
         TestSuite.create(
-            org_name=test_project.org_name,
-            prj_name=test_project.prj_name,
-            suite_name=None,
+            org=test_project.org,
+            project=test_project.name,
+            suite=None,
         )
 
 
@@ -53,10 +53,10 @@ def test_create_test_suite_twice_should_override(cassandra_model, test_project):
     suite_name = fake.vin()
     for i in range(2):
         TestSuite.create(
-            org_name=org_name,
-            prj_name=prj_name,
-            suite_name=suite_name,
+            org=org_name,
+            project=prj_name,
+            suite=suite_name,
         )
-    suites = TestSuite.objects(org_name=org_name)
+    suites = TestSuite.objects(org=org_name)
     assert len(suites) == 1
-    assert suites[0].suite_name == suite_name
+    assert suites[0].suite == suite_name

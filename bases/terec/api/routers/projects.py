@@ -9,8 +9,8 @@ router = APIRouter()
 
 
 class ProjectInfo(BaseModel):
-    org_name: str
-    prj_name: str
+    org: str
+    name: str
     full_name: str | None = None
     description: str | None = None
     url: str | None = None
@@ -23,7 +23,7 @@ def get_all_org_projects(org_name: str) -> list[ProjectInfo]:
     If the organisation does not exist it throws exception.
     """
     get_org_or_raise(org_name)
-    projects = Project.objects(org_name=org_name)
+    projects = Project.objects(org=org_name)
     res = [ProjectInfo(**model_to_dict(p)) for p in projects]
     return res
 
@@ -36,9 +36,7 @@ def create_project(org_name: str, project_info: ProjectInfo) -> ProjectInfo:
     TODO: this makes it impossible to set some fields to None
     """
     get_org_or_raise(org_name)
-    project_info.org_name = project_info.org_name or org_name
-    assert (
-        project_info.org_name == org_name
-    ), "org name in body does not match the one in path"
+    project_info.org = project_info.org or org_name
+    assert project_info.org == org_name, "org name in body does not match the one in path"
     params = project_info.model_dump(exclude_none=True)
     return Project.create(**params)

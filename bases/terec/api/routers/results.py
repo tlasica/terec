@@ -13,17 +13,17 @@ router = APIRouter()
 
 class TestSuiteInfo(BaseModel):
     __test__ = False
-    org_name: str
-    prj_name: str
-    suite_name: str
+    org: str
+    project: str
+    suite: str
     url: str | None = None
 
 
 class TestSuiteRunInfo(BaseModel):
     __test__ = False
-    org_name: str
-    prj_name: str
-    suite_name: str
+    org: str
+    project: str
+    suite: str
     run_id: int
     tstamp: datetime.datetime
     url: str | None = None
@@ -38,19 +38,19 @@ class TestSuiteRunInfo(BaseModel):
 @router.get("/org/{org_name}/suites")
 def get_org_suites(org_name: str) -> list[TestSuiteInfo]:
     get_org_or_raise(org_name)
-    return TestSuite.objects(org_name=org_name)
+    return TestSuite.objects(org=org_name)
 
 
-@router.get("/org/{org_name}/projects/{prj_name}/suites")
-def get_project_suites(org_name: str, prj_name: str) -> list[TestSuiteInfo]:
+@router.get("/org/{org_name}/projects/{project_name}/suites")
+def get_project_suites(org_name: str, project_name: str) -> list[TestSuiteInfo]:
     get_org_or_raise(org_name)
-    return TestSuite.objects(org_name=org_name, prj_name=prj_name)
+    return TestSuite.objects(org=org_name, project=project_name)
 
 
-@router.get("/org/{org_name}/projects/{prj_name}/suites/{suite_name}")
-def get_project_suite(org_name: str, prj_name: str, suite_name: str) -> TestSuiteInfo:
+@router.get("/org/{org_name}/projects/{project_name}/suites/{suite_name}")
+def get_project_suite(org_name: str, project_name: str, suite_name: str) -> TestSuiteInfo:
     get_org_or_raise(org_name)
-    ret = TestSuite.objects(org_name=org_name, prj_name=prj_name, suite_name=suite_name)
+    ret = TestSuite.objects(org=org_name, project=project_name, suite=suite_name)
     assert len(ret) <= 1
     return ret[0] if ret else None
 
@@ -58,8 +58,8 @@ def get_project_suite(org_name: str, prj_name: str, suite_name: str) -> TestSuit
 @router.post("/org/{org_name}/suites")
 def create_suite(org_name: str, body: TestSuiteInfo) -> TestSuiteInfo:
     org = get_org_or_raise(org_name)
-    body.org_name = body.org_name or org.name
-    assert body.org_name == org_name, "org name in body does not match the one in path"
+    body.org = body.org or org.name
+    assert body.org == org_name, "org name in body does not match the one in path"
     params = body.model_dump(exclude_none=True)
     return TestSuite.create(**params)
 
@@ -68,10 +68,10 @@ def create_suite(org_name: str, body: TestSuiteInfo) -> TestSuiteInfo:
 def create_suite_run(org_name: str, body: TestSuiteRunInfo) -> None:
     # validate
     org = get_org_or_raise(org_name)
-    body.org_name = body.org_name or org.name
-    assert body.org_name == org_name, "org name in body does not match the one in path"
+    body.org = body.org or org.name
+    assert body.org == org_name, "org name in body does not match the one in path"
     # create or update suite
-    suite_columns = {"org_name", "prj_name", "suite_name"}
+    suite_columns = {"org", "project", "suite"}
     suite_params = body.model_dump(include=suite_columns, exclude_none=True)
     TestSuite.create(**suite_params)
     # create run
