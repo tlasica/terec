@@ -68,7 +68,9 @@ class TestSuiteRunsAPI:
         org = Org.create(name=self.fake.company())
         new_prj = self.fake.user_name()
         suite_run = self._random_suite_run(org.name, new_prj, "ci", run_id=7)
-        response = self.api_client.post(f"/org/{org.name}/runs", content=json.dumps(suite_run))
+        response = self.api_client.post(
+            f"/org/{org.name}/runs", content=json.dumps(suite_run)
+        )
         assert response.status_code == 200, response.text
         # then the suit is created
         suite = TestSuite.objects(org=org.name, project=new_prj, suite="ci")
@@ -86,7 +88,9 @@ class TestSuiteRunsAPI:
         # when we add some test suite runs
         for run_id in range(1, 6):
             suite_run = self._random_suite_run(org.name, prj.name, "ci", run_id=run_id)
-            response = self.api_client.post(f"/org/{org.name}/runs", content=json.dumps(suite_run))
+            response = self.api_client.post(
+                f"/org/{org.name}/runs", content=json.dumps(suite_run)
+            )
             assert response.status_code == 200, response.text
         # then they can be found in the db in run_id decreasing order
         runs = TestSuiteRun.objects(org=org.name, project=prj.name, suite="ci")
@@ -95,7 +99,9 @@ class TestSuiteRunsAPI:
 
     # TODO: we need to add and test get methods
 
-    def _random_suite_run(self, org_name: str, prj_name:str, suite_name: str, run_id: int) -> dict:
+    def _random_suite_run(
+        self, org_name: str, prj_name: str, suite_name: str, run_id: int
+    ) -> dict:
         run = {
             "org": org_name,
             "project": prj_name,
@@ -109,13 +115,12 @@ class TestSuiteRunsAPI:
             "failed_tests": self.fake.random.randint(1, 10),
             "skipped_tests": self.fake.random.randint(1, 10),
             "duration_sec": self.fake.random.randint(60, 120),
-            "status": self.fake.random.choice([s.value for s in TestSuiteRunStatus])
+            "status": self.fake.random.choice([s.value for s in TestSuiteRunStatus]),
         }
         return run
 
 
 class TestIgnoreSuiteRunAPI:
-
     def test_ignore_suite_run(self, cassandra_model, test_project):
         # create suite run
         # should not be ignored by default

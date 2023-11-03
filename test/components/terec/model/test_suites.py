@@ -14,9 +14,7 @@ def test_get_test_suites_for_project(cassandra_model, test_project):
             project=test_project.name,
             suite=name,
         )
-    suites = TestSuite.objects(
-        org=test_project.org, project=test_project.name
-    )
+    suites = TestSuite.objects(org=test_project.org, project=test_project.name)
     assert len(suites) == 2
     assert suites[0].suite == suite_names[0]
     assert suites[1].suite == suite_names[1]

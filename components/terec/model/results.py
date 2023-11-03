@@ -23,11 +23,10 @@ class TestSuite(Model):
 
 
 class TestSuiteRunStatus(str, Enum):
-
     __test__ = False
-    SUCCESS = "SUCCESS",    # full success, all tests passed
-    FAILURE = "FAILURE",    # some tests failed
-    ERROR = "ERROR"         # some error hit, not sure if we can analyze results
+    SUCCESS = ("SUCCESS",)  # full success, all tests passed
+    FAILURE = ("FAILURE",)  # some tests failed
+    ERROR = "ERROR"  # some error hit, not sure if we can analyze results
     IN_PROGRESS = "IN_PROGRESS"
 
 
@@ -51,9 +50,11 @@ class TestSuiteRun(Model):
     failed_tests = columns.Integer()
     skipped_tests = columns.Integer()
     duration_sec = columns.Integer()
-    status = columns.Text()                     # CI-provided status of the run
-    ignore = columns.Boolean(default=False)     # if this suite result should be ignored by terec, even if imported
-    ignore_details = columns.Text()             # why it should be ignored, user-provided
+    status = columns.Text()  # CI-provided status of the run
+    ignore = columns.Boolean(
+        default=False
+    )  # if this suite result should be ignored by terec, even if imported
+    ignore_details = columns.Text()  # why it should be ignored, user-provided
 
     def test_suite_str(self) -> str:
         return f"{self.org}::{self.project}::{self.suite}"
@@ -63,10 +64,9 @@ class TestSuiteRun(Model):
 
 
 class TestCaseRunStatus(str, Enum):
-
     __test__ = False
-    PASS = "PASS",
-    FAIL = "FAIL",
+    PASS = ("PASS",)
+    FAIL = ("FAIL",)
     SKIP = "SKIP"
 
 
@@ -80,7 +80,7 @@ class TestCaseRun(Model):
     test_suite = columns.Text(primary_key=True, clustering_order="ASC")
     test_case = columns.Text(primary_key=True, clustering_order="ASC")
     test_config = columns.Text(primary_key=True, clustering_order="ASC")
-    result = columns.Text(required=True)    # PASSed, FAILed, SKIPped
+    result = columns.Text(required=True)  # PASSed, FAILed, SKIPped
     test_group = columns.Text()
     tstamp = columns.DateTime()
     duration_ms = columns.Integer()

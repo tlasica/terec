@@ -18,14 +18,18 @@ BUILD_RESULT_TO_STATUS = {
 }
 
 
-def build_status(result:str) -> TestSuiteRunStatus:
+def build_status(result: str) -> TestSuiteRunStatus:
     ci_status = result.upper()
     assert ci_status in BUILD_RESULT_TO_STATUS
     return BUILD_RESULT_TO_STATUS[ci_status]
 
 
-def build_info_to_suite_run(org: str, project: str, suite: str, build: dict) -> TestSuiteRunInfo:
-    assert build["_class"] == WORKFLOW_RUN_CLASS, f"Build class {build['_class']} is not supported: only {WORKFLOW_RUN_CLASS} is supported."
+def build_info_to_suite_run(
+    org: str, project: str, suite: str, build: dict
+) -> TestSuiteRunInfo:
+    assert (
+        build["_class"] == WORKFLOW_RUN_CLASS
+    ), f"Build class {build['_class']} is not supported: only {WORKFLOW_RUN_CLASS} is supported."
 
     run = {
         "org": org,
@@ -38,7 +42,7 @@ def build_info_to_suite_run(org: str, project: str, suite: str, build: dict) -> 
         "status": build_status(build["result"]),
     }
 
-    extras = {x["_class"]: x for x in build['actions'] if x and '_class' in x}
+    extras = {x["_class"]: x for x in build["actions"] if x and "_class" in x}
 
     if "hudson.tasks.junit.TestResultAction" in extras:
         results = extras["hudson.tasks.junit.TestResultAction"]
@@ -48,7 +52,9 @@ def build_info_to_suite_run(org: str, project: str, suite: str, build: dict) -> 
         run["pass_count"] = run["total_count"] - run["skip_count"] - run["fail_count"]
 
     if "hudson.plugins.git.util.BuildData" in extras:
-        branch_info = extras["hudson.plugins.git.util.BuildData"]["lastBuiltRevision"]["branch"][0]
+        branch_info = extras["hudson.plugins.git.util.BuildData"]["lastBuiltRevision"][
+            "branch"
+        ][0]
         run["branch"] = branch_info["name"]
         run["commit"] = branch_info["SHA1"]
 

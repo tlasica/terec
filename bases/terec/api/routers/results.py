@@ -4,7 +4,12 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 
 from terec.api.routers.util import get_org_or_raise
-from terec.model.results import TestSuite, TestSuiteRun, TestCaseRunStatus, TestSuiteRunStatus
+from terec.model.results import (
+    TestSuite,
+    TestSuiteRun,
+    TestCaseRunStatus,
+    TestSuiteRunStatus,
+)
 
 router = APIRouter()
 
@@ -67,7 +72,9 @@ def get_project_suites(org_name: str, project_name: str) -> list[TestSuiteInfo]:
 
 
 @router.get("/org/{org_name}/projects/{project_name}/suites/{suite_name}")
-def get_project_suite(org_name: str, project_name: str, suite_name: str) -> TestSuiteInfo:
+def get_project_suite(
+    org_name: str, project_name: str, suite_name: str
+) -> TestSuiteInfo:
     get_org_or_raise(org_name)
     ret = TestSuite.objects(org=org_name, project=project_name, suite=suite_name)
     assert len(ret) <= 1
