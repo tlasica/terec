@@ -96,12 +96,22 @@ class TestSuiteRunsAPI:
         runs = TestSuiteRun.objects(org=org.name, project=prj.name, suite="ci")
         assert len(runs) == 5
         assert [x.run_id for x in runs] == [5, 4, 3, 2, 1]
+        # and have fields set
+        suite_run: TestSuiteRun = runs[0]
+        assert suite_run.pass_count is not None
+        assert suite_run.fail_count is not None
+        assert suite_run.skip_count is not None
+        assert suite_run.total_count is not None
+
 
     # TODO: we need to add and test get methods
 
     def _random_suite_run(
         self, org_name: str, prj_name: str, suite_name: str, run_id: int
     ) -> dict:
+        pass_count = self.fake.random.randint(10, 100)
+        skip_count = self.fake.random.randint(1, 10)
+        fail_count = self.fake.random.randint(1, 10)
         run = {
             "org": org_name,
             "project": prj_name,
@@ -111,9 +121,10 @@ class TestSuiteRunsAPI:
             "branch": "main",
             "commit": self.fake.md5(),
             "url": self.fake.url(),
-            "passed_tests": self.fake.random.randint(10, 100),
-            "failed_tests": self.fake.random.randint(1, 10),
-            "skipped_tests": self.fake.random.randint(1, 10),
+            "pass_count": pass_count,
+            "fail_count": fail_count,
+            "skip_count": skip_count,
+            "total_count": pass_count + skip_count + fail_count,
             "duration_sec": self.fake.random.randint(60, 120),
             "status": self.fake.random.choice([s.value for s in TestSuiteRunStatus]),
         }

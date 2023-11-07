@@ -24,7 +24,7 @@ def build_status(result: str) -> TestSuiteRunStatus:
     return BUILD_RESULT_TO_STATUS[ci_status]
 
 
-def build_info_to_suite_run(
+def parse_jenkins_build_info(
     org: str, project: str, suite: str, build: dict
 ) -> TestSuiteRunInfo:
     assert (

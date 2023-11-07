@@ -46,9 +46,10 @@ class TestSuiteRun(Model):
     branch = columns.Text()
     commit = columns.Text()
     url = columns.Text()
-    passed_tests = columns.Integer()
-    failed_tests = columns.Integer()
-    skipped_tests = columns.Integer()
+    pass_count = columns.Integer()
+    fail_count = columns.Integer()
+    skip_count = columns.Integer()
+    total_count = columns.Integer()
     duration_sec = columns.Integer()
     status = columns.Text()  # CI-provided status of the run
     ignore = columns.Boolean(
@@ -61,6 +62,12 @@ class TestSuiteRun(Model):
 
     def __str__(self):
         return f"{self.test_suite_str()}::{self.run_id}"
+
+    def total_tests(self) -> int:
+        if self.total_count is not None:
+            return int(self.total_count)
+        else:
+            return int(self.skip_count) + int(self.fail_count) + int(self.pass_count)
 
 
 class TestCaseRunStatus(str, Enum):

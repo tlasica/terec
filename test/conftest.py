@@ -93,7 +93,7 @@ def cassandra_model(cassandra: Session) -> Session:
     return cassandra
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="class")
 def test_project(cassandra_model) -> Project:
     org_name = f"org-{math.floor(time.time())}"
     org = Org.create(name=org_name, full_name="My Organisation", url="http://my.org")

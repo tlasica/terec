@@ -4,7 +4,7 @@ from terec.api.routers.results import TestCaseRunInfo
 from terec.model.results import TestCaseRunStatus
 
 
-def parse_report_suite(suite: dict) -> list[TestCaseRunInfo]:
+def parse_jenkins_report_suite(suite: dict) -> list[TestCaseRunInfo]:
     """
     Translates jenkins test result suite into list of TestCaseRunInfo objects.
     Note: config is set to provided after "-" or to # if not provided.

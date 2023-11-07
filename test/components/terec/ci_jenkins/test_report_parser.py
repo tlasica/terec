@@ -1,7 +1,7 @@
 from _pytest.fixtures import fixture
 
 from terec.api.routers.results import TestCaseRunInfo
-from terec.ci_jenkins.report_parser import split_fq_class_name, split_case_name_with_config, parse_report_suite
+from terec.ci_jenkins.report_parser import split_fq_class_name, split_case_name_with_config, parse_jenkins_report_suite
 from terec.model.results import TestCaseRunStatus
 from .sample_data.build_test_report import sample_build_test_report_suite
 
@@ -25,7 +25,7 @@ class TestParseReportSuite:
     @fixture(scope="session")
     def suite_info(self) -> dict[str: TestCaseRunInfo]:
         suite_info = {}
-        for s in parse_report_suite(sample_build_test_report_suite()):
+        for s in parse_jenkins_report_suite(sample_build_test_report_suite()):
             key = f"{s.test_case}/{s.test_config}"
             suite_info[key] = s
         return suite_info
