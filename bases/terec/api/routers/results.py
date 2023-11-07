@@ -57,6 +57,7 @@ class TestCaseRunInfo(BaseModel):
     stderr: str | None = None
     error_stacktrace: str | None = None
     error_details: str | None = None
+    skip_details: str | None = None
 
 
 @router.get("/org/{org_name}/suites")
