@@ -1,17 +1,20 @@
 import datetime
+import logging
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from terec.api.routers.util import get_org_or_raise
+from terec.api.routers.util import get_org_or_raise, get_org_project_or_raise, get_test_suite_or_raise, \
+    get_test_suite_run_or_raise
 from terec.model.results import (
     TestSuite,
     TestSuiteRun,
     TestCaseRunStatus,
-    TestSuiteRunStatus,
+    TestSuiteRunStatus, TestCaseRun,
 )
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 # TODO: shall we reflect modes or maybe instead keep only owned fields and then compose?
 
@@ -45,6 +48,7 @@ class TestSuiteRunInfo(BaseModel):
 
 
 class TestCaseRunInfo(BaseModel):
+    __test__ = False
     test_package: str
     test_suite: str
     test_case: str
@@ -106,3 +110,29 @@ def create_suite_run(org_name: str, body: TestSuiteRunInfo) -> None:
     if "status" in run_params:
         run_params["status"] = run_params["status"].value
     TestSuiteRun.create(**run_params)
+
+
+@router.post("/org/{org_name}/project/{prj_name}/suite/{suite_name}/run/{run_id}/tests")
+def add_suite_run_tests(org_name: str, prj_name: str, suite_name: str, run_id: int, body: list[TestCaseRunInfo]) -> None:
+    # empty list is not accepted
+    if not body:
+        raise HTTPException(
+            status_code=400, detail="Empty list of test results to be imported."
+        )
+    # validate org/project/suite exists
+    get_org_or_raise(org_name)
+    get_org_project_or_raise(org_name, prj_name)
+    get_test_suite_or_raise(org_name, prj_name, suite_name)
+    get_test_suite_run_or_raise(org_name, prj_name, suite_name, run_id)
+    # add test cases
+    for test in body:
+        attrs = test.model_dump()
+        attrs["result"] = attrs["result"].value
+        attrs["org"] = org_name
+        attrs["project"] = prj_name
+        attrs["suite"] = suite_name
+        attrs["run_id"] = run_id
+        TestCaseRun.create(**attrs)
+    # log information about import
+    logger.info(f"{len(body)} test case results added to run {org_name}/{prj_name}/{suite_name}/{run_id}")
+

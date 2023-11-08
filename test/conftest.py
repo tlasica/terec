@@ -9,6 +9,7 @@ from cassandra.cluster import Session
 
 from terec.database import cassandra_session
 from terec.model.projects import Org, Project
+from terec.model.results import TestSuiteRun, TestSuite
 from terec.model.util import cqlengine_init
 
 # This is to add --keepalive flag when running pytests so that we do not start docker again
@@ -99,3 +100,17 @@ def test_project(cassandra_model) -> Project:
     org = Org.create(name=org_name, full_name="My Organisation", url="http://my.org")
     prj = Project.create(org=org.name, name="TestProject")
     return prj
+
+
+@pytest.fixture
+def test_suite(test_project) -> TestSuite:
+    suite_name = f"suite-{math.floor(time.time())}"
+    suite = TestSuite.create(org=test_project.org, project=test_project.name, suite=suite_name)
+    return suite
+
+
+@pytest.fixture
+def test_suite_run(test_suite) -> TestSuiteRun:
+    run_id = math.floor(time.time())
+    run = TestSuiteRun.create(org=test_suite.org, project=test_suite.project, suite=test_suite.suite, run_id=run_id)
+    return run
