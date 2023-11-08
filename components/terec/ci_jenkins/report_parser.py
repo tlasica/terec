@@ -26,14 +26,16 @@ def parse_jenkins_report_suite(suite: dict) -> list[TestCaseRunInfo]:
             "test_case": test_name,
             "test_config": test_config,
             "result": case_run_status(case["status"]),
-            "test_group": None,     # should be decided later
+            "test_group": None,  # should be decided later
             "tstamp": tstamp,
-            "duration_ms": float(case["duration"]) * 1000 if "duration" in case else None,
+            "duration_ms": float(case["duration"]) * 1000
+            if "duration" in case
+            else None,
             "stdout": case.get("stdout", None),
             "stderr": case.get("stderr", None),
             "error_stacktrace": case.get("errorStackTrace", None),
             "error_details": case.get("errorDetails", None),
-            "skip_details": case.get("skippedMessage", None)
+            "skip_details": case.get("skippedMessage", None),
         }
         ret.append(TestCaseRunInfo(**case_info))
         names[test_name] = 1 + names.get(test_name, 0)
@@ -47,7 +49,7 @@ def split_fq_class_name(fq_class_name: str) -> tuple[str | None, str]:
     """
     if "." in fq_class_name:
         i = fq_class_name.rfind(".")
-        return fq_class_name[:i], fq_class_name[i+1:]
+        return fq_class_name[:i], fq_class_name[i + 1 :]
     else:
         return None, fq_class_name
 
@@ -59,7 +61,7 @@ def split_case_name_with_config(name: str) -> tuple[str, str | None]:
     """
     if "-" in name:
         i = name.find("-")
-        return name[:i], name[i+1:]
+        return name[:i], name[i + 1 :]
     else:
         return name, None
 
@@ -73,4 +75,3 @@ def case_run_status(status: str) -> TestCaseRunStatus:
         return TestCaseRunStatus.SKIP
     else:
         assert False, f"Unknown test case status: {status}"
-

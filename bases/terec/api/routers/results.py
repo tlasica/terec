@@ -4,13 +4,18 @@ import logging
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from terec.api.routers.util import get_org_or_raise, get_org_project_or_raise, get_test_suite_or_raise, \
-    get_test_suite_run_or_raise
+from terec.api.routers.util import (
+    get_org_or_raise,
+    get_org_project_or_raise,
+    get_test_suite_or_raise,
+    get_test_suite_run_or_raise,
+)
 from terec.model.results import (
     TestSuite,
     TestSuiteRun,
     TestCaseRunStatus,
-    TestSuiteRunStatus, TestCaseRun,
+    TestSuiteRunStatus,
+    TestCaseRun,
 )
 
 router = APIRouter()
@@ -113,7 +118,13 @@ def create_suite_run(org_name: str, body: TestSuiteRunInfo) -> None:
 
 
 @router.post("/org/{org_name}/project/{prj_name}/suite/{suite_name}/run/{run_id}/tests")
-def add_suite_run_tests(org_name: str, prj_name: str, suite_name: str, run_id: int, body: list[TestCaseRunInfo]) -> None:
+def add_suite_run_tests(
+    org_name: str,
+    prj_name: str,
+    suite_name: str,
+    run_id: int,
+    body: list[TestCaseRunInfo],
+) -> None:
     # empty list is not accepted
     if not body:
         raise HTTPException(
@@ -134,5 +145,6 @@ def add_suite_run_tests(org_name: str, prj_name: str, suite_name: str, run_id: i
         attrs["run_id"] = run_id
         TestCaseRun.create(**attrs)
     # log information about import
-    logger.info(f"{len(body)} test case results added to run {org_name}/{prj_name}/{suite_name}/{run_id}")
-
+    logger.info(
+        f"{len(body)} test case results added to run {org_name}/{prj_name}/{suite_name}/{run_id}"
+    )

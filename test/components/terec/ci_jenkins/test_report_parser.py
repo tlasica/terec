@@ -1,7 +1,11 @@
 from _pytest.fixtures import fixture
 
 from terec.api.routers.results import TestCaseRunInfo
-from terec.ci_jenkins.report_parser import split_fq_class_name, split_case_name_with_config, parse_jenkins_report_suite
+from terec.ci_jenkins.report_parser import (
+    split_fq_class_name,
+    split_case_name_with_config,
+    parse_jenkins_report_suite,
+)
 from terec.model.results import TestCaseRunStatus
 from .sample_data.build_test_report import sample_build_test_report_suite
 
@@ -10,7 +14,9 @@ def test_split_fq_class_name():
     assert (None, "Clazz") == split_fq_class_name("Clazz")
     assert ("a", "Clazz") == split_fq_class_name("a.Clazz")
     assert ("org.example", "Clazz") == split_fq_class_name("org.example.Clazz")
-    assert ("org.example", "Clazz-config") == split_fq_class_name("org.example.Clazz-config")
+    assert ("org.example", "Clazz-config") == split_fq_class_name(
+        "org.example.Clazz-config"
+    )
 
 
 def test_split_case_name_with_config():
@@ -21,9 +27,8 @@ def test_split_case_name_with_config():
 
 
 class TestParseReportSuite:
-
     @fixture(scope="session")
-    def suite_info(self) -> dict[str: TestCaseRunInfo]:
+    def suite_info(self) -> dict[str:TestCaseRunInfo]:
         suite_info = {}
         for s in parse_jenkins_report_suite(sample_build_test_report_suite()):
             key = f"{s.test_case}/{s.test_config}"
@@ -32,7 +37,9 @@ class TestParseReportSuite:
 
     def test_parser_should_find_all_items(self, suite_info):
         expected_len = len([x for x in sample_build_test_report_suite()["cases"]])
-        assert len(suite_info) == expected_len, f"Expected {expected_len} cases but got: {suite_info.keys()}"
+        assert (
+            len(suite_info) == expected_len
+        ), f"Expected {expected_len} cases but got: {suite_info.keys()}"
 
     def test_parser_should_handle_skipped_case(self, suite_info):
         test = suite_info.get("skipped_test/#", None)
@@ -51,6 +58,7 @@ class TestParseReportSuite:
 
     def test_parser_should_set_timestamp(self, suite_info):
         import datetime
+
         for case in suite_info.values():
             assert case.tstamp is not None
             assert case.tstamp == datetime.datetime(2023, 10, 26, 14, 1, 50)

@@ -19,7 +19,9 @@ def random_test_suite_info(org_name: str, prj_name: str) -> TestSuiteInfo:
     return TestSuiteInfo(**ret)
 
 
-def random_test_suite_run_info(org_name: str, prj_name: str, suite_name: str, run_id: int) -> TestSuiteRunInfo:
+def random_test_suite_run_info(
+    org_name: str, prj_name: str, suite_name: str, run_id: int
+) -> TestSuiteRunInfo:
     pass_count = fake.random.randint(10, 100)
     skip_count = fake.random.randint(1, 10)
     fail_count = fake.random.randint(1, 10)
@@ -42,7 +44,9 @@ def random_test_suite_run_info(org_name: str, prj_name: str, suite_name: str, ru
     return TestSuiteRunInfo(**run)
 
 
-def random_test_case_run_info(pkg: str = None, suite: str = None, result: str = None) -> TestCaseRunInfo:
+def random_test_case_run_info(
+    pkg: str = None, suite: str = None, result: str = None
+) -> TestCaseRunInfo:
     run = {
         "test_package": pkg or "org.example",
         "test_suite": suite or f"Test{fake.word().capitalize()}",

@@ -27,9 +27,13 @@ class TestJenkinsImport:
         # when parsed and inserted via api call
         org = test_project.org
         suite = "cassandra-3.11-ci"
-        runs_in_db = TestSuiteRun.objects(org=org, project=test_project.name, suite=suite)
+        runs_in_db = TestSuiteRun.objects(
+            org=org, project=test_project.name, suite=suite
+        )
         assert len(runs_in_db) == 0
-        build_info = parse_jenkins_build_info(org=org, project=test_project.name, suite=suite, build=ci_build_info)
+        build_info = parse_jenkins_build_info(
+            org=org, project=test_project.name, suite=suite, build=ci_build_info
+        )
         build_info_d = build_info.model_dump(exclude_none=True)
         build_info_d["tstamp"] = str(build_info_d["tstamp"])
         response = self.api_client.post(
@@ -37,7 +41,9 @@ class TestJenkinsImport:
         )
         # then it should be persisted in the database
         assert response.is_success, response.text
-        runs_in_db = TestSuiteRun.objects(org=org, project=test_project.name, suite=suite)
+        runs_in_db = TestSuiteRun.objects(
+            org=org, project=test_project.name, suite=suite
+        )
         assert len(runs_in_db) == 1
 
     def test_should_import_test_runs(self, cassandra_model, test_project):
@@ -47,9 +53,13 @@ class TestJenkinsImport:
         # when parsed and inserted via api call
         org = test_project.org
         suite = "cassandra-3.11-fastci"
-        runs_in_db = TestSuiteRun.objects(org=org, project=test_project.name, suite=suite)
+        runs_in_db = TestSuiteRun.objects(
+            org=org, project=test_project.name, suite=suite
+        )
         assert len(runs_in_db) == 0
-        build_info = parse_jenkins_build_info(org=org, project=test_project.name, suite=suite, build=ci_build_info)
+        build_info = parse_jenkins_build_info(
+            org=org, project=test_project.name, suite=suite, build=ci_build_info
+        )
         build_info_d = build_info.model_dump(exclude_none=True)
         build_info_d["tstamp"] = str(build_info_d["tstamp"])
         response = self.api_client.post(
@@ -59,6 +69,8 @@ class TestJenkinsImport:
 
         # then it should be persisted in the database
         assert response.is_success, response.text
-        runs_in_db = TestSuiteRun.objects(org=org, project=test_project.name, suite=suite)
+        runs_in_db = TestSuiteRun.objects(
+            org=org, project=test_project.name, suite=suite
+        )
         assert len(runs_in_db) == 1
         pass

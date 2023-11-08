@@ -6,7 +6,11 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
 
 from terec.api.routers.results import TestCaseRunInfo
-from .random_data import random_test_suite_info, random_test_suite_run_info, random_test_case_run_info
+from .random_data import (
+    random_test_suite_info,
+    random_test_suite_run_info,
+    random_test_case_run_info,
+)
 from terec.api.core import create_app
 from terec.model.projects import Org, Project
 from terec.model.results import TestSuite, TestSuiteRun, TestCaseRun
@@ -95,12 +99,10 @@ class TestSuiteRunsAPI:
         assert suite_run.skip_count is not None
         assert suite_run.total_count is not None
 
-
     # TODO: we need to add and test get methods
 
 
 class TestCaseResultsAPI:
-
     fake = Faker()
     api_app = create_app()
     api_client = TestClient(api_app)
@@ -109,43 +111,78 @@ class TestCaseResultsAPI:
         url = f"/org/{org}/project/{prj}/suite/{suite}/run/{run}/tests"
         return self.api_client.post(url, content=body)
 
-    def test_should_fail_for_empty_list_of_tests(self, cassandra_model, test_project, test_suite_run):
-        resp = self.post_test_results(test_project.org, test_project.name, test_suite_run.suite, test_suite_run.run_id, "[]")
+    def test_should_fail_for_empty_list_of_tests(
+        self, cassandra_model, test_project, test_suite_run
+    ):
+        resp = self.post_test_results(
+            test_project.org,
+            test_project.name,
+            test_suite_run.suite,
+            test_suite_run.run_id,
+            "[]",
+        )
         assert 400 == resp.status_code, resp.text
 
     def test_should_fail_for_non_existing_org(self, cassandra_model):
         body = jsonable_encoder([random_test_case_run_info()], exclude_none=True)
-        resp = self.post_test_results("non-existing-org", "p", "suite", 3, json.dumps(body))
+        resp = self.post_test_results(
+            "non-existing-org", "p", "suite", 3, json.dumps(body)
+        )
         assert 404 == resp.status_code, resp.text
         assert "Org not found" in resp.text
 
     def test_should_fail_for_non_existing_project(self, cassandra_model, test_project):
         body = jsonable_encoder([random_test_case_run_info()], exclude_none=True)
-        resp = self.post_test_results(test_project.org, "non-existing-project", "suite", 3, json.dumps(body))
+        resp = self.post_test_results(
+            test_project.org, "non-existing-project", "suite", 3, json.dumps(body)
+        )
         assert 404 == resp.status_code, resp.text
         assert "Project not found" in resp.text
 
     def test_should_fail_for_non_existing_suite(self, cassandra_model, test_project):
         body = jsonable_encoder([random_test_case_run_info()], exclude_none=True)
-        resp = self.post_test_results(test_project.org, test_project.name, "non-existing-suite", 3, json.dumps(body))
+        resp = self.post_test_results(
+            test_project.org,
+            test_project.name,
+            "non-existing-suite",
+            3,
+            json.dumps(body),
+        )
         assert 404 == resp.status_code, resp.text
         assert "Suite not found" in resp.text
 
-    def test_should_fail_for_non_existing_suite_run(self, cassandra_model, test_project, test_suite):
+    def test_should_fail_for_non_existing_suite_run(
+        self, cassandra_model, test_project, test_suite
+    ):
         body = jsonable_encoder([random_test_case_run_info()], exclude_none=True)
-        resp = self.post_test_results(test_project.org, test_project.name, test_suite.suite, 1, json.dumps(body))
+        resp = self.post_test_results(
+            test_project.org, test_project.name, test_suite.suite, 1, json.dumps(body)
+        )
         assert 404 == resp.status_code, resp.text
         assert "Suite run not found" in resp.text
 
-    def test_should_write_test_results(self, cassandra_model, test_project, test_suite_run):
+    def test_should_write_test_results(
+        self, cassandra_model, test_project, test_suite_run
+    ):
         # given list of test results in some existing suite run
         tests = [random_test_case_run_info() for _ in range(7)]
         # when it is imported via api call
         body = jsonable_encoder(tests, exclude_none=True)
-        resp = self.post_test_results(test_project.org, test_project.name, test_suite_run.suite, test_suite_run.run_id, json.dumps(body))
+        resp = self.post_test_results(
+            test_project.org,
+            test_project.name,
+            test_suite_run.suite,
+            test_suite_run.run_id,
+            json.dumps(body),
+        )
         assert resp.is_success, resp.text
         # then it is correctly stored in the database
-        loaded = TestCaseRun.objects(org=test_project.org, project=test_project.name, suite=test_suite_run.suite, run_id=test_suite_run.run_id)
+        loaded = TestCaseRun.objects(
+            org=test_project.org,
+            project=test_project.name,
+            suite=test_suite_run.suite,
+            run_id=test_suite_run.run_id,
+        )
         assert len(loaded) == len(tests)
 
 

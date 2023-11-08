@@ -105,12 +105,19 @@ def test_project(cassandra_model) -> Project:
 @pytest.fixture
 def test_suite(test_project) -> TestSuite:
     suite_name = f"suite-{math.floor(time.time())}"
-    suite = TestSuite.create(org=test_project.org, project=test_project.name, suite=suite_name)
+    suite = TestSuite.create(
+        org=test_project.org, project=test_project.name, suite=suite_name
+    )
     return suite
 
 
 @pytest.fixture
 def test_suite_run(test_suite) -> TestSuiteRun:
     run_id = math.floor(time.time())
-    run = TestSuiteRun.create(org=test_suite.org, project=test_suite.project, suite=test_suite.suite, run_id=run_id)
+    run = TestSuiteRun.create(
+        org=test_suite.org,
+        project=test_suite.project,
+        suite=test_suite.suite,
+        run_id=run_id,
+    )
     return run

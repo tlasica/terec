@@ -12,4 +12,3 @@ test_result.keys()
 
 suites = test_result["suites"]
 len(suites)
-
