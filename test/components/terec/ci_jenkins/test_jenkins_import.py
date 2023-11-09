@@ -1,5 +1,6 @@
 import json
 
+from fastapi.encoders import jsonable_encoder
 from starlette.testclient import TestClient
 
 from terec.ci_jenkins.build_info_parser import parse_jenkins_build_info
@@ -24,53 +25,54 @@ class TestJenkinsImport:
     def test_should_import_build(self, cassandra_model, test_project):
         # given some build info json from jenkins
         ci_build_info = sample_build_info()
-        # when parsed and inserted via api call
-        org = test_project.org
+        # when parsed
+        org, project = test_project.org, test_project.name
         suite = "cassandra-3.11-ci"
-        runs_in_db = TestSuiteRun.objects(
-            org=org, project=test_project.name, suite=suite
-        )
-        assert len(runs_in_db) == 0
-        build_info = parse_jenkins_build_info(
-            org=org, project=test_project.name, suite=suite, build=ci_build_info
-        )
-        build_info_d = build_info.model_dump(exclude_none=True)
-        build_info_d["tstamp"] = str(build_info_d["tstamp"])
-        response = self.api_client.post(
-            f"/org/{org}/runs", content=json.dumps(build_info_d)
-        )
+        build_info = parse_jenkins_build_info(org, project, suite, ci_build_info)
+        build_id = build_info.run_id
+        # and inserted via api call
+        self.check_suite_run_doesnt_exist(org, test_project.name, suite, build_id)
+        self.add_test_suite_run(org, build_info)
         # then it should be persisted in the database
-        assert response.is_success, response.text
-        runs_in_db = TestSuiteRun.objects(
-            org=org, project=test_project.name, suite=suite
-        )
-        assert len(runs_in_db) == 1
+        self.check_suite_run_exists(org, test_project.name, suite, build_id)
 
     def test_should_import_test_runs(self, cassandra_model, test_project):
         # given some build info json from jenkins
         ci_build_info = sample_build_info()
         ci_test_report = sample_build_test_report_suite()
-        # when parsed and inserted via api call
-        org = test_project.org
+        # when parsed
+        org, project = test_project.org, test_project.name
         suite = "cassandra-3.11-fastci"
-        runs_in_db = TestSuiteRun.objects(
-            org=org, project=test_project.name, suite=suite
-        )
-        assert len(runs_in_db) == 0
-        build_info = parse_jenkins_build_info(
-            org=org, project=test_project.name, suite=suite, build=ci_build_info
-        )
+        build_info = parse_jenkins_build_info(org, project, suite, ci_build_info)
+        build_id = build_info.run_id
+        test_cases = parse_jenkins_report_suite(ci_test_report)
+        # then it should be inserted via api calls
+        self.add_test_suite_run(org, build_info)
+        self.add_test_results(org, project, suite, build_id, test_cases)
+
+    def add_test_suite_run(self, org: str, build_info):
         build_info_d = build_info.model_dump(exclude_none=True)
         build_info_d["tstamp"] = str(build_info_d["tstamp"])
-        response = self.api_client.post(
-            f"/org/{org}/runs", content=json.dumps(build_info_d)
-        )
-        test_cases = parse_jenkins_report_suite(ci_test_report)
-
-        # then it should be persisted in the database
+        url = f"/org/{org}/runs"
+        response = self.api_client.post(url, content=json.dumps(build_info_d))
         assert response.is_success, response.text
+
+    def add_test_results(
+        self, org: str, project: str, suite: str, run_id: int, test_cases
+    ):
+        data = jsonable_encoder(test_cases, exclude_none=True)
+        url = f"/org/{org}/project/{project}/suite/{suite}/run/{run_id}/tests"
+        response = self.api_client.post(url, content=json.dumps(data))
+        assert response.is_success, response.text
+
+    def check_suite_run_exists(self, org, project, suite, run_id):
         runs_in_db = TestSuiteRun.objects(
-            org=org, project=test_project.name, suite=suite
+            org=org, project=project, suite=suite, run_id=run_id
         )
         assert len(runs_in_db) == 1
-        pass
+
+    def check_suite_run_doesnt_exist(self, org, project, suite, run_id):
+        runs_in_db = TestSuiteRun.objects(
+            org=org, project=project, suite=suite, run_id=run_id
+        )
+        assert len(runs_in_db) == 0
