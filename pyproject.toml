@@ -22,6 +22,7 @@ tenacity = "^8.2.3"
 flake8 = "^6.1.0"
 httpx = "^0.25.0"
 python-jenkins = "^1.8.1"
+codetiming = "^1.4.0"
 
 
 [tool.poetry.group.dev.dependencies]

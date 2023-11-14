@@ -1,9 +1,16 @@
+import logging
+
 from jenkins import Jenkins
 
 from terec.api.routers.results import TestSuiteRunInfo, TestCaseRunInfo
+from terec.ci_jenkins.build_info_parser import parse_jenkins_build_info
+from terec.ci_jenkins.report_parser import parse_jenkins_report_suite
 
 
 class JenkinsServer:
+
+    logger = logging.getLogger(__name__)
+
     def __init__(self, url: str, username: str = None, password: str = None):
         self.url = url
         self.username = username
@@ -11,16 +18,21 @@ class JenkinsServer:
         self.server = None
 
     def connect(self) -> Jenkins:
-        self.server = Jenkins(self.url, self.username, self.password)
+        if not self.server:
+            self.logger.info(f"Connecting to Jenkins CI server at {self.url}")
+            self.server = Jenkins(self.url, self.username, self.password)
         return self.server
 
     def server(self) -> Jenkins:
         return self.server
 
     def suite_run_for_build(self, job_name: str, build_num: int) -> TestSuiteRunInfo:
-        return None
+        j = self.connect()
+        build_info = j.get_build_info(name=job_name, number=build_num)
+        return parse_jenkins_build_info("org", "project", "suite", build_info)
 
-    def suite_test_runs_for_build(
-        self, job_name: str, build_num: int
-    ) -> list[TestCaseRunInfo]:
-        return []
+    def suite_test_runs_for_build(self, job_name: str, build_num: int) -> list[TestCaseRunInfo]:
+        j = self.connect()
+        test_report = j.get_build_test_report(name=job_name, number=build_num)
+        for suite in test_report["suites"]:
+            yield parse_jenkins_report_suite(suite)
