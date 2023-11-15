@@ -5,7 +5,6 @@ from faker import Faker
 from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
 
-from terec.api.routers.results import TestCaseRunInfo
 from .random_data import (
     random_test_suite_info,
     random_test_suite_run_info,
