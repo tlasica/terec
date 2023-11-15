@@ -14,7 +14,7 @@ def parse_jenkins_report_suite(suite: dict) -> list[TestCaseRunInfo]:
     """
     ret = []
     names = {}
-    tstamp = datetime.datetime.fromisoformat(suite["timestamp"])
+    tstamp = datetime.datetime.fromisoformat(suite["timestamp"]) if "timestamp" in suite and suite["timestamp"] else None
     for case in suite["cases"]:
         test_package, test_suite = split_fq_class_name(case["className"])
         test_name, test_config = split_case_name_with_config(case["name"])
@@ -28,7 +28,7 @@ def parse_jenkins_report_suite(suite: dict) -> list[TestCaseRunInfo]:
             "result": case_run_status(case["status"]),
             "test_group": None,  # should be decided later
             "tstamp": tstamp,
-            "duration_ms": float(case["duration"]) * 1000
+            "duration_ms": int(float(case["duration"]) * 1000)
             if "duration" in case
             else None,
             "stdout": case.get("stdout", None),
