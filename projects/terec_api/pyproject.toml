@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "terec_api"
 version = "0.1.0"
-description = ""
+description = "Exposes TEREC REST API"
 authors = ['Tomek Lasica <tlasica@life.pl>']
 license = "MIT"
 

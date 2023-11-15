@@ -60,7 +60,7 @@ class TestCaseRunInfo(BaseModel):
     test_config: str
     result: TestCaseRunStatus
     test_group: str | None = None
-    tstamp: datetime.datetime
+    tstamp: datetime.datetime | None = None
     duration_ms: int | None = None
     stdout: str | None = None
     stderr: str | None = None
