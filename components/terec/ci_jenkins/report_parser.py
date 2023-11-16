@@ -4,6 +4,10 @@ from terec.api.routers.results import TestCaseRunInfo
 from terec.model.results import TestCaseRunStatus
 
 
+def str_or_none(d: dict, key: str):
+    return d.get(key, "") or None
+
+
 def parse_jenkins_report_suite(suite: dict) -> list[TestCaseRunInfo]:
     """
     Translates jenkins test result suite into list of TestCaseRunInfo objects.
@@ -31,10 +35,10 @@ def parse_jenkins_report_suite(suite: dict) -> list[TestCaseRunInfo]:
             "duration_ms": int(float(case["duration"]) * 1000)
             if "duration" in case
             else None,
-            "stdout": case.get("stdout", None),
-            "stderr": case.get("stderr", None),
-            "error_stacktrace": case.get("errorStackTrace", None),
-            "error_details": case.get("errorDetails", None),
+            "stdout": str_or_none(case, "stdout"),
+            "stderr": str_or_none(case, "stderr"),
+            "error_stacktrace": str_or_none(case, "errorStackTrace"),
+            "error_details": str_or_none(case, "errorDetails"),
             "skip_details": case.get("skippedMessage", None),
         }
         ret.append(TestCaseRunInfo(**case_info))
