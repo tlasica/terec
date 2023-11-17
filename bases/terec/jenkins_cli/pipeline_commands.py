@@ -45,7 +45,11 @@ def export_build(
 def export_tests(job: str, build: int):
     server = jenkins_server()
     print("[")
+    first_suite = True
     for suite in server.suite_test_runs_for_build(job_name=job, build_num=build):
+        if not first_suite:
+            print(",")
+        first_suite = False
         data = jsonable_encoder(suite, exclude_none=True)
         json_data = json.dumps(data, indent=2)
         print(json_data)
