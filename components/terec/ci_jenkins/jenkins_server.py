@@ -8,7 +8,6 @@ from terec.ci_jenkins.report_parser import parse_jenkins_report_suite
 
 
 class JenkinsServer:
-
     logger = logging.getLogger(__name__)
 
     def __init__(self, url: str, username: str = None, password: str = None):
@@ -31,7 +30,9 @@ class JenkinsServer:
         build_info = j.get_build_info(name=job_name, number=build_num)
         return parse_jenkins_build_info("org", "project", "suite", build_info)
 
-    def suite_test_runs_for_build(self, job_name: str, build_num: int) -> list[TestCaseRunInfo]:
+    def suite_test_runs_for_build(
+        self, job_name: str, build_num: int
+    ) -> list[TestCaseRunInfo]:
         j = self.connect()
         test_report = j.get_build_test_report(name=job_name, number=build_num)
         for suite in test_report["suites"]:

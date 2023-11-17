@@ -25,6 +25,7 @@ python-jenkins = "^1.8.1"
 codetiming = "^1.4.0"
 typer = {extras = ["all"], version = "^0.9.0"}
 click = "^8.1.7"
+pytest-mock = "^3.12.0"
 
 
 [tool.poetry.group.dev.dependencies]
