@@ -1,3 +1,26 @@
+## 2023-11-18
+
+# instead of UI build typer app and deploy in docker
+
+1. because it is for developers
+2. because it is simpler and funny exercise
+3. because it will allow people to easily deploy and customize
+
+# TODO
+
+1. run.sh should create test/test project and org
+2. PUT to add orgs and projects
+3. check if adding suite run fails on non-existing project
+4. GET for suites
+5. GET for runs
+6. GET for orgs
+7. adding tests should be PATCH
+8. check what is the source of branch for export-build
+9. add test mocking jenkins server to return expected json
+10. export-tests should flatten tests into single list, maybe extract logic?
+11. import performance is very low due to no asynchronous loading
+12. can we create a k6 performance benchmark?
+
 ## 2023-10-18
 
 ## how to deliver the UI
