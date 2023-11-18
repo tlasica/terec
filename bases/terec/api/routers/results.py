@@ -117,6 +117,7 @@ def create_suite_run(org_name: str, body: TestSuiteRunInfo) -> None:
     TestSuiteRun.create(**run_params)
 
 
+# TODO: maybe add something like "N test results added or updated"?
 @router.post("/org/{org_name}/project/{prj_name}/suite/{suite_name}/run/{run_id}/tests")
 def add_suite_run_tests(
     org_name: str,

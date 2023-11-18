@@ -12,6 +12,13 @@ def get_org_or_raise(org_name: str) -> Org:
     return org
 
 
+def raise_if_org_exists(org_name: str):
+    assert org_name
+    org = Org.objects(name=org_name)
+    if org:
+        raise HTTPException(status_code=403, detail=f"Org {org_name} already exists.")
+
+
 def get_org_project_or_raise(org_name: str, prj_name: str) -> Project:
     assert org_name
     assert prj_name

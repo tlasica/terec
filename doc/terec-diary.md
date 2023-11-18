@@ -20,6 +20,8 @@
 10. export-tests should flatten tests into single list, maybe extract logic?
 11. import performance is very low due to no asynchronous loading
 12. can we create a k6 performance benchmark?
+13. generate org and project names as alphanum with - or _
+14. check if resource name is valid when creating (org, project)
 
 ## 2023-10-18
 
