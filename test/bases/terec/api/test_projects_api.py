@@ -1,6 +1,5 @@
 import json
 
-import faker.cli
 from faker import Faker
 from fastapi.testclient import TestClient
 from terec.api.core import create_app
@@ -63,7 +62,7 @@ class TestGetOrgProjectsApi:
         assert org_name in orgs_after
 
     def test_create_org_should_fail_if_org_exists(self, cassandra_model):
-        org_name = self.fake.company()
+        org_name = self.fake.domain_word()
         response = self._put_org(org_name)
         assert response.is_success, response.text
         assert response.status_code == 201

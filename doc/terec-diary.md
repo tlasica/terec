@@ -9,12 +9,10 @@
 # TODO
 
 1. run.sh should create test/test project and org
-2. PUT to add orgs and projects
+2. PUT to add project
 3. check if adding suite run fails on non-existing project
 4. GET for suites
 5. GET for runs
-6. GET for orgs
-7. adding tests should be PATCH
 8. check what is the source of branch for export-build
 9. add test mocking jenkins server to return expected json
 10. export-tests should flatten tests into single list, maybe extract logic?
@@ -22,6 +20,15 @@
 12. can we create a k6 performance benchmark?
 13. generate org and project names as alphanum with - or _
 14. check if resource name is valid when creating (org, project)
+
+## Done
+
+* PUT to add org
+* GET for orgs
+* adding tests should be PATCH ? No, POST is fine as we are adding/updating tests
+* 
+
+
 
 ## 2023-10-18
 

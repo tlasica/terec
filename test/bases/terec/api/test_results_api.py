@@ -5,6 +5,7 @@ from faker import Faker
 from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
 
+from conftest import random_name
 from .random_data import (
     random_test_suite_info,
     random_test_suite_run_info,
@@ -59,27 +60,36 @@ class TestSuiteRunsAPI:
     api_app = create_app()
     api_client = TestClient(api_app)
 
+    def test_should_fail_create_on_non_existing_project(self):
+        org = Org.create(name=self.fake.company())
+        project = random_name("non-existing-project")
+        suite_run = random_test_suite_run_info(org.name, project, "ci", run_id=7)
+        response = self.api_client.post(
+            f"/org/{org.name}/runs", content=suite_run.model_dump_json()
+        )
+        assert not response.is_success
+
     def test_should_create_run_and_suite_if_not_exists(self):
         org = Org.create(name=self.fake.company())
-        new_prj = self.fake.user_name()
-        suite_run = random_test_suite_run_info(org.name, new_prj, "ci", run_id=7)
+        prj = Project.create(org=org.name, name=self.fake.domain_word())
+        suite_run = random_test_suite_run_info(org.name, prj.name, "ci", run_id=7)
         response = self.api_client.post(
             f"/org/{org.name}/runs", content=suite_run.model_dump_json()
         )
         assert response.status_code == 200, response.text
-        # then the suit is created
-        suite = TestSuite.objects(org=org.name, project=new_prj, suite="ci")
+        # then the suite is created
+        suite = TestSuite.objects(org=org.name, project=prj.name, suite="ci")
         assert len(suite) == 1
         # and the run is created as well
-        runs = TestSuiteRun.objects(org=org.name, project=new_prj, suite="ci")
+        runs = TestSuiteRun.objects(org=org.name, project=prj.name, suite="ci")
         assert len(runs) == 1
         assert runs[0].run_id == 7, f"Expected run with id 7 but got: {runs[0]}"
 
     def test_should_create_runs_in_existing_suite(self):
         # given an existing suite
-        org = Org.create(name=self.fake.company())
-        prj = Project.create(org=org.name, name=self.fake.user_name())
-        TestSuite.create(org=org.name, project=self.fake.user_name(), suite="ci")
+        org = Org.create(name=self.fake.domain_name())
+        prj = Project.create(org=org.name, name=self.fake.domain_word())
+        TestSuite.create(org=org.name, project=prj.name, suite="ci")
         # when we add some test suite runs
         for run_id in range(1, 6):
             run = random_test_suite_run_info(org.name, prj.name, "ci", run_id=run_id)

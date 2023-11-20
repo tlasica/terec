@@ -96,7 +96,7 @@ def cassandra_model(cassandra: Session) -> Session:
 
 @pytest.fixture(scope="class")
 def test_project(cassandra_model) -> Project:
-    org_name = f"org-{math.floor(time.time())}"
+    org_name = random_name("org")
     org = Org.create(name=org_name, full_name="My Organisation", url="http://my.org")
     prj = Project.create(org=org.name, name="TestProject")
     return prj
@@ -104,7 +104,7 @@ def test_project(cassandra_model) -> Project:
 
 @pytest.fixture
 def test_suite(test_project) -> TestSuite:
-    suite_name = f"suite-{math.floor(time.time())}"
+    suite_name = random_name("suite")
     suite = TestSuite.create(
         org=test_project.org, project=test_project.name, suite=suite_name
     )
@@ -121,3 +121,7 @@ def test_suite_run(test_suite) -> TestSuiteRun:
         run_id=run_id,
     )
     return run
+
+
+def random_name(prefix: str) -> str:
+    return f"{prefix}-{math.floor(time.time())}"

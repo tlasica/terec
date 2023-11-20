@@ -102,10 +102,12 @@ def create_suite(org_name: str, body: TestSuiteInfo) -> TestSuiteInfo:
 
 @router.post("/org/{org_name}/runs")
 def create_suite_run(org_name: str, body: TestSuiteRunInfo) -> None:
-    # validate
+    # validate org
     org = get_org_or_raise(org_name)
     body.org = body.org or org.name
     assert body.org == org_name, "org name in body does not match the one in path"
+    # validate project
+    get_org_project_or_raise(org_name, body.project)
     # create or update suite
     suite_columns = {"org", "project", "suite"}
     suite_params = body.model_dump(include=suite_columns, exclude_none=True)
