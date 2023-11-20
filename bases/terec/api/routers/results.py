@@ -1,6 +1,8 @@
+import asyncio
 import datetime
 import logging
 
+from cassandra.cqlengine.query import BatchQuery, BatchType
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
@@ -139,14 +141,16 @@ def add_suite_run_tests(
     get_test_suite_or_raise(org_name, prj_name, suite_name)
     get_test_suite_run_or_raise(org_name, prj_name, suite_name, run_id)
     # add test cases
-    for test in body:
-        attrs = test.model_dump()
-        attrs["result"] = attrs["result"].value
-        attrs["org"] = org_name
-        attrs["project"] = prj_name
-        attrs["suite"] = suite_name
-        attrs["run_id"] = run_id
-        TestCaseRun.create(**attrs)
+    with BatchQuery(batch_type=BatchType.Unlogged) as batch:
+        now = datetime.datetime.now()
+        for test in body:
+            attrs = test.model_dump()
+            attrs["result"] = attrs["result"].value
+            attrs["org"] = org_name
+            attrs["project"] = prj_name
+            attrs["suite"] = suite_name
+            attrs["run_id"] = run_id
+            TestCaseRun.batch(batch).create(**attrs, create_at=now)
     # log information about import
     logger.info(
         f"{len(body)} test case results added to run {org_name}/{prj_name}/{suite_name}/{run_id}"
