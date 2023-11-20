@@ -1,16 +1,24 @@
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter
+from pydantic import BaseModel, field_validator
 
-from terec.api.routers.util import get_org_or_raise, raise_if_org_exists
+from terec.api.routers.util import get_org_or_raise, raise_if_org_exists, is_valid_terec_name
 from terec.model.projects import Project, Org
 from terec.model.util import model_to_dict
 
 router = APIRouter()
 
+
 class OrgInfo(BaseModel):
     name: str
     full_name: str | None = None
     url: str | None = None
+
+    @field_validator("name", mode="plain")
+    @classmethod
+    def name_must_be_valid(cls, v: str) -> str:
+        if not is_valid_terec_name(v):
+            raise ValueError("Org name should start and end with alnum and contain only {alnum,.,_,-}.")
+        return v
 
 
 class ProjectInfo(BaseModel):
@@ -19,6 +27,13 @@ class ProjectInfo(BaseModel):
     full_name: str | None = None
     description: str | None = None
     url: str | None = None
+
+    @field_validator("name","org", mode="plain")
+    @classmethod
+    def name_must_be_valid(cls, v: str) -> str:
+        if not is_valid_terec_name(v):
+            raise ValueError("Org name should start and end with alnum and contain only {alnum,.,_,-}.")
+        return v
 
 
 @router.get("/org")

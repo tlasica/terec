@@ -4,6 +4,17 @@ from terec.model.projects import Org, Project
 from terec.model.results import TestSuite, TestSuiteRun
 
 
+def is_valid_terec_name(name: str) -> bool:
+    if not name:
+        return False
+    if not name[0].isalnum() or not name[-1].isalnum():
+        return False
+    for c in name[1:-1]:
+        if not c.isalnum() and not c in [".", "_", "-"]:
+            return False
+    return True
+
+
 def get_org_or_raise(org_name: str) -> Org:
     assert org_name
     org = Org.objects(name=org_name)

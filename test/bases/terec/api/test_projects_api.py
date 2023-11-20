@@ -3,7 +3,7 @@ import json
 from faker import Faker
 from fastapi.testclient import TestClient
 from terec.api.core import create_app
-from terec.api.routers.projects import OrgInfo
+from terec.api.routers.projects import OrgInfo, is_valid_terec_name
 from terec.model.projects import Org, Project
 
 
@@ -21,7 +21,7 @@ class TestGetOrgProjectsApi:
         assert response.status_code == 404
 
     def test_get_all_org_projects(self, cassandra_model):
-        org = Org.create(name=self.fake.company())
+        org = Org.create(name=self.fake.domain_name())
         response = self.api_client.get(f"/org/{org.name}/projects")
         assert response.is_success
         assert response.json() == []
@@ -51,7 +51,7 @@ class TestGetOrgProjectsApi:
         # given some set of existing orgs
         orgs_before = [o.name for o in self._get_orgs()]
         # when a new org is created with PUT
-        org_name = self.fake.company()
+        org_name = self.fake.domain_name()
         assert org_name not in orgs_before
         response = self._put_org(org_name)
         assert response.is_success, response.text
@@ -85,3 +85,23 @@ class TestGetOrgProjectsApi:
         for item in response.json():
             res.append(OrgInfo(**item))
         return res
+
+
+def test_valid_org_and_project_names():
+    assert is_valid_terec_name("cassandra")
+    assert is_valid_terec_name("cassandra-3.11")
+    assert is_valid_terec_name("Cassandra-3.11")
+    assert is_valid_terec_name("Ala-ma-kota")
+    assert is_valid_terec_name("Ala13-ma-kota_3_889_x")
+    assert is_valid_terec_name("A")
+    assert is_valid_terec_name("9livesdata")
+    assert not is_valid_terec_name("Ala ma kota")
+    assert not is_valid_terec_name("_Ala")
+    assert not is_valid_terec_name("-Ala")
+    assert not is_valid_terec_name(".Ala")
+    assert not is_valid_terec_name("Ala_")
+    assert not is_valid_terec_name("Ala-")
+    assert not is_valid_terec_name("Ala.")
+    assert not is_valid_terec_name("")
+    assert not is_valid_terec_name("Ala!ma")
+
