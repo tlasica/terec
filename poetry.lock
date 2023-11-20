@@ -981,6 +981,17 @@ files = [
 ]
 
 [[package]]
+name = "more-itertools"
+version = "10.1.0"
+description = "More routines for operating on iterables, beyond itertools"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "more-itertools-10.1.0.tar.gz", hash = "sha256:626c369fa0eb37bac0291bce8259b332fd59ac792fa5497b59837309cd5b114a"},
+    {file = "more_itertools-10.1.0-py3-none-any.whl", hash = "sha256:64e0735fcfdc6f3464ea133afe8ea4483b1c5fe3a3d69852e6503b43a0b222e6"},
+]
+
+[[package]]
 name = "multi-key-dict"
 version = "2.0.3"
 description = "Multi key dictionary implementation"
@@ -2070,4 +2081,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "553ecda2cf28a685bd60cc8c0e7ebc6b58346d5a4fc50d9efa81d03b712d4df6"
+content-hash = "9f840ecbeb8eb68bb7d219b32e559190a88b21cfafef39a5dcce326915fa41f8"

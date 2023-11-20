@@ -2,6 +2,7 @@ import asyncio
 import datetime
 import logging
 
+import more_itertools
 from cassandra.cqlengine.query import BatchQuery, BatchType
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -129,7 +130,7 @@ def add_suite_run_tests(
     suite_name: str,
     run_id: int,
     body: list[TestCaseRunInfo],
-) -> None:
+) -> dict:
     # empty list is not accepted
     if not body:
         raise HTTPException(
@@ -141,17 +142,22 @@ def add_suite_run_tests(
     get_test_suite_or_raise(org_name, prj_name, suite_name)
     get_test_suite_run_or_raise(org_name, prj_name, suite_name, run_id)
     # add test cases
-    with BatchQuery(batch_type=BatchType.Unlogged) as batch:
-        now = datetime.datetime.now()
-        for test in body:
-            attrs = test.model_dump()
-            attrs["result"] = attrs["result"].value
-            attrs["org"] = org_name
-            attrs["project"] = prj_name
-            attrs["suite"] = suite_name
-            attrs["run_id"] = run_id
-            TestCaseRun.batch(batch).create(**attrs, create_at=now)
+    now = datetime.datetime.now()
+    for chunk in more_itertools.sliced(body, 200):
+        with BatchQuery(batch_type=BatchType.Unlogged) as batch:
+            for test in chunk:
+                attrs = test.model_dump()
+                attrs["result"] = attrs["result"].value
+                attrs["org"] = org_name
+                attrs["project"] = prj_name
+                attrs["suite"] = suite_name
+                attrs["run_id"] = run_id
+                TestCaseRun.batch(batch).create(**attrs, create_at=now)
     # log information about import
+    test_results_count = len(body)
     logger.info(
-        f"{len(body)} test case results added to run {org_name}/{prj_name}/{suite_name}/{run_id}"
+        f"{test_results_count} test case results added to run {org_name}/{prj_name}/{suite_name}/{run_id}"
     )
+    return {
+        "test_count": test_results_count,
+    }
