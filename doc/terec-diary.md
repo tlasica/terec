@@ -10,25 +10,23 @@
 
 1. run.sh should create test/test project and org
 2. PUT to add project
-3. check if adding suite run fails on non-existing project
 4. GET for suites
 5. GET for runs
 8. check what is the source of branch for export-build
 9. add test mocking jenkins server to return expected json
-10. export-tests should flatten tests into single list, maybe extract logic?
-11. import performance is very low due to no asynchronous loading
-12. can we create a k6 performance benchmark?
-13. generate org and project names as alphanum with - or _
-14. check if resource name is valid when creating (org, project)
 
 ## Done
 
 * PUT to add org
 * GET for orgs
 * adding tests should be PATCH ? No, POST is fine as we are adding/updating tests
+* check if adding suite run fails on non-existing project
+* export-tests should flatten tests into single list, maybe extract logic?
+* can we create a k6 performance benchmark? NO: at this point we can skip it
+* import performance is very low due to no asynchronous loading FIXED by unlogged batches
+* generate org and project names as alphanum with - or _ FIXED by using fake.domain_name()
+* check if resource name is valid when creating (org, project) FIXED by using pydantic field validators
 * 
-
-
 
 ## 2023-10-18
 
