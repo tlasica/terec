@@ -118,6 +118,7 @@ def test_suite_run(test_suite) -> TestSuiteRun:
         org=test_suite.org,
         project=test_suite.project,
         suite=test_suite.suite,
+        branch="main",
         run_id=run_id,
     )
     return run
