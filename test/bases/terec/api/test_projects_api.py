@@ -17,12 +17,12 @@ class TestGetOrgProjectsApi:
     api_client = TestClient(api_app)
 
     def test_should_raise_for_not_existing_org(self, cassandra_model):
-        response = self.api_client.get("/org/not-existing/projects")
+        response = self.api_client.get("/org/not-existing/project")
         assert response.status_code == 404
 
     def test_get_all_org_projects(self, cassandra_model):
         org = Org.create(name=self.fake.domain_name())
-        response = self.api_client.get(f"/org/{org.name}/projects")
+        response = self.api_client.get(f"/org/{org.name}/project")
         assert response.is_success
         assert response.json() == []
         prj_a = {
@@ -39,7 +39,7 @@ class TestGetOrgProjectsApi:
         }
         Project.create(**prj_a)
         Project.create(**prj_b)
-        response = self.api_client.get(f"/org/{org.name}/projects")
+        response = self.api_client.get(f"/org/{org.name}/project")
         assert response.is_success, response.text
         assert len(response.json()) == 2
         a = [x for x in response.json() if x["name"] == "a"][0]

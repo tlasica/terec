@@ -50,7 +50,7 @@ def create_org(org_info: OrgInfo) -> OrgInfo:
     return Org.create(**params)
 
 
-@router.get("/org/{org_name}/projects")
+@router.get("/org/{org_name}/project")
 def get_all_org_projects(org_name: str) -> list[ProjectInfo]:
     """
     Gets all projects defined for given organisation or empty list.
@@ -62,7 +62,7 @@ def get_all_org_projects(org_name: str) -> list[ProjectInfo]:
     return res
 
 
-@router.put("/org/{org_name}/projects", status_code=201)
+@router.put("/org/{org_name}/project", status_code=201)
 def create_project(org_name: str, project_info: ProjectInfo) -> ProjectInfo:
     """
     Create or update a project.
