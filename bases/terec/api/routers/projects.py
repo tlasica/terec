@@ -13,8 +13,8 @@ class OrgInfo(BaseModel):
     full_name: str | None = None
     url: str | None = None
 
-    @field_validator("name", mode="plain")
     @classmethod
+    @field_validator("name", mode="plain")
     def name_must_be_valid(cls, v: str) -> str:
         if not is_valid_terec_name(v):
             raise ValueError("Org name should start and end with alnum and contain only {alnum,.,_,-}.")
@@ -28,8 +28,8 @@ class ProjectInfo(BaseModel):
     description: str | None = None
     url: str | None = None
 
-    @field_validator("name","org", mode="plain")
     @classmethod
+    @field_validator("name","org", mode="plain")
     def name_must_be_valid(cls, v: str) -> str:
         if not is_valid_terec_name(v):
             raise ValueError("Org name should start and end with alnum and contain only {alnum,.,_,-}.")
