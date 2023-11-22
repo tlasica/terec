@@ -32,9 +32,9 @@ def history(suite: str, branch: str, org: str = None, project: str = None):
     table.add_column("Date", style="dim", width=19, justify="center")
     table.add_column("Result", justify="center")
     table.add_column("Total", justify="right")
-    table.add_column("Pass", justify="right", style="green")
-    table.add_column("Fail", justify="right")
-    table.add_column("Skip", justify="right")
+    table.add_column("[green]Pass[green]", justify="right", style="green")
+    table.add_column("[red]Fail[red]", justify="right")
+    table.add_column("[yellow]Skip[yellow]", justify="right")
 
     def decorated_status(status: str):
         if status == "SUCCESS":
