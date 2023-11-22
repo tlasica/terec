@@ -30,6 +30,9 @@ pytest-benchmark = "^4.0.0"
 more-itertools = "^10.1.0"
 validators = "^0.22.0"
 rich = "^13.7.0"
+plotille = "^5.0.0"
+termcharts = "^1.1.2"
+plotext = "^5.2.8"
 
 
 [tool.poetry.group.dev.dependencies]
