@@ -31,8 +31,8 @@ class TestResultsSuitesAPI:
     api_client = TestClient(api_app)
 
     def test_should_raise_for_not_existing_org(self, cassandra_model) -> None:
-        expect_error_404(self.api_client, "/org/not-existing/suite")
-        expect_error_404(self.api_client, "/org/not-existing/project/a/suite")
+        expect_error_404(self.api_client, "/org/not-existing/suites")
+        expect_error_404(self.api_client, "/org/not-existing/projects/a/suites")
 
     def test_create_suite_in_org(self, cassandra_model):
         # given an organization
@@ -41,13 +41,13 @@ class TestResultsSuitesAPI:
         for p in ["a", "b", "a", "a", "b"]:
             suite = random_test_suite_info(org.name, p)
             response = self.api_client.post(
-                url=f"/org/{org.name}/suite", content=suite.model_dump_json()
+                url=f"/org/{org.name}/suites", content=suite.model_dump_json()
             )
             assert response.status_code == 200, response.text
         # then we can retrieve them
-        self._expect_get_to_return_n(url=f"/org/{org.name}/suite", n=5)
-        self._expect_get_to_return_n(url=f"/org/{org.name}/project/a/suite", n=3)
-        self._expect_get_to_return_n(url=f"/org/{org.name}/project/b/suite", n=2)
+        self._expect_get_to_return_n(url=f"/org/{org.name}/suites", n=5)
+        self._expect_get_to_return_n(url=f"/org/{org.name}/projects/a/suites", n=3)
+        self._expect_get_to_return_n(url=f"/org/{org.name}/projects/b/suites", n=2)
 
     def _expect_get_to_return_n(self, url: str, n: int) -> None:
         response = self.api_client.get(url=url)
@@ -65,7 +65,7 @@ class TestSuiteRunsAPI:
         project = random_name("non-existing-project")
         suite_run = random_test_suite_run_info(org.name, project, "ci", run_id=7)
         response = self.api_client.post(
-            f"/org/{org.name}/run", content=suite_run.model_dump_json()
+            f"/org/{org.name}/runs", content=suite_run.model_dump_json()
         )
         assert not response.is_success
 
@@ -74,7 +74,7 @@ class TestSuiteRunsAPI:
         prj = Project.create(org=org.name, name=self.fake.domain_word())
         suite_run = random_test_suite_run_info(org.name, prj.name, "ci", run_id=7)
         response = self.api_client.post(
-            f"/org/{org.name}/run", content=suite_run.model_dump_json()
+            f"/org/{org.name}/runs", content=suite_run.model_dump_json()
         )
         assert response.status_code == 200, response.text
         # then the suite is created
@@ -94,7 +94,7 @@ class TestSuiteRunsAPI:
         for run_id in range(1, 6):
             run = random_test_suite_run_info(org.name, prj.name, "ci", run_id=run_id)
             response = self.api_client.post(
-                f"/org/{org.name}/run", content=run.model_dump_json()
+                f"/org/{org.name}/runs", content=run.model_dump_json()
             )
             assert response.status_code == 200, response.text
         # then they can be found in the db in run_id decreasing order

@@ -53,7 +53,7 @@ class TestPlotsAPI:
         run = random_test_suite_run_info(test_suite.org, test_suite.project, test_suite.suite, run_id=run_id)
         run.branch = branch
         response = self.api_client.post(
-            f"/org/{test_suite.org}/run", content=run.model_dump_json()
+            f"/org/{test_suite.org}/runs", content=run.model_dump_json()
         )
         assert response.status_code == 200, response.text
         return run

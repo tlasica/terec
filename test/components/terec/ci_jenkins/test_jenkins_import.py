@@ -53,7 +53,7 @@ class TestJenkinsImport:
     def add_test_suite_run(self, org: str, build_info):
         build_info_d = build_info.model_dump(exclude_none=True)
         build_info_d["tstamp"] = str(build_info_d["tstamp"])
-        url = f"/org/{org}/run"
+        url = f"/org/{org}/runs"
         response = self.api_client.post(url, content=json.dumps(build_info_d))
         assert response.is_success, response.text
 
