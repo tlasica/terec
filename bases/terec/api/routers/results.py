@@ -4,7 +4,7 @@ import logging
 import more_itertools
 from cassandra.cqlengine.query import BatchQuery, BatchType
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from terec.api.routers.util import (
     get_org_or_raise,
@@ -50,8 +50,13 @@ class TestSuiteRunInfo(BaseModel):
     total_count: int | None = None
     duration_sec: int | None = None
     status: TestSuiteRunStatus
-    ignore: bool = False
+    ignore: bool | None = False
     ignore_details: str | None = None
+
+    @classmethod
+    @field_validator("ignore", mode="plain")
+    def set_ignore_to_false_on_none(cls, v: bool) -> bool:
+        return False if v is None else v
 
 
 class TestCaseRunInfo(BaseModel):
