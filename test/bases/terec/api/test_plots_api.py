@@ -31,7 +31,7 @@ class TestPlotsAPI:
     api_client = TestClient(api_app)
 
     def get_history(self, org, project, suite, branch):
-        url = f"/org/{org}/project/{project}/suite/{suite}/branch/{branch}/history"
+        url = f"history/orgs/{org}/projects/{project}/suites/{suite}/builds?branch={branch}"
         return self.api_client.get(url)
 
     def test_should_raise_for_not_existing_org(self, cassandra_model) -> None:
@@ -53,12 +53,12 @@ class TestPlotsAPI:
         run = random_test_suite_run_info(test_suite.org, test_suite.project, test_suite.suite, run_id=run_id)
         run.branch = branch
         response = self.api_client.post(
-            f"/org/{test_suite.org}/runs", content=run.model_dump_json()
+            f"/tests/orgs/{test_suite.org}/runs", content=run.model_dump_json()
         )
         assert response.status_code == 200, response.text
         return run
 
-    def test_should_return_history(self, cassandra_model, test_suite):
+    def test_should_return_build(self, cassandra_model, test_suite):
         # given some test suite runs in 3 branches
         branch_a, branch_b, branch_c = [random_name(f"branch-{p}") for p in ["a", "b", "c"]]
         runs = [

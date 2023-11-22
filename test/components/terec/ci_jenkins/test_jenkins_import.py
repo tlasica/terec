@@ -53,7 +53,7 @@ class TestJenkinsImport:
     def add_test_suite_run(self, org: str, build_info):
         build_info_d = build_info.model_dump(exclude_none=True)
         build_info_d["tstamp"] = str(build_info_d["tstamp"])
-        url = f"/org/{org}/runs"
+        url = f"/tests/orgs/{org}/runs"
         response = self.api_client.post(url, content=json.dumps(build_info_d))
         assert response.is_success, response.text
 
@@ -61,7 +61,7 @@ class TestJenkinsImport:
         self, org: str, project: str, suite: str, run_id: int, test_cases
     ):
         data = jsonable_encoder(test_cases, exclude_none=True)
-        url = f"/org/{org}/project/{project}/suite/{suite}/run/{run_id}/tests"
+        url = f"/tests/orgs/{org}/projects/{project}/suites/{suite}/runs/{run_id}/tests"
         response = self.api_client.post(url, content=json.dumps(data))
         assert response.is_success, response.text
 

@@ -14,7 +14,7 @@ class TestBenchmarkResultsAPI:
     api_client = TestClient(api_app)
 
     def post_test_results(self, org: str, prj: str, suite: str, run: int, body: str):
-        url = f"/org/{org}/project/{prj}/suite/{suite}/run/{run}/tests"
+        url = f"/tests/orgs/{org}/projects/{prj}/suites/{suite}/runs/{run}/tests"
         return self.api_client.post(url, content=body)
 
     def test_benchmark_adding_100_test_results(self, cassandra_model, test_project, test_suite_run, benchmark):

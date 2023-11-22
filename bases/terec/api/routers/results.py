@@ -71,19 +71,19 @@ class TestCaseRunInfo(BaseModel):
     skip_details: str | None = None
 
 
-@router.get("/org/{org_name}/suites")
+@router.get("/orgs/{org_name}/suites")
 def get_org_suites(org_name: str) -> list[TestSuiteInfo]:
     get_org_or_raise(org_name)
     return TestSuite.objects(org=org_name)
 
 
-@router.get("/org/{org_name}/projects/{project_name}/suites")
+@router.get("/orgs/{org_name}/projects/{project_name}/suites")
 def get_project_suites(org_name: str, project_name: str) -> list[TestSuiteInfo]:
     get_org_or_raise(org_name)
     return TestSuite.objects(org=org_name, project=project_name)
 
 
-@router.get("/org/{org_name}/projects/{project_name}/suites/{suite_name}")
+@router.get("/orgs/{org_name}/projects/{project_name}/suites/{suite_name}")
 def get_project_suite(
     org_name: str, project_name: str, suite_name: str
 ) -> TestSuiteInfo:
@@ -93,7 +93,7 @@ def get_project_suite(
     return ret[0] if ret else None
 
 
-@router.post("/org/{org_name}/suites")
+@router.post("/orgs/{org_name}/suites")
 def create_suite(org_name: str, body: TestSuiteInfo) -> TestSuiteInfo:
     org = get_org_or_raise(org_name)
     body.org = body.org or org.name
@@ -102,7 +102,7 @@ def create_suite(org_name: str, body: TestSuiteInfo) -> TestSuiteInfo:
     return TestSuite.create(**params)
 
 
-@router.post("/org/{org_name}/runs")
+@router.post("/orgs/{org_name}/runs")
 def create_suite_run(org_name: str, body: TestSuiteRunInfo) -> None:
     # validate org
     org = get_org_or_raise(org_name)
@@ -122,7 +122,7 @@ def create_suite_run(org_name: str, body: TestSuiteRunInfo) -> None:
 
 
 # TODO: maybe add something like "N test results added or updated"?
-@router.post("/org/{org_name}/project/{prj_name}/suite/{suite_name}/run/{run_id}/tests")
+@router.post("/orgs/{org_name}/projects/{prj_name}/suites/{suite_name}/runs/{run_id}/tests")
 def add_suite_run_tests(
     org_name: str,
     prj_name: str,

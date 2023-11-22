@@ -18,9 +18,10 @@ logger = logging.getLogger(__name__)
 
 
 # TODO: how to add parameters like limit
-@router.get("/org/{org_name}/project/{project_name}/suite/{suite_name}/branch/{branch_name}/history")
+@router.get("/orgs/{org_name}/projects/{project_name}/suites/{suite_name}/builds")
 def get_suite_branch_run_history(
-    org_name: str, project_name: str, suite_name: str, branch_name: str,
+    org_name: str, project_name: str, suite_name: str,
+        branch: str | None = None,
         limit: int = 32,
 ) -> list[TestSuiteRunInfo]:
     # validate path
@@ -32,8 +33,9 @@ def get_suite_branch_run_history(
         "org": org_name,
         "project": project_name,
         "suite": suite_name,
-        "branch": branch_name
     }
+    if branch:
+        query_params["branch"] = branch
     history = TestSuiteRun.objects(**query_params).limit(limit)
     # transform into run info
     res = [model_to_dict(r) for r in history]

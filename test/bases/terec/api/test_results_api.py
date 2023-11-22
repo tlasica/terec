@@ -38,16 +38,15 @@ class TestResultsSuitesAPI:
         # given an organization
         org = Org.create(name=self.fake.company())
         # when 3 suites in project a and 2 in project b are created
+        url = f"/tests/orgs/{org.name}/suites"
         for p in ["a", "b", "a", "a", "b"]:
             suite = random_test_suite_info(org.name, p)
-            response = self.api_client.post(
-                url=f"/org/{org.name}/suites", content=suite.model_dump_json()
-            )
+            response = self.api_client.post(url, content=suite.model_dump_json())
             assert response.status_code == 200, response.text
         # then we can retrieve them
-        self._expect_get_to_return_n(url=f"/org/{org.name}/suites", n=5)
-        self._expect_get_to_return_n(url=f"/org/{org.name}/projects/a/suites", n=3)
-        self._expect_get_to_return_n(url=f"/org/{org.name}/projects/b/suites", n=2)
+        self._expect_get_to_return_n(url=f"/tests/orgs/{org.name}/suites", n=5)
+        self._expect_get_to_return_n(url=f"/tests/orgs/{org.name}/projects/a/suites", n=3)
+        self._expect_get_to_return_n(url=f"/tests/orgs/{org.name}/projects/b/suites", n=2)
 
     def _expect_get_to_return_n(self, url: str, n: int) -> None:
         response = self.api_client.get(url=url)
@@ -60,22 +59,22 @@ class TestSuiteRunsAPI:
     api_app = create_app()
     api_client = TestClient(api_app)
 
+    def post_suite_run(self, org_name, suite_run_info):
+        url = f"/tests/orgs/{org_name}/runs"
+        return self.api_client.post(url, content=suite_run_info.model_dump_json())
+
     def test_should_fail_create_on_non_existing_project(self):
         org = Org.create(name=self.fake.company())
         project = random_name("non-existing-project")
         suite_run = random_test_suite_run_info(org.name, project, "ci", run_id=7)
-        response = self.api_client.post(
-            f"/org/{org.name}/runs", content=suite_run.model_dump_json()
-        )
+        response = self.post_suite_run(org.name, suite_run)
         assert not response.is_success
 
     def test_should_create_run_and_suite_if_not_exists(self):
         org = Org.create(name=self.fake.company())
         prj = Project.create(org=org.name, name=self.fake.domain_word())
         suite_run = random_test_suite_run_info(org.name, prj.name, "ci", run_id=7)
-        response = self.api_client.post(
-            f"/org/{org.name}/runs", content=suite_run.model_dump_json()
-        )
+        response = self.post_suite_run(org.name, suite_run)
         assert response.status_code == 200, response.text
         # then the suite is created
         suite = TestSuite.objects(org=org.name, project=prj.name, suite="ci")
@@ -93,9 +92,7 @@ class TestSuiteRunsAPI:
         # when we add some test suite runs
         for run_id in range(1, 6):
             run = random_test_suite_run_info(org.name, prj.name, "ci", run_id=run_id)
-            response = self.api_client.post(
-                f"/org/{org.name}/runs", content=run.model_dump_json()
-            )
+            response = self.post_suite_run(org.name, run)
             assert response.status_code == 200, response.text
         # then they can be found in the db in run_id decreasing order
         runs = TestSuiteRun.objects(org=org.name, project=prj.name, suite="ci")
@@ -117,7 +114,7 @@ class TestCaseResultsAPI:
     api_client = TestClient(api_app)
 
     def post_test_results(self, org: str, prj: str, suite: str, run: int, body: str):
-        url = f"/org/{org}/project/{prj}/suite/{suite}/run/{run}/tests"
+        url = f"/tests/orgs/{org}/projects/{prj}/suites/{suite}/runs/{run}/tests"
         return self.api_client.post(url, content=body)
 
     def test_should_fail_for_empty_list_of_tests(
@@ -153,7 +150,7 @@ class TestCaseResultsAPI:
         resp = self.post_test_results(
             test_project.org,
             test_project.name,
-            "non-existing-suite",
+            random_name("non-existing-suite"),
             3,
             json.dumps(body),
         )

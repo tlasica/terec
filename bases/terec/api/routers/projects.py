@@ -36,21 +36,21 @@ class ProjectInfo(BaseModel):
         return v
 
 
-@router.get("/org")
+@router.get("/orgs")
 def get_all_orgs() -> list[OrgInfo]:
     orgs = Org.objects()
     res = [OrgInfo(**model_to_dict(o)) for o in orgs]
     return res
 
 
-@router.put("/org", status_code=201)
+@router.put("/orgs", status_code=201)
 def create_org(org_info: OrgInfo) -> OrgInfo:
     raise_if_org_exists(org_info.name)
     params = org_info.model_dump(exclude_none=True)
     return Org.create(**params)
 
 
-@router.get("/org/{org_name}/projects")
+@router.get("/orgs/{org_name}/projects")
 def get_all_org_projects(org_name: str) -> list[ProjectInfo]:
     """
     Gets all projects defined for given organisation or empty list.
@@ -62,7 +62,7 @@ def get_all_org_projects(org_name: str) -> list[ProjectInfo]:
     return res
 
 
-@router.put("/org/{org_name}/projects", status_code=201)
+@router.put("/orgs/{org_name}/projects", status_code=201)
 def create_project(org_name: str, project_info: ProjectInfo) -> ProjectInfo:
     """
     Create or update a project.
