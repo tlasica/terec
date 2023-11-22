@@ -71,11 +71,7 @@ class TestGetOrgProjectsApi:
         assert response.status_code == 403
 
     def _put_org(self, org_name: str):
-        org = {
-            "name": org_name,
-            "full_name": self.fake.word(),
-            "url": "http://my.org"
-        }
+        org = {"name": org_name, "full_name": self.fake.word(), "url": "http://my.org"}
         return self.api_client.put(f"/admin/orgs/", content=json.dumps(org))
 
     def _get_orgs(self) -> list[OrgInfo]:
@@ -104,4 +100,3 @@ def test_valid_org_and_project_names():
     assert not is_valid_terec_name("Ala.")
     assert not is_valid_terec_name("")
     assert not is_valid_terec_name("Ala!ma")
-

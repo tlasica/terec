@@ -20,9 +20,11 @@ logger = logging.getLogger(__name__)
 # TODO: how to add parameters like limit
 @router.get("/orgs/{org_name}/projects/{project_name}/suites/{suite_name}/builds")
 def get_suite_branch_run_history(
-    org_name: str, project_name: str, suite_name: str,
-        branch: str | None = None,
-        limit: int = 32,
+    org_name: str,
+    project_name: str,
+    suite_name: str,
+    branch: str | None = None,
+    limit: int = 32,
 ) -> list[TestSuiteRunInfo]:
     # validate path
     get_org_or_raise(org_name)

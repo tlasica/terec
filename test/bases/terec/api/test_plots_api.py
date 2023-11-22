@@ -40,17 +40,23 @@ class TestPlotsAPI:
         assert "Org not found" in resp.text
 
     def test_should_fail_for_non_existing_project(self, cassandra_model, test_project):
-        resp = self.get_history(test_project.org, random_name("not-existing-project"), "s", "main")
+        resp = self.get_history(
+            test_project.org, random_name("not-existing-project"), "s", "main"
+        )
         assert not resp.is_success
         assert "Project not found" in resp.text
 
     def test_should_fail_for_non_existing_suite(self, cassandra_model, test_project):
-        resp = self.get_history(test_project.org, test_project.name, random_name("suite"), "main")
+        resp = self.get_history(
+            test_project.org, test_project.name, random_name("suite"), "main"
+        )
         assert not resp.is_success
         assert "Suite not found" in resp.text
 
     def add_suite_run(self, test_suite, branch, run_id):
-        run = random_test_suite_run_info(test_suite.org, test_suite.project, test_suite.suite, run_id=run_id)
+        run = random_test_suite_run_info(
+            test_suite.org, test_suite.project, test_suite.suite, run_id=run_id
+        )
         run.branch = branch
         response = self.api_client.post(
             f"/tests/orgs/{test_suite.org}/runs", content=run.model_dump_json()
@@ -60,14 +66,16 @@ class TestPlotsAPI:
 
     def test_should_return_build(self, cassandra_model, test_suite):
         # given some test suite runs in 3 branches
-        branch_a, branch_b, branch_c = [random_name(f"branch-{p}") for p in ["a", "b", "c"]]
+        branch_a, branch_b, branch_c = [
+            random_name(f"branch-{p}") for p in ["a", "b", "c"]
+        ]
         runs = [
             self.add_suite_run(test_suite, branch_a, 1),
             self.add_suite_run(test_suite, branch_a, 2),
             self.add_suite_run(test_suite, branch_b, 3),
             self.add_suite_run(test_suite, branch_a, 4),
             self.add_suite_run(test_suite, branch_b, 5),
-            self.add_suite_run(test_suite, branch_a, 6)
+            self.add_suite_run(test_suite, branch_a, 6),
         ]
         # when we ask for the history for each of the branches
         resp_a, resp_b, resp_c = [
@@ -85,5 +93,3 @@ class TestPlotsAPI:
         assert 2 == len(history_b)
         assert {branch_b} == {run["branch"] for run in history_b}
         assert 0 == len(history_c)
-
-

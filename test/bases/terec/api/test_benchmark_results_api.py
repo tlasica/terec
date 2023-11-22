@@ -17,13 +17,16 @@ class TestBenchmarkResultsAPI:
         url = f"/tests/orgs/{org}/projects/{prj}/suites/{suite}/runs/{run}/tests"
         return self.api_client.post(url, content=body)
 
-    def test_benchmark_adding_100_test_results(self, cassandra_model, test_project, test_suite_run, benchmark):
+    def test_benchmark_adding_100_test_results(
+        self, cassandra_model, test_project, test_suite_run, benchmark
+    ):
         # prepare random data encoded as json
         tests = [random_test_case_run_info() for _ in range(100)]
         body = jsonable_encoder(tests, exclude_none=True)
         json_body = json.dumps(body)
         # benchmark calling the api
-        resp = benchmark(self.post_test_results,
+        resp = benchmark(
+            self.post_test_results,
             test_project.org,
             test_project.name,
             test_suite_run.suite,
@@ -32,13 +35,16 @@ class TestBenchmarkResultsAPI:
         )
         assert resp.is_success, resp.text
 
-    def test_benchmark_adding_1000_test_results(self, cassandra_model, test_project, test_suite_run, benchmark):
+    def test_benchmark_adding_1000_test_results(
+        self, cassandra_model, test_project, test_suite_run, benchmark
+    ):
         # prepare random data encoded as json
         tests = [random_test_case_run_info() for _ in range(1000)]
         body = jsonable_encoder(tests, exclude_none=True)
         json_body = json.dumps(body)
         # benchmark calling the api
-        resp = benchmark(self.post_test_results,
+        resp = benchmark(
+            self.post_test_results,
             test_project.org,
             test_project.name,
             test_suite_run.suite,

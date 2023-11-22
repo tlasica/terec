@@ -45,8 +45,12 @@ class TestResultsSuitesAPI:
             assert response.status_code == 200, response.text
         # then we can retrieve them
         self._expect_get_to_return_n(url=f"/tests/orgs/{org.name}/suites", n=5)
-        self._expect_get_to_return_n(url=f"/tests/orgs/{org.name}/projects/a/suites", n=3)
-        self._expect_get_to_return_n(url=f"/tests/orgs/{org.name}/projects/b/suites", n=2)
+        self._expect_get_to_return_n(
+            url=f"/tests/orgs/{org.name}/projects/a/suites", n=3
+        )
+        self._expect_get_to_return_n(
+            url=f"/tests/orgs/{org.name}/projects/b/suites", n=2
+        )
 
     def _expect_get_to_return_n(self, url: str, n: int) -> None:
         response = self.api_client.get(url=url)

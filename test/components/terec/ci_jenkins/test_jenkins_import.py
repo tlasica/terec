@@ -31,10 +31,14 @@ class TestJenkinsImport:
         build_info = parse_jenkins_build_info(org, project, suite, ci_build_info)
         build_id = build_info.run_id
         # and inserted via api call
-        self.check_suite_run_doesnt_exist(org, test_project.name, suite, build_info.branch, build_id)
+        self.check_suite_run_doesnt_exist(
+            org, test_project.name, suite, build_info.branch, build_id
+        )
         self.add_test_suite_run(org, build_info)
         # then it should be persisted in the database
-        self.check_suite_run_exists(org, test_project.name, suite, build_info.branch, build_id)
+        self.check_suite_run_exists(
+            org, test_project.name, suite, build_info.branch, build_id
+        )
 
     def test_should_import_test_runs(self, cassandra_model, test_project):
         # given some build info json from jenkins

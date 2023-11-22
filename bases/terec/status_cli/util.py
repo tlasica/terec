@@ -28,4 +28,3 @@ def get_terec_rest_api(url: str, query_params: dict) -> dict:
         return resp.json()
     else:
         raise Exception(f"Error when calling {url}: {resp.text}")
-

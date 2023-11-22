@@ -1,7 +1,11 @@
 from fastapi import APIRouter
 from pydantic import BaseModel, field_validator
 
-from terec.api.routers.util import get_org_or_raise, raise_if_org_exists, is_valid_terec_name
+from terec.api.routers.util import (
+    get_org_or_raise,
+    raise_if_org_exists,
+    is_valid_terec_name,
+)
 from terec.model.projects import Project, Org
 from terec.model.util import model_to_dict
 
@@ -17,7 +21,9 @@ class OrgInfo(BaseModel):
     @field_validator("name", mode="plain")
     def name_must_be_valid(cls, v: str) -> str:
         if not is_valid_terec_name(v):
-            raise ValueError("Org name should start and end with alnum and contain only {alnum,.,_,-}.")
+            raise ValueError(
+                "Org name should start and end with alnum and contain only {alnum,.,_,-}."
+            )
         return v
 
 
@@ -29,10 +35,12 @@ class ProjectInfo(BaseModel):
     url: str | None = None
 
     @classmethod
-    @field_validator("name","org", mode="plain")
+    @field_validator("name", "org", mode="plain")
     def name_must_be_valid(cls, v: str) -> str:
         if not is_valid_terec_name(v):
-            raise ValueError("Org name should start and end with alnum and contain only {alnum,.,_,-}.")
+            raise ValueError(
+                "Org name should start and end with alnum and contain only {alnum,.,_,-}."
+            )
         return v
 
 
