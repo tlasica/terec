@@ -1,6 +1,7 @@
 import plotext as plt
 import plotille
 import typer
+from rich import box
 
 from rich.console import Console
 from rich.table import Table
@@ -52,6 +53,8 @@ def history(suite: str, branch: str, org: str = None, project: str = None):
         title_justify="left",
         caption=caption,
         caption_justify="left",
+        safe_box=True,
+        box=box.ROUNDED
     )
     table.add_column("Build#", width=8, justify="right")
     table.add_column("Date", style="dim", width=19, justify="center")
