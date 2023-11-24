@@ -106,4 +106,7 @@ class TestCaseRun(Model):
         return f"{self.test_suite_str()}::{case}"
 
     def __str__(self):
-        return ""
+        return f"{self.test_case_str()}@{self.run_id}"
+
+    def test_case_run_id_tuple(self):
+        return self.test_package, self.test_suite, self.test_case, self.test_config, self.run_id

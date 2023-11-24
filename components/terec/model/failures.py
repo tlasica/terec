@@ -25,10 +25,14 @@ def get_failed_tests_for_suite_runs(runs: list[TestSuiteRun], session=None) -> l
     rows = []
     errors = []
     for (success, res) in results:
-        if not success:
-            errors.append(res) # result will be an Exception
+        if success:
+            rows += res  # result will be a list of rows
         else:
-            rows += res # result will be a list of rows
+            errors.append(res) # result will be an Exception
+    # raise if any errors hit
     if errors:
         raise Exception(f"{len(errors)}/{len(params)} queries failed. Example failure: {str(errors[0])}")
-    return rows
+    # convert each item to TestCaseRun model object
+    tests = [TestCaseRun(**r) for r in rows]
+    tests.sort(reverse=True, key=lambda x: x.test_case_run_id_tuple())
+    return tests

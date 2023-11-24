@@ -1,7 +1,6 @@
 from generator import ResultsGenerator
 from conftest import random_name
 from terec.model.failures import get_failed_tests_for_suite_runs
-from terec.model.results import TestSuiteRun
 
 
 def test_get_failed_tests_for_suite_runs(cassandra_model, test_project):
@@ -17,4 +16,4 @@ def test_get_failed_tests_for_suite_runs(cassandra_model, test_project):
     # then we get expected number of failures
     expected_count = sum([x.fail_count for x in runs])
     assert len(failed_tests) == expected_count
-
+    # TODO: check if properly sorted
