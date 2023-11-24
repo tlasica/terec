@@ -38,6 +38,7 @@ def history(suite: str, branch: str, org: str = None, project: str = None):
 
     TODO: add param to limit number of results
     TODO: add param flag to show ignored
+    TODO: use url links for builds if present
     """
     limit = None
     terec_org = value_or_env(org, "TEREC_ORG")

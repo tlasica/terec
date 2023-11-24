@@ -64,7 +64,11 @@ def docker_cleanup(keepalive, docker_cleanup):
 
 @pytest.fixture(scope="session")
 def docker_compose_file(pytestconfig):
-    return os.path.join(str(pytestconfig.rootdir), "test", "docker-compose.yaml")
+    pytest_root = str(pytestconfig.rootpath)
+    if pytest_root.endswith("/test"):
+        return os.path.join(pytest_root, "docker-compose.yaml")
+    else:
+        return os.path.join(pytest_root, "test", "docker-compose.yaml")
 
 
 @pytest.fixture(scope="session")

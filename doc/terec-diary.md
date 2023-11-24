@@ -1,3 +1,21 @@
+## BACKLOG
+
+run.sh should create test/test project and org
+check what is the source of branch for export-build
+add test mocking jenkins server to return expected json
+
+
+
+## 2023-11-22
+
+I have used various tools to create nice tables (rich) or plots  in the cli application
+inspired by this post:
+https://medium.com/@SrvZ/how-to-create-stunning-graphs-in-the-terminal-with-python-2adf9d012131
+
+And it worked well, except I was not really able to create the type of the bar plot I wanted:
+with bar height being the count of failed tests. Instead I am getting always height done
+proportionally from 0 to 100% of available space.
+
 ## 2023-11-18
 
 # instead of UI build typer app and deploy in docker
@@ -8,12 +26,6 @@
 
 # TODO
 
-1. run.sh should create test/test project and org
-2. PUT to add project
-4. GET for suites
-5. GET for runs
-8. check what is the source of branch for export-build
-9. add test mocking jenkins server to return expected json
 
 ## Done
 

@@ -74,7 +74,7 @@ class TestCaseRunStatus(str, Enum):
     __test__ = False
     PASS = ("PASS",)
     FAIL = ("FAIL",)
-    SKIP = "SKIP"
+    SKIP = ("SKIP",)
 
 
 class TestCaseRun(Model):
@@ -87,7 +87,7 @@ class TestCaseRun(Model):
     test_suite = columns.Text(primary_key=True, clustering_order="ASC")
     test_case = columns.Text(primary_key=True, clustering_order="ASC")
     test_config = columns.Text(primary_key=True, clustering_order="ASC")
-    result = columns.Text(required=True)  # PASSed, FAILed, SKIPped
+    result = columns.Text(required=True, index=True)  # PASSed, FAILed, SKIPped
     test_group = columns.Text()
     tstamp = columns.DateTime()
     duration_ms = columns.Integer()
