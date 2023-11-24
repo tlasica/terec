@@ -1,6 +1,7 @@
 import logging
 
 from fastapi import APIRouter
+from pydantic.main import BaseModel
 
 from terec.api.routers.results import TestSuiteRunInfo, TestCaseRunInfo
 from terec.api.routers.util import (
@@ -18,6 +19,11 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
+class FailedTestCaseRunInfo(BaseModel):
+    test_run: TestCaseRunInfo
+    suite_run: TestSuiteRunInfo
+
+
 @router.get("/orgs/{org_name}/projects/{project_name}/suites/{suite_name}/failed-tests")
 def get_suite_branch_run_failed_tests(
     org_name: str,
@@ -25,7 +31,12 @@ def get_suite_branch_run_failed_tests(
     suite_name: str,
     branch: str | None = None,
     limit: int = 32,
-) -> list[TestCaseRunInfo]:
+) -> list[FailedTestCaseRunInfo]:
+    """
+    Return list of failed tests for given suite and branch.
+    Each item on the list is ia pair of (test case run info, suite run info).
+    Items are ordered by tests that were run (package.class.test.config).
+    """
     # validate path
     get_org_or_raise(org_name)
     get_org_project_or_raise(org_name, project_name)
@@ -44,5 +55,10 @@ def get_suite_branch_run_failed_tests(
     failed_tests = get_failed_tests_for_suite_runs(runs_history)
     logger.info("Found {} failed tests for suite {}/{} on branch {}", len(failed_tests), project_name, suite_name, branch)
     # transform into run info
-    res = [TestCaseRunInfo(**model_to_dict(t)) for t in failed_tests]
+    runs_by_id = {r.run_id: r for r in runs_history}
+    res = []
+    for test in failed_tests:
+        test_info = TestCaseRunInfo(**model_to_dict(test))
+        run_info = TestSuiteRunInfo(**model_to_dict(runs_by_id[test.run_id]))
+        res.append(FailedTestCaseRunInfo(test_run=test_info, suite_run=run_info))
     return res

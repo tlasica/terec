@@ -22,7 +22,7 @@ def value_or_env(val: str, env_var: str) -> str:
     return val or os.environ.get(env_var, None)
 
 
-def get_terec_rest_api(url: str, query_params: dict) -> dict:
+def get_terec_rest_api(url: str, query_params: dict):
     resp = requests.get(url=url, params=query_params)
     if resp.ok:
         return resp.json()
