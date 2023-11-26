@@ -129,4 +129,4 @@ def test_suite_run(test_suite) -> TestSuiteRun:
 
 
 def random_name(prefix: str) -> str:
-    return f"{prefix}-{math.floor(time.time())}"
+    return f"{prefix}-{math.floor(1000 * time.time())}"
