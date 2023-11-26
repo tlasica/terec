@@ -43,13 +43,14 @@ class FailedTests:
 
     def unique_test_cases(self):
         res = []
-        keys = set()
+        keys = {}
         for item in self.data:
             k = test_case_key(item)
             if k not in keys:
-                keys.add(k)
+                keys[k] = 0
                 res.append(k)
-        return res
+            keys[k] = keys[k] + 1
+        return sorted(keys, key=keys.get, reverse=True)
 
     def runs_for_test_case(self, key):
         return [x for x in self.data if test_case_key(x) == key]
@@ -104,7 +105,7 @@ def failed(suite: str, branch: str, org: str = None, project: str = None):
             str(case),
             str(config),
             str(t_group),
-            str(len(failed_runs)),
+            f"{len(failed_runs)}",
             " ".join(failed_runs_ids[:8]) + ("(...)" if len(failed_runs) > 8 else "")
         )
 
