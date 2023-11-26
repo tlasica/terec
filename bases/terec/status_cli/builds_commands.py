@@ -77,11 +77,16 @@ def history(suite: str, branch: str, org: str = None, project: str = None):
             return status
 
     def decorated_number(num: int, color: str):
-        return f"{color}{num}{color}" if num > 0 else str(num)
+        if num is None:
+            return "---"
+        else:
+            return f"{color}{num}{color}" if num > 0 else str(num)
 
-    def chart(num: int) -> str:
-        if num < 50:
-            return "#" * num
+    def chart(num: str) -> str:
+        if num is None:
+            return ""
+        elif int(num) < 50:
+            return "#" * int(num)
         else:
             return "#" * 50 + "(...)"
 
@@ -90,11 +95,11 @@ def history(suite: str, branch: str, org: str = None, project: str = None):
             str(build["run_id"]),
             str(build["tstamp"])[:19],
             decorated_status(str(build["status"])),
-            str(build["total_count"]),
-            str(build["pass_count"]),
+            str(build["total_count"] or "---"),
+            str(build["pass_count"] or "---"),
             decorated_number(build["skip_count"], "[yellow]"),
             decorated_number(build["fail_count"], "[red]"),
-            chart(int(build["fail_count"])),
+            chart(build["fail_count"]),
         )
 
     console = Console()
