@@ -11,7 +11,8 @@ from terec.api.routers.util import (
 )
 from terec.model.failures import get_failed_tests_for_suite_runs
 from terec.model.results import (
-    TestSuiteRun, TestCaseRun,
+    TestSuiteRun,
+    TestCaseRun,
 )
 from terec.model.util import model_to_dict
 
@@ -35,7 +36,7 @@ def get_suite_branch_runs(
     project_name: str,
     suite_name: str,
     branch: str | None = None,
-    limit: int = 32
+    limit: int = 32,
 ) -> list[TestSuiteRun]:
     # collect runs results
     query_params = {
@@ -46,11 +47,19 @@ def get_suite_branch_runs(
     if branch:
         query_params["branch"] = branch
     runs = TestSuiteRun.objects(**query_params).limit(limit)
-    logger.info("Found {} interesting build runs for suite {}/{} on branch {}", len(runs), project_name, suite_name, branch)
+    logger.info(
+        "Found {} interesting build runs for suite {}/{} on branch {}",
+        len(runs),
+        project_name,
+        suite_name,
+        branch,
+    )
     return runs
 
 
-def combine_test_runs_with_suite_runs(test_runs: list[TestCaseRun], suite_runs: list[TestSuiteRun]):
+def combine_test_runs_with_suite_runs(
+    test_runs: list[TestCaseRun], suite_runs: list[TestSuiteRun]
+):
     runs_by_id = {r.run_id: r for r in suite_runs}
     res = []
     for test in test_runs:
@@ -67,7 +76,7 @@ def get_suite_branch_run_failed_tests(
     suite_name: str,
     branch: str | None = None,
     limit: int = 32,
-    threshold: int | None = None
+    threshold: int | None = None,
 ) -> list[TestCaseSuiteRunInfo]:
     """
     Return list of all failed tests for given suite and branch.
@@ -79,10 +88,18 @@ def get_suite_branch_run_failed_tests(
     """
     # collect relevant suite runs (on the branch)
     validate_path(org_name, project_name, suite_name)
-    runs_history = get_suite_branch_runs(org_name, project_name, suite_name, branch, limit)
+    runs_history = get_suite_branch_runs(
+        org_name, project_name, suite_name, branch, limit
+    )
     # collect failures for given runs history
     failed_tests = get_failed_tests_for_suite_runs(runs_history)
-    logger.info("Found {} failed tests for suite {}/{} on branch {}", len(failed_tests), project_name, suite_name, branch)
+    logger.info(
+        "Found {} failed tests for suite {}/{} on branch {}",
+        len(failed_tests),
+        project_name,
+        suite_name,
+        branch,
+    )
     # transform into run info
     return combine_test_runs_with_suite_runs(failed_tests, runs_history)
 
@@ -105,10 +122,15 @@ def get_suite_branch_test_runs_history(
     """
     # validate parameters
     if test_case and not test_class:
-        raise HTTPException(status_code=400, detail="When test_case is set then test_class is also required.")
+        raise HTTPException(
+            status_code=400,
+            detail="When test_case is set then test_class is also required.",
+        )
     # collect relevant suite runs (on the branch)
     validate_path(org_name, project_name, suite_name)
-    suite_runs = get_suite_branch_runs(org_name, project_name, suite_name, branch, run_limit)
+    suite_runs = get_suite_branch_runs(
+        org_name, project_name, suite_name, branch, run_limit
+    )
     # collect test run history
     query_params = {
         "org": org_name,
@@ -123,7 +145,12 @@ def get_suite_branch_test_runs_history(
         query_params["test_case"] = test_case
     # collect failures for given runs history
     test_runs = TestCaseRun.objects().filter(**query_params)
-    logger.info("Found {} test runs for suite {}/{} on branch {} matching query", len(test_runs), project_name, suite_name, branch)
+    logger.info(
+        "Found {} test runs for suite {}/{} on branch {} matching query",
+        len(test_runs),
+        project_name,
+        suite_name,
+        branch,
+    )
     # convert into return format (test run + suite run)
     return combine_test_runs_with_suite_runs(test_runs, suite_runs)
-

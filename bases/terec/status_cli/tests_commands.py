@@ -81,7 +81,7 @@ def failed(suite: str, branch: str, org: str = None, project: str = None):
         caption=caption,
         caption_justify="left",
         safe_box=True,
-        box=box.ROUNDED
+        box=box.ROUNDED,
     )
     # TODO: shorted names
     table.add_column("package", justify="left")
@@ -106,7 +106,7 @@ def failed(suite: str, branch: str, org: str = None, project: str = None):
             str(config),
             str(t_group),
             f"{len(failed_runs)}",
-            " ".join(failed_runs_ids[:8]) + ("(...)" if len(failed_runs) > 8 else "")
+            " ".join(failed_runs_ids[:8]) + ("(...)" if len(failed_runs) > 8 else ""),
         )
 
     console = Console()

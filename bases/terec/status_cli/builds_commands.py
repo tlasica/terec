@@ -55,7 +55,7 @@ def history(suite: str, branch: str, org: str = None, project: str = None):
         caption=caption,
         caption_justify="left",
         safe_box=True,
-        box=box.ROUNDED
+        box=box.ROUNDED,
     )
     table.add_column("Build#", width=8, justify="right")
     table.add_column("Date", style="dim", width=19, justify="center")
