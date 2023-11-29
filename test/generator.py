@@ -14,7 +14,7 @@ class ResultsGenerator:
         self.num_tests = num_tests
         packages = ["org.example.a", "org.example.b", "org.example.c"]
         classes = ["DatabaseTests", "ModelTests", "RestTests", "LogicTests", "CliTests"]
-        tests = [f"test_{self.fake.domain_word()}" for _ in range(self.num_tests)]
+        tests = [f"test_{self.fake.domain_word().replace('-', '_')}" for _ in range(self.num_tests)]
         self.test_cases = []
         for i in range(self.num_tests):
             case = {
