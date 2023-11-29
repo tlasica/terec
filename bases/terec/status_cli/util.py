@@ -28,3 +28,25 @@ def get_terec_rest_api(url: str, query_params: dict):
         return resp.json()
     else:
         raise Exception(f"Error when calling {url}: {resp.text}")
+
+
+def typer_table_config(title: str, caption: str):
+    from rich import box
+    return {
+        "show_header": True,
+        "header_style": "bold magenta",
+        "title": title,
+        "title_justify": "left",
+        "caption": caption,
+        "caption_justify": "left",
+        "safe_box": True,
+        "box": box.ROUNDED,
+    }
+
+
+def ratio_str(hit: int, total: int) -> str:
+    if total > 0:
+        ratio = int(100 * hit / total)
+        return f"[{ratio}%]"
+    else:
+        return ""
