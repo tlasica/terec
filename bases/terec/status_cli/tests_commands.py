@@ -1,3 +1,5 @@
+import asyncio
+
 import typer
 
 from rich.console import Console
@@ -6,7 +8,7 @@ from terec.status_cli.util import (
     env_terec_url,
     value_or_env,
     get_terec_rest_api,
-    not_none, typer_table_config, ratio_str,
+    not_none, typer_table_config, ratio_str, collect_terec_rest_api_calls,
 )
 
 tests_app = typer.Typer()
@@ -27,7 +29,7 @@ def get_failed_tests(org: str, project: str, suite: str, branch: str):
     return get_terec_rest_api(url, query_params)
 
 
-def get_test_history(org: str, project: str, suite: str, branch: str, tpackage: str, tclass: str, tcase: str, tconfig: str):
+def get_test_history_api_call(org: str, project: str, suite: str, branch: str, tpackage: str, tclass: str, tcase: str, tconfig: str):
     terec_url = env_terec_url()
     terec_org = not_none(
         value_or_env(org, "TEREC_ORG"), "org not provided or not set via TEREC_ORG"
@@ -45,7 +47,7 @@ def get_test_history(org: str, project: str, suite: str, branch: str, tpackage: 
         "test_case": tcase,
         "test_config": tconfig
     }
-    return get_terec_rest_api(url, query_params)
+    return url, query_params
 
 
 def test_case_key(test: dict):
@@ -147,12 +149,28 @@ def history(suite: str, branch: str, org: str = None, project: str = None, limit
     grouped_data = FailedTests(data)
     uniq_test_cases = grouped_data.unique_test_cases(limit=limit, threshold=threshold)
     # collect history for all interesting tests [TODO: make it asynchttp]
-    tests_history = {}
+    calls = []
     for test_case in uniq_test_cases:
         tpackage, tsuite, tcase, tconfig = test_case
-        h = get_test_history(org, project, suite, branch, tpackage, tsuite, tcase, tconfig)
-        assert len(h) > 0, f"No test history returned for {test_case}"
-        tests_history[test_case] = sorted(h, key=lambda x: x["suite_run"]["run_id"], reverse=True)
+        url, params = get_test_history_api_call(org, project, suite, branch, tpackage, tsuite, tcase, tconfig)
+        calls.append((test_case, url, params))
+
+    tests_history = asyncio.run(collect_terec_rest_api_calls(calls))
+
+    # async def collect_history():
+    #     tasks = []
+    #     for test_case in uniq_test_cases:
+    #         tpackage, tsuite, tcase, tconfig = test_case
+    #         task = get_test_history(org, project, suite, branch, tpackage, tsuite, tcase, tconfig)
+    #         tasks.append(task)
+    #         # assert len(h) > 0, f"No test history returned for {test_case}"
+    #         # tests_history[test_case] = sorted(h, key=lambda x: x["suite_run"]["run_id"], reverse=True)
+    #     for history in asyncio.as_completed(tasks):
+    #         print(history.result())
+    #         # tests_history[test_case] = sorted(history, key=lambda x: x["suite_run"]["run_id"], reverse=True)
+    #
+    # asyncio.run(collect_history())
+
     # configure table
     title = f"Test history of {terec_org}/{terec_prj}/{suite} on branch {branch}"
     caption = f"Limit: {limit}, Threshold: {threshold}"
