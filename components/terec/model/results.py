@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from enum import Enum
 
 from cassandra.cqlengine import columns
@@ -110,3 +112,9 @@ class TestCaseRun(Model):
 
     def test_case_run_id_tuple(self):
         return self.test_package, self.test_suite, self.test_case, self.test_config, self.run_id
+
+    def is_same_test_suite(self, other: TestCaseRun):
+        return self.test_package == other.test_package and self.test_suite == other.test_suite
+
+    def is_same_test_case(self, other: TestCaseRun):
+        return self.test_case == other.test_case and self.is_same_test_suite(other)

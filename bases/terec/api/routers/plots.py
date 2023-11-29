@@ -17,7 +17,6 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-# TODO: how to add parameters like limit
 @router.get("/orgs/{org_name}/projects/{project_name}/suites/{suite_name}/builds")
 def get_suite_branch_run_history(
     org_name: str,
@@ -26,6 +25,10 @@ def get_suite_branch_run_history(
     branch: str | None = None,
     limit: int = 32,
 ) -> list[TestSuiteRunInfo]:
+    """
+    Return builds (runs) history for given suite on given branch starting from the most recent ones.
+    The collection is ordered by run_id descending and limit will cut the result to some N runs only.
+    """
     # validate path
     get_org_or_raise(org_name)
     get_org_project_or_raise(org_name, project_name)
