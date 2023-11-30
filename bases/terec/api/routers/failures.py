@@ -1,7 +1,6 @@
-import logging
-
 from codetiming import Timer
 from fastapi import APIRouter, HTTPException
+from loguru import logger
 from pydantic.main import BaseModel
 
 from terec.api.routers.results import TestSuiteRunInfo, TestCaseRunInfo
@@ -18,7 +17,6 @@ from terec.model.results import (
 from terec.model.util import model_to_dict
 
 router = APIRouter()
-logger = logging.getLogger(__name__)
 
 
 class TestCaseSuiteRunInfo(BaseModel):
@@ -70,7 +68,7 @@ def combine_test_runs_with_suite_runs(
     return res
 
 
-@Timer(name="api-history-get-failed-tests", logger=logging.info)
+@Timer(name="api-history-get-failed-tests", logger=logger.info)
 @router.get("/orgs/{org_name}/projects/{project_name}/suites/{suite_name}/failed-tests")
 def get_suite_branch_run_failed_tests(
     org_name: str,
@@ -106,7 +104,7 @@ def get_suite_branch_run_failed_tests(
     return combine_test_runs_with_suite_runs(failed_tests, runs_history)
 
 
-@Timer(name="api-history-get-test-runs", logger=logging.info)
+@Timer(name="api-history-get-test-runs", logger=logger.info)
 @router.get("/orgs/{org_name}/projects/{project_name}/suites/{suite_name}/test-runs")
 def get_suite_branch_test_runs_history(
     org_name: str,

@@ -1,11 +1,12 @@
-import logging
 import math
 import os
+import pytest
 import time
 
-import pytest
 
 from cassandra.cluster import Session
+
+from loguru import logger
 
 from terec.database import cassandra_session
 from terec.model.projects import Org, Project
@@ -83,7 +84,7 @@ def cassandra(docker_services) -> Session:
             cassandra_session()
             return True
         except Exception as ex:
-            logging.warning(ex)
+            logger.warning(ex)
             return False
 
     docker_services.wait_until_responsive(

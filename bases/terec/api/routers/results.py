@@ -1,9 +1,9 @@
 import datetime
-import logging
-
 import more_itertools
+
 from cassandra.cqlengine.query import BatchQuery, BatchType
 from fastapi import APIRouter, HTTPException
+from loguru import logger
 from pydantic import BaseModel, field_validator
 
 from terec.api.routers.util import (
@@ -21,7 +21,6 @@ from terec.model.results import (
 )
 
 router = APIRouter()
-logger = logging.getLogger(__name__)
 
 # TODO: shall we reflect modes or maybe instead keep only owned fields and then compose?
 

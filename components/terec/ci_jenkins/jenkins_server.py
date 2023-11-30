@@ -1,6 +1,5 @@
-import logging
-
 from jenkins import Jenkins
+from loguru import logger
 
 from terec.api.routers.results import TestSuiteRunInfo, TestCaseRunInfo
 from terec.ci_jenkins.build_info_parser import parse_jenkins_build_info
@@ -8,7 +7,6 @@ from terec.ci_jenkins.report_parser import parse_jenkins_report_suite
 
 
 class JenkinsServer:
-    logger = logging.getLogger(__name__)
 
     def __init__(self, url: str, username: str = None, password: str = None):
         self.url = url
@@ -18,7 +16,7 @@ class JenkinsServer:
 
     def connect(self) -> Jenkins:
         if not self.server:
-            self.logger.info(f"Connecting to Jenkins CI server at {self.url}")
+            logger.info(f"Connecting to Jenkins CI server at {self.url}")
             self.server = Jenkins(self.url, self.username, self.password)
         return self.server
 

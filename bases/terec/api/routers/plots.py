@@ -1,6 +1,5 @@
-import logging
-
 from fastapi import APIRouter
+from loguru import logger
 
 from terec.api.routers.results import TestSuiteRunInfo
 from terec.api.routers.util import (
@@ -14,7 +13,6 @@ from terec.model.results import (
 from terec.model.util import model_to_dict
 
 router = APIRouter()
-logger = logging.getLogger(__name__)
 
 
 @router.get("/orgs/{org_name}/projects/{project_name}/suites/{suite_name}/builds")
