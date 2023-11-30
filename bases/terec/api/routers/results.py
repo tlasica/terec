@@ -73,6 +73,7 @@ class TestCaseRunInfo(BaseModel):
     error_stacktrace: str | None = None
     error_details: str | None = None
     skip_details: str | None = None
+    # TODO: possibly there should be run_id here as well
 
 
 @router.get("/orgs/{org_name}/suites")

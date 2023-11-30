@@ -1,3 +1,6 @@
+import uuid
+from functools import lru_cache
+
 from codetiming import Timer
 from fastapi import APIRouter, HTTPException
 from loguru import logger
@@ -30,12 +33,14 @@ def validate_path(org_name: str, project_name: str, suite_name: str):
     get_test_suite_or_raise(org_name, project_name, suite_name)
 
 
+@lru_cache(maxsize=1024)
 def get_suite_branch_runs(
     org_name: str,
     project_name: str,
     suite_name: str,
     branch: str | None = None,
     limit: int = 32,
+    user_req_id: str = str(uuid.uuid1())   # for memoizing if part of the same user request
 ) -> list[TestSuiteRun]:
     # collect runs results
     query_params = {
@@ -77,6 +82,7 @@ def get_suite_branch_run_failed_tests(
     branch: str | None = None,
     limit: int = 32,
     threshold: int | None = None,
+    user_req_id: str | None = None
 ) -> list[TestCaseSuiteRunInfo]:
     """
     Return list of all failed tests for given suite and branch.
@@ -89,7 +95,8 @@ def get_suite_branch_run_failed_tests(
     # collect relevant suite runs (on the branch)
     validate_path(org_name, project_name, suite_name)
     runs_history = get_suite_branch_runs(
-        org_name, project_name, suite_name, branch, limit
+        org_name, project_name, suite_name, branch, limit,
+        user_req_id=user_req_id or str(uuid.uuid1())
     )
     # collect failures for given runs history
     failed_tests = get_failed_tests_for_suite_runs(runs_history)
@@ -116,6 +123,7 @@ def get_suite_branch_test_runs_history(
     test_config: str | None = None,
     branch: str | None = None,
     run_limit: int = 32,
+    user_req_id: str | None = None
 ) -> list[TestCaseSuiteRunInfo]:
     """
     Return history of tests - identified by {package, class, testname} in runs of given suite on given branch.
@@ -131,7 +139,8 @@ def get_suite_branch_test_runs_history(
     # collect relevant suite runs (on the branch)
     validate_path(org_name, project_name, suite_name)
     suite_runs = get_suite_branch_runs(
-        org_name, project_name, suite_name, branch, run_limit
+        org_name, project_name, suite_name, branch, run_limit,
+        user_req_id=user_req_id or str(uuid.uuid1())
     )
     # collect test run history
     query_params = {
