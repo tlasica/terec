@@ -165,7 +165,7 @@ def add_suite_run_tests(
     session = get_session()
     p_stmt = session.prepare(insert_cql)
 
-    concurrency = 7
+    concurrency = 16
     for chunk in more_itertools.sliced(body, 1000):
         params = []
         for test in chunk:
