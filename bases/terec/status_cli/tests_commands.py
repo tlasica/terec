@@ -177,7 +177,7 @@ def history(suite: str, branch: str, org: str = None, project: str = None, limit
     # add rows
     for test_case in uniq_test_cases:
         package, suite, case, config = test_case
-        history = tests_history[test_case]
+        history = sorted(tests_history[test_case], reverse=True, key=lambda x: x["suite_run"]["run_id"])
 
         t_group = next((x["test_run"]["test_group"] for x in history if x["test_run"]["test_group"] is not None), "---")
         history_stream = []

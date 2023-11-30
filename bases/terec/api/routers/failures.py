@@ -47,7 +47,7 @@ def get_suite_branch_runs(
         query_params["branch"] = branch
     runs = TestSuiteRun.objects(**query_params).limit(limit)
     logger.info(
-        "Found %d interesting build runs for suite %s/%s on branch %s",
+        "Found {} interesting build runs for suite {}/{} on branch {}",
         len(runs),
         project_name,
         suite_name,
@@ -113,6 +113,7 @@ def get_suite_branch_test_runs_history(
     test_package: str,
     test_class: str | None = None,
     test_case: str | None = None,
+    test_config: str | None = None,
     branch: str | None = None,
     run_limit: int = 32,
 ) -> list[TestCaseSuiteRunInfo]:
@@ -144,11 +145,14 @@ def get_suite_branch_test_runs_history(
         query_params["test_suite"] = test_class
     if test_case:
         query_params["test_case"] = test_case
+    if test_config:
+        query_params["test_config"] = test_config
     # collect failures for given runs history
     test_runs = TestCaseRun.objects().filter(**query_params)
     logger.info(
-        "Found %d test runs for suite %s/%s on branch %s matching query",
+        "Found {} test {} runs for suite {}/{} on branch {} matching query",
         len(test_runs),
+        f"{test_package}::{test_class}::{test_case}::{test_config}",
         project_name,
         suite_name,
         branch,
