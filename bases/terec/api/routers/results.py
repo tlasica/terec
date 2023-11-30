@@ -165,6 +165,9 @@ def add_suite_run_tests(
     session = get_session()
     p_stmt = session.prepare(insert_cql)
 
+    def limit_text_field(text: str) -> str:
+        return text[:16384] if text else None
+
     concurrency = 16
     for chunk in more_itertools.sliced(body, 1000):
         params = []
@@ -185,11 +188,11 @@ def add_suite_run_tests(
                 attrs.get("test_group", None),
                 timestamp,
                 attrs.get("duration_ms", None),
-                attrs.get("stdout", None),
-                attrs.get("stderr", None),
-                attrs.get("error_stacktrace", None),
-                attrs.get("error_details", None),
-                attrs.get("skip_details", None),
+                limit_text_field(attrs.get("stdout", None)),
+                limit_text_field(attrs.get("stderr", None)),
+                limit_text_field(attrs.get("error_stacktrace", None)),
+                limit_text_field(attrs.get("error_details", None)),
+                limit_text_field(attrs.get("skip_details", None)),
                 int(now.timestamp() * 1000),
             )
             params.append(test_data)
