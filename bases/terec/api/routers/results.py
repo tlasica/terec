@@ -1,7 +1,9 @@
 import datetime
 import more_itertools
 
-from cassandra.cqlengine.query import BatchQuery, BatchType
+from cassandra.concurrent import execute_concurrent_with_args
+from cassandra.cqlengine.connection import get_session
+from codetiming import Timer
 from fastapi import APIRouter, HTTPException
 from loguru import logger
 from pydantic import BaseModel, field_validator
@@ -149,22 +151,55 @@ def add_suite_run_tests(
     # FIXME: we have a problem with branch/run order - we do not want to require branch
     get_test_suite_run_or_raise(org_name, prj_name, suite_name, run_id)
     # add test cases
+    logger.info("importing {} test case results for {}/{}/{}/{}", len(body), org_name, prj_name, suite_name, run_id)
     now = datetime.datetime.now()
-    for chunk in more_itertools.sliced(body, 200):
-        with BatchQuery(batch_type=BatchType.Unlogged) as batch:
-            for test in chunk:
-                attrs = test.model_dump()
-                attrs["result"] = attrs["result"].value
-                attrs["org"] = org_name
-                attrs["project"] = prj_name
-                attrs["suite"] = suite_name
-                attrs["run_id"] = run_id
-                TestCaseRun.batch(batch).create(**attrs, create_at=now)
+
+    # number of columns/values = 4 + 4 + 3 + 4 + 1 = 16
+    num_cols = 17
+    insert_cql = (
+        f"INSERT INTO {TestCaseRun.column_family_name(include_keyspace=True)} "
+        f"(org, project, suite, run_id, test_package, test_suite, test_case, test_config, result, test_group, tstamp, duration_ms, stdout, stderr, error_stacktrace, error_details, skip_details)"
+        f"VALUES({','.join('?' * num_cols)})"
+        f"USING TIMESTAMP ?"
+    )
+    session = get_session()
+    p_stmt = session.prepare(insert_cql)
+
+    concurrency = 7
+    for chunk in more_itertools.sliced(body, 1000):
+        params = []
+        for test in chunk:
+            attrs = test.model_dump()
+            attrs["result"] = attrs["result"].value
+            timestamp = int(attrs["tstamp"].timestamp() * 1000)
+            test_data = (
+                org_name,
+                prj_name,
+                suite_name,
+                run_id,
+                attrs.get("test_package", None),
+                attrs.get("test_suite", None),
+                attrs.get("test_case", None),
+                attrs.get("test_config", None),
+                attrs.get("result"),
+                attrs.get("test_group", None),
+                timestamp,
+                attrs.get("duration_ms", None),
+                attrs.get("stdout", None),
+                attrs.get("stderr", None),
+                attrs.get("error_stacktrace", None),
+                attrs.get("error_details", None),
+                attrs.get("skip_details", None),
+                int(now.timestamp() * 1000),
+            )
+            params.append(test_data)
+        with Timer(logger=logger.info,
+                   initial_text=f"Inserting chunk of {len(params)} test case runs",
+                   text="Elapsed time for inserting chunk: {milliseconds:.0f} ms"):
+            execute_concurrent_with_args(session, p_stmt, params, concurrency=concurrency)
+
     # log information about import
     test_results_count = len(body)
-    logger.info(
-        f"{test_results_count} test case results added to run {org_name}/{prj_name}/{suite_name}/{run_id}"
-    )
     return {
         "test_count": test_results_count,
     }
