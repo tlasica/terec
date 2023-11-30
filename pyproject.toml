@@ -34,6 +34,7 @@ plotille = "^5.0.0"
 termcharts = "^1.1.2"
 plotext = "^5.2.8"
 aiohttp = {extras = ["speedups"], version = "^3.9.1"}
+loguru = "^0.7.2"
 
 
 [tool.poetry.group.dev.dependencies]
