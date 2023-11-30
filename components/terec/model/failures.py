@@ -1,4 +1,3 @@
-from cassandra import query
 from cassandra.concurrent import execute_concurrent_with_args
 from cassandra.cqlengine.connection import get_session
 
@@ -23,7 +22,7 @@ def get_failed_tests_for_suite_runs(
     # create list of parameters for the queries
     params = [(r.org, r.project, r.suite, r.run_id, "FAIL") for r in runs]
     # run the query
-    concurrency = 7
+    concurrency = 32
     results = execute_concurrent_with_args(
         session, stmt, params, concurrency=concurrency
     )

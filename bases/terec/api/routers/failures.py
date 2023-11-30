@@ -1,5 +1,6 @@
 import logging
 
+from codetiming import Timer
 from fastapi import APIRouter, HTTPException
 from pydantic.main import BaseModel
 
@@ -69,6 +70,7 @@ def combine_test_runs_with_suite_runs(
     return res
 
 
+@Timer(name="api-history-get-failed-tests", logger=logging.info)
 @router.get("/orgs/{org_name}/projects/{project_name}/suites/{suite_name}/failed-tests")
 def get_suite_branch_run_failed_tests(
     org_name: str,
@@ -104,6 +106,7 @@ def get_suite_branch_run_failed_tests(
     return combine_test_runs_with_suite_runs(failed_tests, runs_history)
 
 
+@Timer(name="api-history-get-test-runs", logger=logging.info)
 @router.get("/orgs/{org_name}/projects/{project_name}/suites/{suite_name}/test-runs")
 def get_suite_branch_test_runs_history(
     org_name: str,
