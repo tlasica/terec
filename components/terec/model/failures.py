@@ -58,3 +58,39 @@ def load_failed_tests_for_suite_runs(
             tests += [TestCaseRun(**r) for r in rows]
     tests.sort(reverse=True, key=lambda x: x.test_case_run_id_tuple())
     return tests
+
+
+def load_test_case_runs(
+        org_name: str, project_name: str, suite_name: str,
+        runs: list[int],
+        test_package: str, test_class: str, test_case: str,
+        test_config: str | None = None,
+        result: str | None = None
+) -> list[TestCaseRun]:
+    """
+    Returns all runs of given test case in given list of suite runs.
+    test_config parameter is optional - if None then all configurations will be returned.
+    result is also optional: if provided only test runs with given result are returned.
+    TODO: what is more efficient: run_id IN or maybe execute concurrent?
+    TODO: what about order?
+    """
+    query_params = {
+        "org": org_name,
+        "project": project_name,
+        "suite": suite_name,
+        "run_id__in": runs,
+        "test_package": test_package,
+    }
+    if test_class:
+        query_params["test_suite"] = test_class
+    if test_case:
+        query_params["test_case"] = test_case
+    if test_config:
+        query_params["test_config"] = test_config
+    # collect failures for given runs history
+    test_runs = TestCaseRun.objects().filter(**query_params)
+    # filter by result
+    # TODO: it is not allowed to combine IN with index check => we need execute concurrent
+    if result:
+        test_runs = [x for x in test_runs if x.result == result]
+    return test_runs

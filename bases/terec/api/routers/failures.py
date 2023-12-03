@@ -12,7 +12,7 @@ from terec.api.routers.util import (
     get_org_project_or_raise,
     get_test_suite_or_raise,
 )
-from terec.model.failures import load_failed_tests_for_suite_runs, load_suite_branch_runs
+from terec.model.failures import load_failed_tests_for_suite_runs, load_suite_branch_runs, load_test_case_runs
 from terec.model.results import (
     TestSuiteRun,
     TestCaseRun,
@@ -145,21 +145,17 @@ def get_suite_branch_test_runs_history(
         user_req_id=user_req_id or str(uuid.uuid1()),
     )
     # collect test run history
-    query_params = {
-        "org": org_name,
-        "project": project_name,
-        "suite": suite_name,
-        "run_id__in": [r.run_id for r in suite_runs],
-        "test_package": test_package,
-    }
-    if test_class:
-        query_params["test_suite"] = test_class
-    if test_case:
-        query_params["test_case"] = test_case
-    if test_config:
-        query_params["test_config"] = test_config
-    # collect failures for given runs history
-    test_runs = TestCaseRun.objects().filter(**query_params)
+    suite_runs_ids = [x.run_id for x in suite_runs]
+    test_runs = load_test_case_runs(
+        org_name=org_name,
+        project_name=project_name,
+        suite_name=suite_name,
+        runs=suite_runs_ids,
+        test_package=test_package,
+        test_class=test_class,
+        test_case=test_case,
+        test_config=test_config,
+    )
     logger.info(
         "Found {} test {} runs for suite {}/{} on branch {} matching query",
         len(test_runs),

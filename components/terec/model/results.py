@@ -127,3 +127,6 @@ class TestCaseRun(Model):
 
     def is_same_test_case(self, other: TestCaseRun):
         return self.test_case == other.test_case and self.is_same_test_suite(other)
+
+    def is_same_test_case_and_config(self, other: TestCaseRun):
+        return self.test_config == other.test_config and self.is_same_test_case(other)
