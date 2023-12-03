@@ -1,8 +1,32 @@
+
 ## BACKLOG
 
 run.sh should create test/test project and org
 check what is the source of branch for export-build
 add test mocking jenkins server to return expected json
+
+
+## 2023-12-01 Regression Detection
+
+New regression can be based on similarity check or on the history of failures.
+This will require some assumption that we collect error details or stacktrace.
+We can probably stick to same test case (maybe different configs).
+
+To implement the flow:
+1. test failure is imported => event::test_case_run_failed is created
+2. a worked picks up this event and analyzes it
+3. if a regression is found then an event::test_case_run_regression is created
+4. if notification is configured for given suite/branch then slack notification is sent (sensu?)
+
+What we need to implement:
+1. similarity check
+2. test hash
+3. a logic to get history and find similarities
+4. an api call to find if has is a regression
+5. some message queues solution
+6. check what happens if events are not read
+
+
 
 
 
