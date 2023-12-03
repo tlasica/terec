@@ -23,7 +23,7 @@ def load_suite_branch_runs(
     return runs
 
 
-def get_failed_tests_for_suite_runs(
+def load_failed_tests_for_suite_runs(
     runs: list[TestSuiteRun], session=None
 ) -> list[TestCaseRun]:
     """

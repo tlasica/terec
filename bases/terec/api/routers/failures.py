@@ -12,7 +12,7 @@ from terec.api.routers.util import (
     get_org_project_or_raise,
     get_test_suite_or_raise,
 )
-from terec.model.failures import get_failed_tests_for_suite_runs, load_suite_branch_runs
+from terec.model.failures import load_failed_tests_for_suite_runs, load_suite_branch_runs
 from terec.model.results import (
     TestSuiteRun,
     TestCaseRun,
@@ -97,7 +97,7 @@ def get_suite_branch_run_failed_tests(
         user_req_id=user_req_id or str(uuid.uuid1()),
     )
     # collect failures for given runs history
-    failed_tests = get_failed_tests_for_suite_runs(runs_history)
+    failed_tests = load_failed_tests_for_suite_runs(runs_history)
     logger.info(
         "Found {} failed tests for suite {}/{} on branch {}",
         len(failed_tests),
