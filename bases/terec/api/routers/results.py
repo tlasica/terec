@@ -151,7 +151,14 @@ def add_suite_run_tests(
     # FIXME: we have a problem with branch/run order - we do not want to require branch
     get_test_suite_run_or_raise(org_name, prj_name, suite_name, run_id)
     # add test cases
-    logger.info("importing {} test case results for {}/{}/{}/{}", len(body), org_name, prj_name, suite_name, run_id)
+    logger.info(
+        "importing {} test case results for {}/{}/{}/{}",
+        len(body),
+        org_name,
+        prj_name,
+        suite_name,
+        run_id,
+    )
     now = datetime.datetime.now()
 
     # number of columns/values = 4 + 4 + 3 + 4 + 1 = 16
@@ -196,10 +203,14 @@ def add_suite_run_tests(
                 int(now.timestamp() * 1000),
             )
             params.append(test_data)
-        with Timer(logger=logger.info,
-                   initial_text=f"Inserting chunk of {len(params)} test case runs",
-                   text="Elapsed time for inserting chunk: {milliseconds:.0f} ms"):
-            execute_concurrent_with_args(session, p_stmt, params, concurrency=concurrency)
+        with Timer(
+            logger=logger.info,
+            initial_text=f"Inserting chunk of {len(params)} test case runs",
+            text="Elapsed time for inserting chunk: {milliseconds:.0f} ms",
+        ):
+            execute_concurrent_with_args(
+                session, p_stmt, params, concurrency=concurrency
+            )
 
     # log information about import
     test_results_count = len(body)

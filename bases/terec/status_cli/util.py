@@ -34,7 +34,9 @@ def get_terec_rest_api(url: str, query_params: dict):
         raise Exception(f"Error when calling {url}: {resp.text}")
 
 
-async def get_terec_rest_api_json_async(session: aiohttp.ClientSession, url: str, query_params: dict):
+async def get_terec_rest_api_json_async(
+    session: aiohttp.ClientSession, url: str, query_params: dict
+):
     resp = await session.request(method="GET", url=url, params=query_params)
     resp.raise_for_status()
     json = await resp.json()
@@ -45,13 +47,17 @@ async def collect_terec_rest_api_calls(calls: list[tuple[Any, str, dict]]):
     results = {}
 
     async def collect_task(task_name, session, url, params):
-        resp = await get_terec_rest_api_json_async(session=session, url=url, query_params=params)
+        resp = await get_terec_rest_api_json_async(
+            session=session, url=url, query_params=params
+        )
         results[task_name] = resp
 
     async with aiohttp.ClientSession() as session:
         tasks = []
         for name, url, params in calls:
-            tasks.append(collect_task(task_name=name, session=session, url=url, params=params))
+            tasks.append(
+                collect_task(task_name=name, session=session, url=url, params=params)
+            )
         await asyncio.gather(*tasks)
 
     return results
@@ -59,6 +65,7 @@ async def collect_terec_rest_api_calls(calls: list[tuple[Any, str, dict]]):
 
 def typer_table_config(title: str, caption: str):
     from rich import box
+
     return {
         "show_header": True,
         "header_style": "bold magenta",

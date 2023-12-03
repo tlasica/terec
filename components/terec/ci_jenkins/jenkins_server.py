@@ -7,7 +7,6 @@ from terec.ci_jenkins.report_parser import parse_jenkins_report_suite
 
 
 class JenkinsServer:
-
     def __init__(self, url: str, username: str = None, password: str = None):
         self.url = url
         self.username = username

@@ -10,7 +10,10 @@ from terec.status_cli.util import (
     env_terec_url,
     value_or_env,
     get_terec_rest_api,
-    not_none, typer_table_config, ratio_str, collect_terec_rest_api_calls,
+    not_none,
+    typer_table_config,
+    ratio_str,
+    collect_terec_rest_api_calls,
 )
 
 tests_app = typer.Typer()
@@ -31,7 +34,17 @@ def get_failed_tests(org: str, project: str, suite: str, branch: str, user_req_i
     return get_terec_rest_api(url, query_params)
 
 
-def get_test_history_api_call(org: str, project: str, suite: str, branch: str, tpackage: str, tclass: str, tcase: str, tconfig: str, user_req_id: str):
+def get_test_history_api_call(
+    org: str,
+    project: str,
+    suite: str,
+    branch: str,
+    tpackage: str,
+    tclass: str,
+    tcase: str,
+    tconfig: str,
+    user_req_id: str,
+):
     terec_url = env_terec_url()
     terec_org = not_none(
         value_or_env(org, "TEREC_ORG"), "org not provided or not set via TEREC_ORG"
@@ -48,7 +61,7 @@ def get_test_history_api_call(org: str, project: str, suite: str, branch: str, t
         "test_class": tclass,
         "test_case": tcase,
         "test_config": tconfig,
-        "user_req_id": user_req_id
+        "user_req_id": user_req_id,
     }
     return url, query_params
 
@@ -69,6 +82,7 @@ class FailedTests:
     2. for each test key get list of runs for this test
     The key is a tuple(package, suite, case, config)
     """
+
     def __init__(self, data):
         self.data = data
 
@@ -89,7 +103,14 @@ class FailedTests:
 
 
 @tests_app.command()
-def failed(suite: str, branch: str, org: str = None, project: str = None, limit: int = None, threshold: int = None):
+def failed(
+    suite: str,
+    branch: str,
+    org: str = None,
+    project: str = None,
+    limit: int = None,
+    threshold: int = None,
+):
     """
     Prints out the list of test failures for given suite and branch.
     Requires TEREC_URL to be set and optionally TEREC_ORG, TEREC_PROJECT.
@@ -138,7 +159,14 @@ def failed(suite: str, branch: str, org: str = None, project: str = None, limit:
 
 
 @tests_app.command()
-def history(suite: str, branch: str, org: str = None, project: str = None, limit: int = None, threshold: int = None):
+def history(
+    suite: str,
+    branch: str,
+    org: str = None,
+    project: str = None,
+    limit: int = None,
+    threshold: int = None,
+):
     """
     Prints out the list of tests that failed at least once given suite and branch.
     For each test it prints number of failures, skip and history of runs
@@ -159,7 +187,17 @@ def history(suite: str, branch: str, org: str = None, project: str = None, limit
         calls = []
         for test_case in uniq_test_cases:
             tpackage, tsuite, tcase, tconfig = test_case
-            url, params = get_test_history_api_call(org, project, suite, branch, tpackage, tsuite, tcase, tconfig, user_req_id=user_req_id)
+            url, params = get_test_history_api_call(
+                org,
+                project,
+                suite,
+                branch,
+                tpackage,
+                tsuite,
+                tcase,
+                tconfig,
+                user_req_id=user_req_id,
+            )
             calls.append((test_case, url, params))
 
         tests_history = asyncio.run(collect_terec_rest_api_calls(calls))
@@ -181,9 +219,20 @@ def history(suite: str, branch: str, org: str = None, project: str = None, limit
     # add rows
     for test_case in uniq_test_cases:
         package, suite, case, config = test_case
-        history = sorted(tests_history[test_case], reverse=True, key=lambda x: x["suite_run"]["run_id"])
+        history = sorted(
+            tests_history[test_case],
+            reverse=True,
+            key=lambda x: x["suite_run"]["run_id"],
+        )
 
-        t_group = next((x["test_run"]["test_group"] for x in history if x["test_run"]["test_group"] is not None), "---")
+        t_group = next(
+            (
+                x["test_run"]["test_group"]
+                for x in history
+                if x["test_run"]["test_group"] is not None
+            ),
+            "---",
+        )
         history_stream = []
         pass_count, fail_count, skip_count = 0, 0, 0
         for r in history:
@@ -213,4 +262,3 @@ def history(suite: str, branch: str, org: str = None, project: str = None, limit
     console = Console()
     console.print()
     console.print(table)
-
