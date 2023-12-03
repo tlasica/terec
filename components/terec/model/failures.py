@@ -4,6 +4,25 @@ from cassandra.cqlengine.connection import get_session
 from terec.model.results import TestSuiteRun, TestCaseRun
 
 
+def load_suite_branch_runs(
+    org_name: str,
+    project_name: str,
+    suite_name: str,
+    branch: str | None = None,
+    limit: int = 32
+) -> list[TestSuiteRun]:
+    # collect runs results
+    query_params = {
+        "org": org_name,
+        "project": project_name,
+        "suite": suite_name,
+    }
+    if branch:
+        query_params["branch"] = branch
+    runs = TestSuiteRun.objects(**query_params).limit(limit)
+    return runs
+
+
 def get_failed_tests_for_suite_runs(
     runs: list[TestSuiteRun], session=None
 ) -> list[TestCaseRun]:
@@ -26,20 +45,16 @@ def get_failed_tests_for_suite_runs(
     results = execute_concurrent_with_args(
         session, stmt, params, concurrency=concurrency
     )
-    # collect and combine results
-    rows = []
-    errors = []
-    for success, res in results:
-        if success:
-            rows += res  # result will be a list of rows
-        else:
-            errors.append(res)  # result will be an Exception
-    # raise if any errors hit
+    # check for errors
+    errors = [error for ok, error in results if not ok]
     if errors:
         raise Exception(
             f"{len(errors)}/{len(params)} queries failed. Example failure: {str(errors[0])}"
         )
-    # convert each item to TestCaseRun model object
-    tests = [TestCaseRun(**r) for r in rows]
+    # collect and combine results
+    tests = []
+    for success, rows in results:
+        if success:
+            tests += [TestCaseRun(**r) for r in rows]
     tests.sort(reverse=True, key=lambda x: x.test_case_run_id_tuple())
     return tests

@@ -12,7 +12,7 @@ from terec.api.routers.util import (
     get_org_project_or_raise,
     get_test_suite_or_raise,
 )
-from terec.model.failures import get_failed_tests_for_suite_runs
+from terec.model.failures import get_failed_tests_for_suite_runs, load_suite_branch_runs
 from terec.model.results import (
     TestSuiteRun,
     TestCaseRun,
@@ -44,15 +44,7 @@ def get_suite_branch_runs(
         uuid.uuid1()
     ),  # for memoizing if part of the same user request
 ) -> list[TestSuiteRun]:
-    # collect runs results
-    query_params = {
-        "org": org_name,
-        "project": project_name,
-        "suite": suite_name,
-    }
-    if branch:
-        query_params["branch"] = branch
-    runs = TestSuiteRun.objects(**query_params).limit(limit)
+    runs = load_suite_branch_runs(org_name, project_name, suite_name, branch, limit)
     logger.info(
         "Found {} interesting build runs for suite {}/{} on branch {}",
         len(runs),
