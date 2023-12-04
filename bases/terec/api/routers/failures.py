@@ -12,7 +12,11 @@ from terec.api.routers.util import (
     get_org_project_or_raise,
     get_test_suite_or_raise,
 )
-from terec.model.failures import load_failed_tests_for_suite_runs, load_suite_branch_runs, load_test_case_runs
+from terec.model.failures import (
+    load_failed_tests_for_suite_runs,
+    load_suite_branch_runs,
+    load_test_case_runs,
+)
 from terec.model.results import (
     TestSuiteRun,
     TestCaseRun,

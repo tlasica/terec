@@ -32,10 +32,21 @@ suite = "cassandra-3.11-ci"
 test_package = "org.apache.cassandra.cql3"
 test_suite = "ViewComplexTest"
 
-failed_tests = TestCaseRun.objects().filter(org=org, project=project, suite=suite, test_package=test_package, test_suite=test_suite, result='FAIL').allow_filtering().all()
+failed_tests = (
+    TestCaseRun.objects()
+    .filter(
+        org=org,
+        project=project,
+        suite=suite,
+        test_package=test_package,
+        test_suite=test_suite,
+        result="FAIL",
+    )
+    .allow_filtering()
+    .all()
+)
 
 print(f"Found {len(failed_tests)} failed tests")
-
 
 
 def levenshtein_similarity_ratio(str1, str2):
@@ -52,6 +63,7 @@ def jaccard_ngram_similarity(str1, str2, n):
     jaccard_similarity = 1 - jaccard_distance(ngrams_str1, ngrams_str2)
     return jaccard_similarity
 
+
 def cosine_sim(str1, str2):
     vectorizer = TfidfVectorizer()
     tfidf_matrix = vectorizer.fit_transform([str1.lower(), str2.lower()])
@@ -60,45 +72,50 @@ def cosine_sim(str1, str2):
     # Extract the similarity score from the matrix
     cosine_similarity_score = cosine_similarity_matrix[0, 1]
     # Normalize to obtain similarity ratio in the range of 0 to 1
-    return (cosine_similarity_score + 1) / 2    
+    return (cosine_similarity_score + 1) / 2
 
 
 def generate_sha256(input_string):
     # Create a new SHA-256 hash object
     sha256_hash = hashlib.sha256()
     # Update the hash object with the bytes-like object of the input string
-    sha256_hash.update(input_string.encode('utf-8'))
+    sha256_hash.update(input_string.encode("utf-8"))
     # Get the hexadecimal representation of the hash
     sha256_hexdigest = sha256_hash.hexdigest()
     return sha256_hexdigest
 
+
 print("Levenshtein")
 for p in failed_tests:
-    p_name = '::'.join(str(p).split("::")[-2:])
+    p_name = "::".join(str(p).split("::")[-2:])
     print("#" * 30)
     print(f"{p_name} with hash = {generate_sha256(str(p))}")
     for q in failed_tests:
         if p == q:
             continue
-        q_name = '::'.join(str(q).split("::")[-2:])
+        q_name = "::".join(str(q).split("::")[-2:])
         lsr_trace, lsr_error = None, None
         similar = True
         if p.error_details and q.error_details:
             lsr_error = levenshtein_similarity_ratio(p.error_details, q.error_details)
             similar = similar and (lsr_error >= 0.95)
         if p.error_stacktrace and q.error_stacktrace:
-            lsr_trace = levenshtein_similarity_ratio(p.error_stacktrace, q.error_stacktrace)
+            lsr_trace = levenshtein_similarity_ratio(
+                p.error_stacktrace, q.error_stacktrace
+            )
             similar = similar and (lsr_trace >= 0.95)
         if similar:
-            print(f"..found similar test: {q_name} with error-lsr: {lsr_error} and trace-lsr: {lsr_trace}")
-            print(f"..jaccard sim: {jaccard_ngram_similarity(p.error_stacktrace, q.error_stacktrace, 5)}")
-            print(f"..cosince sim: {cosine_sim(p.error_stacktrace, q.error_stacktrace)}")
+            print(
+                f"..found similar test: {q_name} with error-lsr: {lsr_error} and trace-lsr: {lsr_trace}"
+            )
+            print(
+                f"..jaccard sim: {jaccard_ngram_similarity(p.error_stacktrace, q.error_stacktrace, 5)}"
+            )
+            print(
+                f"..cosince sim: {cosine_sim(p.error_stacktrace, q.error_stacktrace)}"
+            )
             print(f"..p stacktrace:\n {p.error_stacktrace}")
             print(f"..q stacktrace:\n {q.error_stacktrace}")
 
 
-
-
-
 import Levenshtein
-

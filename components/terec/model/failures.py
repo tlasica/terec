@@ -9,7 +9,7 @@ def load_suite_branch_runs(
     project_name: str,
     suite_name: str,
     branch: str | None = None,
-    limit: int = 32
+    limit: int = 32,
 ) -> list[TestSuiteRun]:
     # collect runs results
     query_params = {
@@ -61,11 +61,15 @@ def load_failed_tests_for_suite_runs(
 
 
 def load_test_case_runs(
-        org_name: str, project_name: str, suite_name: str,
-        runs: list[int],
-        test_package: str, test_class: str, test_case: str,
-        test_config: str | None = None,
-        result: str | None = None
+    org_name: str,
+    project_name: str,
+    suite_name: str,
+    runs: list[int],
+    test_package: str,
+    test_class: str,
+    test_case: str,
+    test_config: str | None = None,
+    result: str | None = None,
 ) -> list[TestCaseRun]:
     """
     Returns all runs of given test case in given list of suite runs.
