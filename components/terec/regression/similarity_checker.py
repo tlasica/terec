@@ -41,8 +41,12 @@ class SimilarityChecker:
         self.test_case_run = test_case_run
 
     def is_similar(self, other: TestCaseRun):
-        sim_error_details = self.is_error_details_similar(self.test_case_run.error_details, other.error_details)
-        sim_stack_trace = self.is_stacktrace_similar(self.test_case_run.error_stacktrace, other.error_stacktrace)
+        sim_error_details = self.is_error_details_similar(
+            self.test_case_run.error_details, other.error_details
+        )
+        sim_stack_trace = self.is_stacktrace_similar(
+            self.test_case_run.error_stacktrace, other.error_stacktrace
+        )
         if sim_stack_trace is not None and sim_error_details in [True, None]:
             return sim_stack_trace
         sim_stdout = self.is_out_stream_similar(self.test_case_run.stdout, other.stdout)
@@ -54,7 +58,10 @@ class SimilarityChecker:
     def is_text_similar(self, this_value: str, other_value: str):
         if not this_value or not other_value:
             return None
-        if levenshtein_sim_ratio(this_value, other_value) < self.LEVENSHTEIN_RATIO_THRESHOLD:
+        if (
+            levenshtein_sim_ratio(this_value, other_value)
+            < self.LEVENSHTEIN_RATIO_THRESHOLD
+        ):
             return False
         if cosine_sim_ratio(this_value, other_value) < self.COSINE_SIM_RATIO_THRESHOLD:
             return False
@@ -63,7 +70,9 @@ class SimilarityChecker:
     def is_error_details_similar(self, error_1: str, error_2: str) -> bool:
         return self.is_text_similar(error_1, error_2)
 
-    def is_stacktrace_similar(self, stacktrace_1: str, stacktrace_2: str) -> bool | None:
+    def is_stacktrace_similar(
+        self, stacktrace_1: str, stacktrace_2: str
+    ) -> bool | None:
         """
         Comparing two stack traces is tricky because we should cover following:
         - line numbers change related to code structure changes like new additions

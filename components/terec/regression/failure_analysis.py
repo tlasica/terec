@@ -16,7 +16,14 @@ class TestCaseRunFailureAnalyser:
 
     __test__ = False
 
-    def __init__(self, failed_test: TestCaseRun, branch: str, org: str=None, project: str=None, suite: str=None):
+    def __init__(
+        self,
+        failed_test: TestCaseRun,
+        branch: str,
+        org: str = None,
+        project: str = None,
+        suite: str = None,
+    ):
         self.failed_test = failed_test
         self.org = org or failed_test.org
         self.project = project or failed_test.project
@@ -43,16 +50,22 @@ class TestCaseRunFailureAnalyser:
         self.find_similar_test_runs()
 
     def collect_relevant_builds(self):
-        suite_runs = load_suite_branch_runs(self.org, self.project, self.suite, self.branch)
+        suite_runs = load_suite_branch_runs(
+            self.org, self.project, self.suite, self.branch
+        )
         if not suite_runs:
             self.message = f"Cannot check: no suite runs on branch {self.branch} for suite {self.full_suite_name()}."
-        self.suite_runs_to_check = [x for x in suite_runs if not self.is_same_run_as_failed_test(x)]
+        self.suite_runs_to_check = [
+            x for x in suite_runs if not self.is_same_run_as_failed_test(x)
+        ]
 
     def is_same_run_as_failed_test(self, run: TestSuiteRun) -> bool:
-        return (run.project == self.failed_test.project
-                and run.org == self.failed_test.org
-                and run.suite == self.failed_test.suite
-                and run.run_id == self.failed_test.run_id)
+        return (
+            run.project == self.failed_test.project
+            and run.org == self.failed_test.org
+            and run.suite == self.failed_test.suite
+            and run.run_id == self.failed_test.run_id
+        )
 
     def collect_test_runs(self):
         suite_runs_ids = [x.run_id for x in self.suite_runs_to_check]
@@ -65,7 +78,11 @@ class TestCaseRunFailureAnalyser:
             test_class=self.failed_test.test_suite,
             test_case=self.failed_test.test_case,
         )
-        logger.info("Found {} test runs to check for test {}.", len(test_runs), f"{str(self.failed_test)}")
+        logger.info(
+            "Found {} test runs to check for test {}.",
+            len(test_runs),
+            f"{str(self.failed_test)}",
+        )
         if not test_runs:
             self.message += f"Cannot check: no runs for the test under check on branch {self.branch} for suite {self.full_suite_name()}."
             self.message += f"Builds considered: {suite_runs_ids}."

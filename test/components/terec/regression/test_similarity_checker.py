@@ -1,13 +1,16 @@
 from faker import Faker
 
-from .text_samples import sample_npe_stack_trace, sample_npe_stack_trace_with_line_changes, different_npe_stack_trace
+from .text_samples import (
+    sample_npe_stack_trace,
+    sample_npe_stack_trace_with_line_changes,
+    different_npe_stack_trace,
+)
 from generator import ResultsGenerator
 from terec.model.results import TestCaseRun
 from terec.regression.similarity_checker import SimilarityChecker
 
 
 class TestSimilarityChecker:
-
     fake = Faker()
     gen = ResultsGenerator()
 

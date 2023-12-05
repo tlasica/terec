@@ -96,9 +96,9 @@ class ResultsGenerator:
         for line in original.splitlines(keepends=False):
             line = list(line)
             for _ in range(n_changes_per_line):
-                p = random.randint(0, len(line)-2)
-                line[p], line[p+1] = line[p+1], line[p]
-            out.append(''.join(line))
+                p = random.randint(0, len(line) - 2)
+                line[p], line[p + 1] = line[p + 1], line[p]
+            out.append("".join(line))
         return "\n".join(out)
 
 

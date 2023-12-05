@@ -177,11 +177,11 @@ class TestCaseRunCheckResponse(BaseModel):
     # TODO: add test package/class etc and config
     # TODO: add search context like builds checked
     # TODO: add history per config
-    num_runs_checked: int   # total number of runs that we found and are checking
-    num_similar_fail: int   # number of similar failures found
-    num_other_fail: int     # number of other failures found
-    num_pass: int           # number of runs that passed
-    num_skip: int           # number of runs that test was skipped
+    num_runs_checked: int  # total number of runs that we found and are checking
+    num_similar_fail: int  # number of similar failures found
+    num_other_fail: int  # number of other failures found
+    num_pass: int  # number of runs that passed
+    num_skip: int  # number of runs that test was skipped
     similar_failures: list[TestCaseSuiteRunInfo]
     message: str | None
     is_known_failure: bool  # T (known failure), F (new failure), None (cannot say)
@@ -196,11 +196,14 @@ class TestCaseRunCheckResponse(BaseModel):
             num_skip=0,
             similar_failures=[],
             is_known_failure=None,
-            message=msg)
+            message=msg,
+        )
 
 
 @Timer(name="api-history-get-test-run-check", logger=logger.info)
-@router.get("/orgs/{org_name}/projects/{project_name}/suites/{suite_name}/test-run-check")
+@router.get(
+    "/orgs/{org_name}/projects/{project_name}/suites/{suite_name}/test-run-check"
+)
 def get_test_run_similar_failures_check(
     org_name: str,
     project_name: str,
