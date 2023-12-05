@@ -22,6 +22,7 @@ from terec.model.results import (
     TestCaseRun,
 )
 from terec.model.util import model_to_dict
+from terec.regression.failure_analysis import TestCaseRunFailureAnalyser
 
 router = APIRouter()
 
@@ -170,3 +171,78 @@ def get_suite_branch_test_runs_history(
     )
     # convert into return format (test run + suite run)
     return combine_test_runs_with_suite_runs(test_runs, suite_runs)
+
+
+class TestCaseRunCheckResponse(BaseModel):
+    # TODO: add test package/class etc and config
+    # TODO: add search context like builds checked
+    # TODO: add history per config
+    num_runs_checked: int   # total number of runs that we found and are checking
+    num_similar_fail: int   # number of similar failures found
+    num_other_fail: int     # number of other failures found
+    num_pass: int           # number of runs that passed
+    num_skip: int           # number of runs that test was skipped
+    similar_failures: list[TestCaseSuiteRunInfo]
+    message: str | None
+    is_known_failure: bool  # T (known failure), F (new failure), None (cannot say)
+
+    @classmethod
+    def no_runs_found(cls, msg):
+        return TestCaseRunCheckResponse(
+            num_runs_checked=0,
+            num_similar_fail=0,
+            num_other_fail=0,
+            num_pass=0,
+            num_skip=0,
+            similar_failures=[],
+            is_known_failure=None,
+            message=msg)
+
+
+@Timer(name="api-history-get-test-run-check", logger=logger.info)
+@router.get("/orgs/{org_name}/projects/{project_name}/suites/{suite_name}/test-run-check")
+def get_test_run_similar_failures_check(
+    org_name: str,
+    project_name: str,
+    suite_name: str,
+    test_package: str,
+    test_class: str,
+    test_case: str,
+    test_config: str,
+    run_id: int,
+    branch: str,
+    run_limit: int = 32,
+    user_req_id: str | None = None,
+) -> TestCaseRunCheckResponse:
+    """
+    Return information if given test run is similar to any known test failures on given branch.
+    If it is then a list of matching similar failures is also returned.
+    We can assume here that provided test run is FAIL.
+
+    # TODO: at the moment it only works against same workflow, which... is not really good
+    """
+    validate_path(org_name, project_name, suite_name)
+    # collect requested test case run information
+    test_runs = load_test_case_runs(
+        org_name=org_name,
+        project_name=project_name,
+        suite_name=suite_name,
+        runs=[run_id],
+        test_package=test_package,
+        test_class=test_class,
+        test_case=test_case,
+        test_config=test_config,
+    )
+    if len(test_runs) != 1:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Exactly one test case run was expected but got: {test_runs}",
+        )
+    the_test = test_runs[0]
+    full_suite_name = f"{org_name}/{project_name}/{suite_name}"
+    # collect failure analysis results
+    failure_analysis = TestCaseRunFailureAnalyser(the_test, branch)
+    failure_analysis.check()
+    # and prepare response
+    response = TestCaseRunCheckResponse()
+    return response

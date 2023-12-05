@@ -1,18 +1,6 @@
-from generator import ResultsGenerator
-from conftest import random_name
+from generator import generate_suite_with_test_runs
 from terec.model.failures import load_failed_tests_for_suite_runs, load_test_case_runs
 from terec.model.results import TestCaseRun
-
-
-def generate_suite_with_test_runs(org, project):
-    gen = ResultsGenerator()
-    suite_name = random_name("suite")
-    suite = gen.suite(org, project, suite_name)
-    suite_runs = [gen.suite_run(suite, "main", n) for n in range(1, 10)]
-    test_runs = []
-    for r in suite_runs:
-        test_runs += gen.test_case_runs(r)
-    return suite, suite_runs, test_runs
 
 
 def test_get_failed_tests_for_suite_runs(cassandra_model, test_project):

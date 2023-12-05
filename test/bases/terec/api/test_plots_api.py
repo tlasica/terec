@@ -1,19 +1,11 @@
-import json
-from unittest import SkipTest
-
 from faker import Faker
-from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
 
 from conftest import random_name
 from .random_data import (
-    random_test_suite_info,
     random_test_suite_run_info,
-    random_test_case_run_info,
 )
 from terec.api.core import create_app
-from terec.model.projects import Org, Project
-from terec.model.results import TestSuite, TestSuiteRun, TestCaseRun
 
 
 def not_none(d: dict) -> dict:

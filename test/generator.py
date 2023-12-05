@@ -2,6 +2,7 @@ import random
 
 import faker
 
+from conftest import random_name
 from terec.model.results import TestSuite, TestSuiteRun, TestCaseRun, TestCaseRunStatus
 
 
@@ -86,3 +87,27 @@ class ResultsGenerator:
             test_failed_count == run.fail_count
         ), f"{test_failed_count} <> expected {run.fail_count}"
         return res
+
+    def random_output(self, n_lines: int = 1) -> str:
+        return "\n".join([self.fake.sentence() for _ in range(n_lines)])
+
+    def change_output(self, original: str, n_changes_per_line=1) -> str:
+        out = []
+        for line in original.splitlines(keepends=False):
+            line = list(line)
+            for _ in range(n_changes_per_line):
+                p = random.randint(0, len(line)-2)
+                line[p], line[p+1] = line[p+1], line[p]
+            out.append(''.join(line))
+        return "\n".join(out)
+
+
+def generate_suite_with_test_runs(org, project, branch="main"):
+    gen = ResultsGenerator()
+    suite_name = random_name("suite")
+    suite = gen.suite(org, project, suite_name)
+    suite_runs = [gen.suite_run(suite, branch, n) for n in range(1, 10)]
+    test_runs = []
+    for r in suite_runs:
+        test_runs += gen.test_case_runs(r)
+    return suite, suite_runs, test_runs
