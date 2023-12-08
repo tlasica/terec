@@ -19,44 +19,96 @@ class TestCaseRunFailureAnalyser:
     def __init__(
         self,
         failed_test: TestCaseRun,
-        branch: str,
-        org: str = None,
-        project: str = None,
-        suite: str = None,
     ):
         self.failed_test = failed_test
-        self.org = org or failed_test.org
-        self.project = project or failed_test.project
-        self.suite = suite or failed_test.suite
-        self.branch = branch
-        self.message = None
+        self.messages = []
         self.similar_failures = []
         self.suite_runs_to_check = []
         self.test_runs_to_check = []
+        self.depth = None
+        self.check_suite = None
+        self.check_branch = None
 
     def full_suite_name(self):
-        return f"{self.org}/{self.project}/{self.suite}"
+        return f"{self.failed_test.org}/{self.failed_test.project}/{self.check_suite}::{self.check_branch}"
 
-    def check(self):
+    def message(self):
+        return "\n".join(self.messages)
+
+    def add_msg(self, msg: str):
+        self.messages.append(msg)
+
+    def check_regression(self, depth: int = 16):
+        """
+        Check if failed_test case failure is a regression vs history of the same suite on the same branch.
+        In this case suite and branch will be same as the failed tests.
+        And only builds with run_id < failed_test.run_id will be checked.
+        """
+        self.check_suite = self.failed_test.suite
+        self.check_branch = self.get_failed_test_run_branch()
+        before_run = self.failed_test.run_id
+        self.add_msg(
+            f"Checking regression on {self.check_suite}::{self.check_branch} before run {before_run}"
+        )
+        self._check(before_run_id=before_run, depth=depth)
+
+    def check_vs_upstream(self, suite: str, branch: str, depth: int = 16):
+        """
+        Check if failed_test case failure is a known failure vs some upstream branch runs.
+        In this case suite and branch need to be provided.
+        All builds on upstream (even recent ones, run after failed_test) will be checked.
+        """
+        self.check_suite = suite
+        self.check_branch = branch
+        self.add_msg(f"Checking regression vs upstream {suite}::{branch}")
+        self._check(before_run_id=None, depth=depth)
+
+    def get_failed_test_run_branch(self):
+        return (
+            TestSuiteRun.objects(
+                org=self.failed_test.org,
+                project=self.failed_test.project,
+                suite=self.failed_test.suite,
+                run_id=self.failed_test.run_id,
+            )
+            .allow_filtering()
+            .limit(1)
+            .all()[0]
+            .branch
+        )
+
+    def _check(self, before_run_id: int = None, depth: int = 16):
+        self.add_msg(f"Using depth of ")
+        self.depth = depth
         # collect relevant builds to check
-        self.collect_relevant_builds()
+        run_filter = None
+        if before_run_id:
+            self.add_msg(f"Using only suite runs with id < {before_run_id}.")
+            run_filter = lambda x: x.run_id < before_run_id
+        self.collect_relevant_builds(run_filter)
         if not self.suite_runs_to_check:
+            self.add_msg("No suite runs for checking found.")
             return
         # collect all the test runs of failed tests in the interesting suite runs
         self.collect_test_runs()
         if not self.test_runs_to_check:
+            self.add_msg(
+                f"Got {len(self.suite_runs_to_check)} suite runs but no test runs for the test under check."
+            )
             return
         # and analyze them
         self.find_similar_test_runs()
 
-    def collect_relevant_builds(self):
+    def collect_relevant_builds(self, run_filter):
         suite_runs = load_suite_branch_runs(
-            self.org, self.project, self.suite, self.branch
+            self.failed_test.org,
+            self.failed_test.project,
+            self.check_suite,
+            self.check_branch,
+            limit=self.depth,
         )
-        if not suite_runs:
-            self.message = f"Cannot check: no suite runs on branch {self.branch} for suite {self.full_suite_name()}."
         self.suite_runs_to_check = [
-            x for x in suite_runs if not self.is_same_run_as_failed_test(x)
+            x for x in suite_runs if run_filter is None or run_filter(x)
         ]
 
     def is_same_run_as_failed_test(self, run: TestSuiteRun) -> bool:
@@ -70,9 +122,9 @@ class TestCaseRunFailureAnalyser:
     def collect_test_runs(self):
         suite_runs_ids = [x.run_id for x in self.suite_runs_to_check]
         test_runs = load_test_case_runs(
-            org_name=self.org,
-            project_name=self.project,
-            suite_name=self.suite,
+            org_name=self.failed_test.org,
+            project_name=self.failed_test.project,
+            suite_name=self.check_suite,
             runs=suite_runs_ids,
             test_package=self.failed_test.test_package,
             test_class=self.failed_test.test_suite,
@@ -84,7 +136,7 @@ class TestCaseRunFailureAnalyser:
             f"{str(self.failed_test)}",
         )
         if not test_runs:
-            self.message += f"Cannot check: no runs for the test under check on branch {self.branch} for suite {self.full_suite_name()}."
+            self.message += f"Cannot check: no runs for the test under check for suite {self.full_suite_name()}::{self.check_branch}."
             self.message += f"Builds considered: {suite_runs_ids}."
         self.test_runs_to_check = test_runs
 

@@ -1,4 +1,6 @@
+import datetime
 import uuid
+
 from functools import lru_cache
 
 from codetiming import Timer
@@ -27,9 +29,29 @@ from terec.regression.failure_analysis import TestCaseRunFailureAnalyser
 router = APIRouter()
 
 
+def request_error(msg):
+    raise HTTPException(status_code=500, detail=msg)
+
+
 class TestCaseSuiteRunInfo(BaseModel):
+    """
+    Full pair of test case run and test suite info (can be a little heavy).
+    """
+
     test_run: TestCaseRunInfo
     suite_run: TestSuiteRunInfo
+
+
+class TestCaseRunResultShortInfo(BaseModel):
+    """
+    Short information about test case run result: only run id, timestamp and result.
+    It is assumed that this information is always in the context of some org/project/suite/branch already
+    """
+
+    run_id: int
+    branch: str
+    tstamp: datetime.datetime
+    result: str
 
 
 def validate_path(org_name: str, project_name: str, suite_name: str):
@@ -135,10 +157,7 @@ def get_suite_branch_test_runs_history(
     """
     # validate parameters
     if test_case and not test_class:
-        raise HTTPException(
-            status_code=400,
-            detail="When test_case is set then test_class is also required.",
-        )
+        request_error("When test_case is set then test_class is also required.")
     # collect relevant suite runs (on the branch)
     validate_path(org_name, project_name, suite_name)
     suite_runs = get_suite_branch_runs(
@@ -174,37 +193,57 @@ def get_suite_branch_test_runs_history(
 
 
 class TestCaseRunCheckResponse(BaseModel):
-    # TODO: add test package/class etc and config
+    """
+    Response for the test case check to find if this is a known failure or a new one.
+    In addition to the result we got context (history of results for all builds),
+    some summary like number of failures, similar and different failures etc.
+    """
+
     # TODO: add search context like builds checked
     # TODO: add history per config
-    num_runs_checked: int  # total number of runs that we found and are checking
-    num_similar_fail: int  # number of similar failures found
-    num_other_fail: int  # number of other failures found
-    num_pass: int  # number of runs that passed
-    num_skip: int  # number of runs that test was skipped
+    class Summary(BaseModel):
+        num_runs: int  # total number of runs that we found and are checking
+        num_same_fail: int  # number of similar failures found
+        num_diff_fail: int  # number of other failures found
+        num_pass: int  # number of runs that passed
+        num_skip: int  # number of runs that test was skipped
+
+    test_case: TestCaseRunInfo
+    summary: Summary
     similar_failures: list[TestCaseSuiteRunInfo]
     message: str | None
-    is_known_failure: bool  # T (known failure), F (new failure), None (cannot say)
+    is_known_failure: bool | None  # T (known failure), F (new failure), None (cannot say)
 
     @classmethod
-    def no_runs_found(cls, msg):
-        return TestCaseRunCheckResponse(
-            num_runs_checked=0,
-            num_similar_fail=0,
-            num_other_fail=0,
-            num_pass=0,
-            num_skip=0,
-            similar_failures=[],
-            is_known_failure=None,
-            message=msg,
-        )
+    def from_analyser_result(cls, ar: TestCaseRunFailureAnalyser):
+        params = {
+            "test_case": TestCaseRunInfo(**model_to_dict(ar.failed_test)),
+            "summary": cls.build_summary(ar),
+            "similar_failures": combine_test_runs_with_suite_runs(
+                ar.similar_failures, ar.suite_runs_to_check
+            ),
+            "message": ar.message(),
+            "is_known_failure": ar.is_known_failure(),
+        }
+        return TestCaseRunCheckResponse(**params)
+
+    @classmethod
+    def build_summary(cls, ar: TestCaseRunFailureAnalyser):
+        data = {
+            "num_runs": ar.num_test_runs_checked(),
+            "num_pass": ar.num_test_runs_pass(),
+            "num_skip": ar.num_test_runs_pass(),
+            "num_same_fail": ar.num_test_runs_fail_same_way(),
+            "num_diff_fail": ar.num_test_runs_fail_different_way(),
+        }
+        return cls.Summary(**data)
 
 
 @Timer(name="api-history-get-test-run-check", logger=logger.info)
 @router.get(
     "/orgs/{org_name}/projects/{project_name}/suites/{suite_name}/test-run-check"
 )
-def get_test_run_similar_failures_check(
+def get_test_run_check(
     org_name: str,
     project_name: str,
     suite_name: str,
@@ -213,8 +252,9 @@ def get_test_run_similar_failures_check(
     test_case: str,
     test_config: str,
     run_id: int,
-    branch: str,
-    run_limit: int = 32,
+    check_suite: str | None = None,
+    check_branch: str | None = None,
+    depth: int = 32,
     user_req_id: str | None = None,
 ) -> TestCaseRunCheckResponse:
     """
@@ -225,6 +265,10 @@ def get_test_run_similar_failures_check(
     # TODO: at the moment it only works against same workflow, which... is not really good
     """
     validate_path(org_name, project_name, suite_name)
+    if check_suite and not check_branch:
+        request_error("check_branch q param is required with check_suite set.")
+    if depth > 128 or depth < 1:
+        request_error("maximum depth allowed is 128, minimum is 0")
     # collect requested test case run information
     test_runs = load_test_case_runs(
         org_name=org_name,
@@ -235,17 +279,19 @@ def get_test_run_similar_failures_check(
         test_class=test_class,
         test_case=test_case,
         test_config=test_config,
+        limit=10,  # we expect 1! record but we can allow more to catch problems
     )
+    logger.info(test_runs)
     if len(test_runs) != 1:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Exactly one test case run was expected but got: {test_runs}",
-        )
+        request_error(f"Exactly one test case run was expected but got: {test_runs}")
     the_test = test_runs[0]
-    full_suite_name = f"{org_name}/{project_name}/{suite_name}"
     # collect failure analysis results
-    failure_analysis = TestCaseRunFailureAnalyser(the_test, branch)
-    failure_analysis.check()
+    failure_analysis = TestCaseRunFailureAnalyser(the_test)
+    if check_branch:
+        check_suite = check_suite or the_test.suite
+        failure_analysis.check_vs_upstream(check_suite, check_branch, depth=depth)
+    else:
+        failure_analysis.check_regression(depth=depth)
     # and prepare response
-    response = TestCaseRunCheckResponse()
+    response = TestCaseRunCheckResponse.from_analyser_result(failure_analysis)
     return response

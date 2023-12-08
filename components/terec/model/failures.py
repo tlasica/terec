@@ -70,6 +70,7 @@ def load_test_case_runs(
     test_case: str,
     test_config: str | None = None,
     result: str | None = None,
+    limit: int = 10000,
 ) -> list[TestCaseRun]:
     """
     Returns all runs of given test case in given list of suite runs.
@@ -92,9 +93,7 @@ def load_test_case_runs(
     if test_config:
         query_params["test_config"] = test_config
     # collect failures for given runs history
-    test_runs = TestCaseRun.objects().filter(**query_params)
+    test_runs = TestCaseRun.objects().filter(**query_params).limit(limit).all()
     # filter by result
     # TODO: it is not allowed to combine IN with index check => we need execute concurrent
-    if result:
-        test_runs = [x for x in test_runs if x.result == result]
-    return test_runs
+    return [x for x in test_runs if (not result) or (x.result == result)]

@@ -18,6 +18,7 @@ class ResultsGenerator:
             f"test_{self.fake.domain_word().replace('-', '_')}"
             for _ in range(self.num_tests)
         ]
+        self.suite_runs = []
         self.test_cases = []
         for i in range(self.num_tests):
             case = {
@@ -35,6 +36,9 @@ class ResultsGenerator:
             suite=name,
             url=f"http://{org}.org/{project}/{name}",
         )
+
+    def get_suite_run(self, run_id: int):
+        return next((x for x in self.suite_runs if x.run_id == run_id))
 
     def suite_run(self, suite: TestSuite, branch: str, run_id: int) -> TestSuiteRun:
         skip_count = random.randint(0, self.num_tests // 5)
@@ -56,7 +60,21 @@ class ResultsGenerator:
             "status": "SUCCESS" if fail_count == 0 else "FAILURE",
             "ignore": False,
         }
-        return TestSuiteRun.create(**params)
+        s_run = TestSuiteRun.create(**params)
+        self.suite_runs.append(s_run)
+        return s_run
+
+    def test_case_template(self):
+        return random.choice(self.test_cases)
+
+    def test_case_run(self, run: TestSuiteRun, case: dict, update: dict) -> TestCaseRun:
+        params = case.copy()
+        params["org"] = run.org
+        params["project"] = run.project
+        params["suite"] = run.suite
+        params["run_id"] = run.run_id
+        params.update(update)
+        return TestCaseRun.create(**params)
 
     def test_case_runs(self, run: TestSuiteRun) -> list[TestCaseRun]:
         """
@@ -71,13 +89,9 @@ class ResultsGenerator:
                 result = TestCaseRunStatus.FAIL
             elif i < run.fail_count + run.skip_count:
                 result = TestCaseRunStatus.SKIP
-            params = self.test_cases[i].copy()
-            params["org"] = run.org
-            params["project"] = run.project
-            params["suite"] = run.suite
-            params["run_id"] = run.run_id
-            params["result"] = result.upper()
-            case_run = TestCaseRun.create(**params)
+            case = self.test_cases[i]
+            update = {"result": result.upper()}
+            case_run = self.test_case_run(run, case, update)
             res.append(case_run)
         assert len(res) == run.total_count
         test_failed_count = len(

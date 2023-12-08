@@ -1,7 +1,7 @@
 from faker import Faker
 from fastapi.testclient import TestClient
 
-from generator import ResultsGenerator
+from generator import ResultsGenerator, generate_suite_with_test_runs
 from conftest import random_name
 from terec.api.core import create_app
 from terec.model.results import TestCaseRun
@@ -99,13 +99,9 @@ class TestFailuresGetTestRunsAPI:
 
     def test_should_return_single_test_history(self, cassandra_model, test_project):
         # given some generated data with failed tests
-        gen = ResultsGenerator()
-        suite_name = random_name("suite")
-        suite = gen.suite(test_project.org, test_project.name, suite_name)
-        suite_runs = [gen.suite_run(suite, "main", n) for n in range(1, 10)]
-        test_runs: list[TestCaseRun] = []
-        for r in suite_runs:
-            test_runs += gen.test_case_runs(r)
+        suite, suite_runs, test_runs = generate_suite_with_test_runs(
+            test_project.org, test_project.name, branch="main"
+        )
         assert len(test_runs) > 0
         # when we get single test history
         the_test: TestCaseRun = test_runs[0]
@@ -129,13 +125,9 @@ class TestFailuresGetTestRunsAPI:
 
     def test_should_return_class_history(self, cassandra_model, test_project):
         # given some generated data with failed tests
-        gen = ResultsGenerator()
-        suite_name = random_name("suite")
-        suite = gen.suite(test_project.org, test_project.name, suite_name)
-        suite_runs = [gen.suite_run(suite, "main", n) for n in range(1, 10)]
-        test_runs: list[TestCaseRun] = []
-        for r in suite_runs:
-            test_runs += gen.test_case_runs(r)
+        suite, suite_runs, test_runs = generate_suite_with_test_runs(
+            test_project.org, test_project.name, branch="main"
+        )
         assert len(test_runs) > 0
         # when we get single test history
         the_test: TestCaseRun = test_runs[0]
@@ -154,13 +146,9 @@ class TestFailuresGetTestRunsAPI:
 
     def test_should_return_package_history(self, cassandra_model, test_project):
         # given some generated data with failed tests
-        gen = ResultsGenerator()
-        suite_name = random_name("suite")
-        suite = gen.suite(test_project.org, test_project.name, suite_name)
-        suite_runs = [gen.suite_run(suite, "main", n) for n in range(1, 10)]
-        test_runs: list[TestCaseRun] = []
-        for r in suite_runs:
-            test_runs += gen.test_case_runs(r)
+        suite, suite_runs, test_runs = generate_suite_with_test_runs(
+            test_project.org, test_project.name, branch="main"
+        )
         assert len(test_runs) > 0
         # when we get single test history
         the_test: TestCaseRun = test_runs[0]
@@ -177,3 +165,56 @@ class TestFailuresGetTestRunsAPI:
             [x for x in test_runs if x.test_package == the_test.test_package]
         )
         assert len(resp.json()) == expected_count, resp.text
+
+
+class TestFailuresCheckTestRunAPI:
+    fake = Faker()
+    api_app = create_app()
+    api_client = TestClient(api_app)
+
+    def get_test_run_check(
+        self, org, project, suite, run_id, t_package, t_class, t_case, t_config, branch
+    ):
+        url = f"/history/orgs/{org}/projects/{project}/suites/{suite}/test-run-check"
+        q_params = {
+            "run_id": run_id,
+            "test_package": t_package,
+            "test_class": t_class,
+            "test_case": t_case,
+            "test_config": t_config,
+            "branch": branch,
+        }
+        return self.api_client.get(url, params=q_params)
+
+    def test_get_test_run_check(self, cassandra_model, test_project):
+        suite, suite_runs, test_runs = generate_suite_with_test_runs(
+            test_project.org, test_project.name, branch="main"
+        )
+        the_test: TestCaseRun = next((x for x in test_runs if x.result == "FAIL"))
+        assert the_test is not None
+
+        resp = self.get_test_run_check(
+            the_test.org,
+            the_test.project,
+            the_test.suite,
+            the_test.run_id,
+            the_test.test_package,
+            the_test.test_suite,
+            the_test.test_case,
+            the_test.test_config,
+            branch="main",
+        )
+
+        assert resp.is_success, resp.text
+
+    def test_check_known_fail_on_same_branch(self, cassandra_model, test_project):
+        pass
+
+    def test_check_new_fail_on_same_branch(self, cassandra_model, test_project):
+        pass
+
+    # def test_check_known_fail_on_other_branch(self, cassandra_model, test_project):
+    #     pass
+    #
+    # def test_check_new_fail_on_other_branch(self, cassandra_model, test_project):
+    #     pass
