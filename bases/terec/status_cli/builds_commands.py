@@ -1,5 +1,4 @@
 import plotext as plt
-import plotille
 import typer
 from rich import box
 
@@ -31,7 +30,11 @@ def get_builds(org: str, project: str, suite: str, branch: str):
 
 
 @builds_app.command()
-def history(suite: str, branch: str, org: str = None, project: str = None):
+def history(
+        suite: str,
+        branch: str,
+        org: str = None,
+        project: str = None):
     """
     Prints out the history of runs of given suite and on given branch.
     Requires TEREC_URL to be set and optionally TEREC_ORG, TEREC_PROJECT.
@@ -107,49 +110,72 @@ def history(suite: str, branch: str, org: str = None, project: str = None):
     console.print(table)
 
 
+def print_unusable_builds_note(field: str, builds) -> None:
+    if builds:
+        builds_ids = [f"#{b['run_id']} [{b['tstamp'][:19]}]" for b in builds]
+        print()
+        print(f"Note that {len(builds)} builds did not have data for {field}: {builds_ids}")
+
+
+def color_for_field(field: str) -> str:
+    colors = {
+        "fail_count": "red",
+        "skip_count": "orange",
+    }
+    return colors.get(field, None)
+
+
+PLOT_BUILD_FIELDS = ["fail_count", "skip_count", "pass_count", "total_count", "duration_sec"]
+
+
 @builds_app.command()
 def histogram(
-    suite: str, branch: str, field: str = None, org: str = None, project: str = None
+    suite: str = typer.Argument(help="which suite runs to plot"),
+    branch: str = typer.Argument(help="branch to select suite runs"),
+    field: str = typer.Option("fail_count", help=f"field to use from {PLOT_BUILD_FIELDS}"),
+    org: str = typer.Option(None, help="org id, if not used then TEREC_ORG env var will be used"),
+    project: str = typer.Option(None, help="project id, if not used then TEREC_PRJ env var will be used"),
 ):
     """
     Prints out the histogram of number of test failures for runs of given suite and on given branch.
-    Requires TEREC_URL to be set and optionally TEREC_ORG, TEREC_PROJECT.
+    Requires TEREC_URL to be set.
     """
     data = get_builds(org, project, suite, branch)
+    usable_data = [b for b in data if b[field] is not None]
+    unusable_data = [b for b in data if b[field] is None]
+    # TODO: Make percentiles?
     # print results
-    field = field or "fail_count"
-    print(
-        plotille.histogram(
-            X=[int(build[field]) for build in data],
-            width=80,
-            height=40,
-            X_label=field,
-            Y_label="# occurrences",
-            lc="cyan",
-            bg=None,
-            color_mode="names",
-        )
-    )
+    hist_data = [int(build[field]) for build in usable_data]
+    plt.hist(data=hist_data, bins=10, color=color_for_field(field))
+    plt.title(f"histogram of {field} per build")
+    plt.xlabel(field)
+    plt.ylabel(f"#builds with {field}")
+    plt.plot_size(None, 25)
+    plt.theme("dark")
+    plt.show()
+
+    print_unusable_builds_note(field, unusable_data)
 
 
 @builds_app.command()
 def bar(
-    suite: str, branch: str, field: str = None, org: str = None, project: str = None
+    suite: str = typer.Argument(help="which suite runs to plot"),
+    branch: str = typer.Argument(help="branch to select suite runs"),
+    field: str = typer.Option("fail_count", help=f"field to use from {PLOT_BUILD_FIELDS}"),
+    org: str = typer.Option(None, help="org id, if not used then TEREC_ORG env var will be used"),
+    project: str = typer.Option(None, help="project id, if not used then TEREC_PRJ env var will be used"),
 ):
     """
     Prints out the plot of number of values for runs of given suite and on given branch.
-    Requires TEREC_URL to be set and optionally TEREC_ORG, TEREC_PROJECT.
+    Requires TEREC_URL to be set.
     """
     data = get_builds(org, project, suite, branch)
+    usable_data = [b for b in data if b[field] is not None]
+    unusable_data = [b for b in data if b[field] is None]
     # print results
-    field = field or "fail_count"
-    builds = [f"#{b['run_id']} [{b['tstamp'][:19]}]" for b in data]
-    values = [int(b[field]) for b in data]
-
-    colors = {
-        "fail_count": "red+",
-        "skip_count": "orange+",
-    }
-
-    plt.simple_bar(builds, values, title=f"{field}", color=colors.get(field, None))
+    builds = [f"#{b['run_id']} [{b['tstamp'][:19]}]" for b in usable_data]
+    values = [int(b[field]) for b in usable_data]
+    plt.simple_bar(builds, values, title=f"{field}", color=color_for_field(field))
+    plt.theme("dark")
     plt.show()
+    print_unusable_builds_note(field, unusable_data)
