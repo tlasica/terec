@@ -179,3 +179,30 @@ def bar(
     plt.theme("dark")
     plt.show()
     print_unusable_builds_note(field, unusable_data)
+
+
+@builds_app.command()
+def view(
+    suite: str = typer.Argument(help="which suite runs to plot"),
+    branch: str = typer.Argument(help="branch to select suite runs"),
+    org: str = typer.Option(None, help="org id, if not used then TEREC_ORG env var will be used"),
+    project: str = typer.Option(None, help="project id, if not used then TEREC_PRJ env var will be used"),
+):
+    """
+    Prints out the plot of passed/skipped/failed per build.
+    Requires TEREC_URL to be set.
+    """
+    data = get_builds(org, project, suite, branch)
+    fields = ["pass_count", "skip_count", "fail_count"]
+    usable_data = [b for b in data if b["pass_count"] is not None]
+    unusable_data = [b for b in data if b["pass_count"] is None]
+    # print results
+    builds = [f"#{b['run_id']} [{b['tstamp'][:19]}]" for b in usable_data]
+    pass_values = [int(b["pass_count"]) for b in usable_data]
+    skip_values = [int(b["skip_count"]) for b in usable_data]
+    fail_values = [int(b["fail_count"]) for b in usable_data]
+    plt.simple_multiple_bar(builds, [pass_values, skip_values, fail_values],
+                            labels=fields, colors=["green", "orange", "red"])
+    plt.theme("dark")
+    plt.show()
+    print_unusable_builds_note("pass_count", unusable_data)
