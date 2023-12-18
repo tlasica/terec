@@ -19,18 +19,6 @@ class TestFailureAnalyser:
         "result": "PASS",
     }
 
-    # def test_it_does_not_crash(self, cassandra_model, test_project):
-    #     # given some generated data with failed tests
-    #     suite, suite_runs, test_runs = generate_suite_with_test_runs(
-    #         test_project.org, test_project.name
-    #     )
-    #     # when we run analyser
-    #     the_test = next((x for x in test_runs if x.result == "FAIL"))
-    #     analyzer = TestCaseRunFailureAnalyser(the_test)
-    #     analyzer.check_regression(depth=8)
-    #     # it does not crash....
-    #     assert analyzer.num_test_runs_checked() > 0
-
     @pytest.fixture()
     def gen_with_suite_runs(self, cassandra_model, test_project):
         suite_name = random_name("suite")

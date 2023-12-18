@@ -1,3 +1,4 @@
+import pytest
 from faker import Faker
 from fastapi.testclient import TestClient
 
@@ -173,7 +174,17 @@ class TestFailuresCheckTestRunAPI:
     api_client = TestClient(api_app)
 
     def get_test_run_check(
-        self, org, project, suite, run_id, t_package, t_class, t_case, t_config, branch
+        self,
+        org,
+        project,
+        suite,
+        run_id,
+        t_package,
+        t_class,
+        t_case,
+        t_config,
+        check_branch=None,
+        check_suite=None,
     ):
         url = f"/history/orgs/{org}/projects/{project}/suites/{suite}/test-run-check"
         q_params = {
@@ -182,9 +193,65 @@ class TestFailuresCheckTestRunAPI:
             "test_class": t_class,
             "test_case": t_case,
             "test_config": t_config,
-            "branch": branch,
         }
+        if check_suite:
+            q_params["check_suite"] = check_suite
+        if check_branch:
+            q_params["check_branch"] = check_branch
         return self.api_client.get(url, params=q_params)
+
+    TEST_FAIL = {
+        "result": "FAIL",
+        "error_details": "error happened",
+        "error_stacktrace": "some stack trace",
+    }
+
+    TEST_PASS = {
+        "result": "PASS",
+    }
+
+    @pytest.fixture()
+    def gen_with_suite_runs(self, cassandra_model, test_project):
+        suite_name = random_name("suite")
+        gen = ResultsGenerator(num_tests=4)
+        suite = gen.suite(test_project.org, test_project.name, suite_name)
+        suite_runs = [gen.suite_run(suite, "main", n) for n in range(1, 5)]
+        assert len(suite_runs) == 4
+        assert suite_runs[0].run_id == 1 and suite_runs[-1].run_id == 4
+        return gen
+
+    def test_check_regression(self, gen_with_suite_runs):
+        # given a history of test runs with some failure FPPF
+        gen = gen_with_suite_runs
+        case_template = gen.test_case_template()
+        history = [
+            gen.test_case_run(gen.get_suite_run(1), case_template, self.TEST_FAIL),
+            gen.test_case_run(gen.get_suite_run(2), case_template, self.TEST_PASS),
+            gen.test_case_run(gen.get_suite_run(3), case_template, self.TEST_PASS),
+            gen.test_case_run(gen.get_suite_run(4), case_template, self.TEST_FAIL),
+        ]
+        # when we make a test run check call
+        failed_test = history[-1]
+        resp = self.get_test_run_check(
+            failed_test.org,
+            failed_test.project,
+            failed_test.suite,
+            failed_test.run_id,
+            failed_test.test_package,
+            failed_test.test_suite,
+            failed_test.test_case,
+            failed_test.test_config,
+        )
+        # then it contains valid information in the reponse
+        assert resp.is_success, resp.text
+        data = resp.json()
+        assert data["is_known_failure"]
+        assert len(data["similar_failures"]) == 1
+        assert data["summary"]["num_runs"] == 3
+        assert data["summary"]["num_same_fail"] == 1
+        assert data["summary"]["num_diff_fail"] == 0
+        assert data["summary"]["num_skip"] == 0
+        assert data["summary"]["num_pass"] == 2
 
     def test_get_test_run_check(self, cassandra_model, test_project):
         suite, suite_runs, test_runs = generate_suite_with_test_runs(
@@ -202,7 +269,7 @@ class TestFailuresCheckTestRunAPI:
             the_test.test_suite,
             the_test.test_case,
             the_test.test_config,
-            branch="main",
+            check_branch="main",
         )
 
         assert resp.is_success, resp.text

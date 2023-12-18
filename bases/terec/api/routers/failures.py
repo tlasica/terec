@@ -232,7 +232,7 @@ class TestCaseRunCheckResponse(BaseModel):
         data = {
             "num_runs": ar.num_test_runs_checked(),
             "num_pass": ar.num_test_runs_pass(),
-            "num_skip": ar.num_test_runs_pass(),
+            "num_skip": ar.num_test_runs_skip(),
             "num_same_fail": ar.num_test_runs_fail_same_way(),
             "num_diff_fail": ar.num_test_runs_fail_different_way(),
         }
