@@ -5,36 +5,24 @@ from rich import box
 from rich.console import Console
 from rich.table import Table
 from terec.status_cli.util import (
-    env_terec_url,
     value_or_env,
     get_terec_rest_api,
-    not_none,
+    TerecCallContext,
 )
 
 builds_app = typer.Typer()
 
 
 def get_builds(org: str, project: str, suite: str, branch: str):
-    terec_url = env_terec_url()
-    terec_org = not_none(
-        value_or_env(org, "TEREC_ORG"), "org not provided or not set via TEREC_ORG"
-    )
-    terec_prj = not_none(
-        value_or_env(project, "TEREC_PRJ"),
-        "project not provided or not set via TEREC_PRJ",
-    )
+    terec = TerecCallContext.create(org, project)
     # collect response from terec server
-    url = f"{terec_url}/history/orgs/{terec_org}/projects/{terec_prj}/suites/{suite}/builds"
+    url = f"{terec.url}/history/orgs/{terec.org}/projects/{terec.prj}/suites/{suite}/builds"
     query_params = {"branch": branch}
     return get_terec_rest_api(url, query_params)
 
 
 @builds_app.command()
-def history(
-        suite: str,
-        branch: str,
-        org: str = None,
-        project: str = None):
+def history(suite: str, branch: str, org: str = None, project: str = None):
     """
     Prints out the history of runs of given suite and on given branch.
     Requires TEREC_URL to be set and optionally TEREC_ORG, TEREC_PROJECT.
@@ -44,11 +32,10 @@ def history(
     TODO: use url links for builds if present
     """
     limit = None
-    terec_org = value_or_env(org, "TEREC_ORG")
-    terec_prj = value_or_env(project, "TEREC_PRJ")
-    data = get_builds(org, project, suite, branch)
+    terec = TerecCallContext.create(org, project)
+    data = get_builds(terec.org, terec.project, suite, branch)
     # print results
-    title = f"History of builds of {terec_org}/{terec_prj}/{suite} on branch {branch}"
+    title = f"History of builds of {terec.org}/{terec.prj}/{suite} on branch {branch}"
     caption = f"limit: {limit}"
     table = Table(
         show_header=True,
@@ -114,7 +101,9 @@ def print_unusable_builds_note(field: str, builds) -> None:
     if builds:
         builds_ids = [f"#{b['run_id']} [{b['tstamp'][:19]}]" for b in builds]
         print()
-        print(f"Note that {len(builds)} builds did not have data for {field}: {builds_ids}")
+        print(
+            f"Note that {len(builds)} builds did not have data for {field}: {builds_ids}"
+        )
 
 
 def color_for_field(field: str) -> str:
@@ -125,16 +114,28 @@ def color_for_field(field: str) -> str:
     return colors.get(field, None)
 
 
-PLOT_BUILD_FIELDS = ["fail_count", "skip_count", "pass_count", "total_count", "duration_sec"]
+PLOT_BUILD_FIELDS = [
+    "fail_count",
+    "skip_count",
+    "pass_count",
+    "total_count",
+    "duration_sec",
+]
 
 
 @builds_app.command()
 def histogram(
     suite: str = typer.Argument(help="which suite runs to plot"),
     branch: str = typer.Argument(help="branch to select suite runs"),
-    field: str = typer.Option("fail_count", help=f"field to use from {PLOT_BUILD_FIELDS}"),
-    org: str = typer.Option(None, help="org id, if not used then TEREC_ORG env var will be used"),
-    project: str = typer.Option(None, help="project id, if not used then TEREC_PRJ env var will be used"),
+    field: str = typer.Option(
+        "fail_count", help=f"field to use from {PLOT_BUILD_FIELDS}"
+    ),
+    org: str = typer.Option(
+        None, help="org id, if not used then TEREC_ORG env var will be used"
+    ),
+    project: str = typer.Option(
+        None, help="project id, if not used then TEREC_PRJ env var will be used"
+    ),
 ):
     """
     Prints out the histogram of number of test failures for runs of given suite and on given branch.
@@ -161,9 +162,15 @@ def histogram(
 def bar(
     suite: str = typer.Argument(help="which suite runs to plot"),
     branch: str = typer.Argument(help="branch to select suite runs"),
-    field: str = typer.Option("fail_count", help=f"field to use from {PLOT_BUILD_FIELDS}"),
-    org: str = typer.Option(None, help="org id, if not used then TEREC_ORG env var will be used"),
-    project: str = typer.Option(None, help="project id, if not used then TEREC_PRJ env var will be used"),
+    field: str = typer.Option(
+        "fail_count", help=f"field to use from {PLOT_BUILD_FIELDS}"
+    ),
+    org: str = typer.Option(
+        None, help="org id, if not used then TEREC_ORG env var will be used"
+    ),
+    project: str = typer.Option(
+        None, help="project id, if not used then TEREC_PRJ env var will be used"
+    ),
 ):
     """
     Prints out the plot of number of values for runs of given suite and on given branch.
@@ -185,8 +192,12 @@ def bar(
 def view(
     suite: str = typer.Argument(help="which suite runs to plot"),
     branch: str = typer.Argument(help="branch to select suite runs"),
-    org: str = typer.Option(None, help="org id, if not used then TEREC_ORG env var will be used"),
-    project: str = typer.Option(None, help="project id, if not used then TEREC_PRJ env var will be used"),
+    org: str = typer.Option(
+        None, help="org id, if not used then TEREC_ORG env var will be used"
+    ),
+    project: str = typer.Option(
+        None, help="project id, if not used then TEREC_PRJ env var will be used"
+    ),
 ):
     """
     Prints out the plot of passed/skipped/failed per build.
@@ -201,8 +212,12 @@ def view(
     pass_values = [int(b["pass_count"]) for b in usable_data]
     skip_values = [int(b["skip_count"]) for b in usable_data]
     fail_values = [int(b["fail_count"]) for b in usable_data]
-    plt.simple_multiple_bar(builds, [pass_values, skip_values, fail_values],
-                            labels=fields, colors=["green", "orange", "red"])
+    plt.simple_multiple_bar(
+        builds,
+        [pass_values, skip_values, fail_values],
+        labels=fields,
+        colors=["green", "orange", "red"],
+    )
     plt.theme("dark")
     plt.show()
     print_unusable_builds_note("pass_count", unusable_data)

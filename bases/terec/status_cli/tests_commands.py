@@ -1,67 +1,56 @@
 import asyncio
-import uuid
+import sys
 
 import typer
 
 from codetiming import Timer
 from rich.console import Console
+from rich.progress import Progress
 from rich.table import Table
+
+from terec.api.routers.results import TestCaseRunInfo
 from terec.status_cli.util import (
-    env_terec_url,
-    value_or_env,
     get_terec_rest_api,
-    not_none,
     typer_table_config,
     ratio_str,
-    collect_terec_rest_api_calls,
+    collect_terec_rest_api_calls, TerecCallContext,
 )
 
 tests_app = typer.Typer()
 
 
-def get_failed_tests(org: str, project: str, suite: str, branch: str, user_req_id: str):
-    terec_url = env_terec_url()
-    terec_org = not_none(
-        value_or_env(org, "TEREC_ORG"), "org not provided or not set via TEREC_ORG"
-    )
-    terec_prj = not_none(
-        value_or_env(project, "TEREC_PRJ"),
-        "project not provided or not set via TEREC_PRJ",
-    )
+def get_failed_tests(terec: TerecCallContext, suite: str, branch: str):
     # collect response from terec server
-    url = f"{terec_url}/history/orgs/{terec_org}/projects/{terec_prj}/suites/{suite}/failed-tests"
-    query_params = {"branch": branch, "user_req_id": user_req_id}
+    url = f"{terec.url}/history/orgs/{terec.org}/projects/{terec.prj}/suites/{suite}/failed-tests"
+    query_params = {"branch": branch, "user_req_id": terec.user_req_id}
+    return get_terec_rest_api(url, query_params)
+
+
+def get_suite_run_failed_tests(terec: TerecCallContext, suite: str, run_id: int):
+    # collect response from terec server
+    url = f"{terec.url}/tests/orgs/{terec.org}/projects/{terec.prj}/suites/{suite}/runs/{run_id}/tests"
+    query_params = {"result": "FAIL"}
     return get_terec_rest_api(url, query_params)
 
 
 def get_test_history_api_call(
-    org: str,
-    project: str,
+    terec: TerecCallContext,
     suite: str,
     branch: str,
     tpackage: str,
     tclass: str,
     tcase: str,
     tconfig: str,
-    user_req_id: str,
 ):
-    terec_url = env_terec_url()
-    terec_org = not_none(
-        value_or_env(org, "TEREC_ORG"), "org not provided or not set via TEREC_ORG"
-    )
-    terec_prj = not_none(
-        value_or_env(project, "TEREC_PRJ"),
-        "project not provided or not set via TEREC_PRJ",
-    )
     # collect response from terec server
-    url = f"{terec_url}/history/orgs/{terec_org}/projects/{terec_prj}/suites/{suite}/test-runs"
+    url = f"{terec.url}/history/orgs/{terec.org}/projects/{terec.prj}/suites/{suite}/test-runs"
     query_params = {
         "branch": branch,
         "test_package": tpackage,
         "test_class": tclass,
         "test_case": tcase,
         "test_config": tconfig,
-        "user_req_id": user_req_id,
+        "user_req_id": terec.user_req_id,
     }
     return url, query_params
 
@@ -118,14 +107,12 @@ def failed(
     TODO: add param flag to show ignored
     TODO: use url links for builds if present
     """
-    terec_org = value_or_env(org, "TEREC_ORG")
-    terec_prj = value_or_env(project, "TEREC_PRJ")
-    user_req_id = str(uuid.uuid1())
-    data = get_failed_tests(org, project, suite, branch, user_req_id=user_req_id)
+    terec = TerecCallContext.create(org, project)
+    data = get_failed_tests(terec, suite, branch)
     grouped_data = FailedTests(data)
     uniq_test_cases = grouped_data.unique_test_cases(limit=limit, threshold=threshold)
     # configure table
-    title = f"Failed tests of {terec_org}/{terec_prj}/{suite} on branch {branch}"
+    title = f"Failed tests of {terec.org}/{terec.prj}/{suite} on branch {branch}"
     caption = f"Limit: {limit}, Threshold: {threshold}"
     table = Table(**typer_table_config(title, caption))
     table.add_column("package", justify="left")
@@ -158,6 +145,8 @@ def failed(
     console.print(table)
 
 
+# TODO: add param flag to show ignored
+# TODO: use url links for builds if present
 @tests_app.command()
 def history(
     suite: str,
@@ -171,15 +160,11 @@ def history(
     Prints out the list of tests that failed at least once given suite and branch.
     For each test it prints number of failures, skip and history of runs
     Requires TEREC_URL to be set and optionally TEREC_ORG, TEREC_PROJECT.
-    TODO: add param flag to show ignored
-    TODO: use url links for builds if present
     """
-    terec_org = value_or_env(org, "TEREC_ORG")
-    terec_prj = value_or_env(project, "TEREC_PRJ")
-    user_req_id = str(uuid.uuid1())
+    terec = TerecCallContext.create(org, project)
     # collect all failed tests
     with Timer("get-failed-tests"):
-        data = get_failed_tests(org, project, suite, branch, user_req_id=user_req_id)
+        data = get_failed_tests(terec, suite, branch)
     grouped_data = FailedTests(data)
     uniq_test_cases = grouped_data.unique_test_cases(limit=limit, threshold=threshold)
     # collect history for all interesting tests [TODO: make it asynchttp]
@@ -188,22 +173,20 @@ def history(
         for test_case in uniq_test_cases:
             tpackage, tsuite, tcase, tconfig = test_case
             url, params = get_test_history_api_call(
-                org,
-                project,
+                terec,
                 suite,
                 branch,
                 tpackage,
                 tsuite,
                 tcase,
                 tconfig,
-                user_req_id=user_req_id,
             )
             calls.append((test_case, url, params))
 
         tests_history = asyncio.run(collect_terec_rest_api_calls(calls))
 
     # configure table
-    title = f"Test history of {terec_org}/{terec_prj}/{suite} on branch {branch}"
+    title = f"Test history of {terec.org}/{terec.prj}/{suite} on branch {branch}"
     caption = f"Limit: {limit}, Threshold: {threshold}"
     table = Table(**typer_table_config(title, caption))
     # configure columns
@@ -262,3 +245,66 @@ def history(
     console = Console()
     console.print()
     console.print(table)
+
+
+def get_test_run_check(terec: TerecCallContext, suite:str, run_id: int, test_run: TestCaseRunInfo):
+    url = f"{terec.url}/history/orgs/{terec.org}/projects/{terec.prj}/suites/{suite}/test-run-check"
+    q_params = {
+        "run_id": run_id,
+        "test_package": test_run.test_package,
+        "test_class": test_run.test_suite,
+        "test_case": test_run.test_case,
+        "test_config": test_run.test_config,
+    }
+    return get_terec_rest_api(url, q_params)
+
+
+@tests_app.command()
+def regression_check(
+    suite: str,
+    branch: str,
+    run_id: int = None,
+    org: str = None,
+    project: str = None,
+    limit: int = typer.Option(16, help="number of past builds to use"),
+):
+    """
+    Check suite run in terms of regression or known test failures.
+    Takes given suite run and checks all failed tests against previous runs for same suite and branch.
+    """
+    # validate input
+    terec = TerecCallContext.create(org, project)
+    # TODO: get recent build if run_id not provided
+    if not run_id:
+        print("not implemented")
+        return 0
+    # collect all tests failed in this build
+    with Timer("get-failed-tests"):
+        failed_tests = get_suite_run_failed_tests(terec, suite, run_id)
+    if not failed_tests:
+        print(f"No test failures for suite run {terec.org}/{terec.prj}/{suite}/{run_id} => no regression.")
+        return 0
+    # asynchronously check each failure
+    console = Console()
+    console.print(f"Checking {len(failed_tests)} failed tests in suite run {terec.org}/{terec.prj}/{suite}/{run_id}.")
+    # TODO: make it asynchronous
+    # TODO: use provided limit
+    new_failures = []
+    with Progress(console=Console(file=sys.stderr)) as progress:
+        task = progress.add_task("checking failed tests", total=len(failed_tests))
+        for test_case in failed_tests:
+            info = TestCaseRunInfo(**test_case)
+            console.print()
+            check = get_test_run_check(terec, suite, run_id, info)
+            if check["is_known_failure"] == False:
+                new_failures.append(check)
+            progress.update(task, advance=1)
+    # create summary
+    if not new_failures:
+        console.print("No regression detected (no new test failures)")
+        return 0
+
+    console.print("Regression detected")
+    console.print(f"{len(new_failures)}/{len(failed_tests)} are new (not known yet) test failures.")
+    # print summary
+    # print details

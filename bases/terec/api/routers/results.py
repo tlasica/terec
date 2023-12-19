@@ -25,8 +25,6 @@ from terec.model.util import model_to_dict
 
 router = APIRouter()
 
-# TODO: shall we reflect modes or maybe instead keep only owned fields and then compose?
-
 
 class TestSuiteInfo(BaseModel):
     __test__ = False

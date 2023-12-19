@@ -1,4 +1,6 @@
 import os
+import uuid
+from dataclasses import dataclass
 from typing import Any
 
 import aiohttp
@@ -84,3 +86,24 @@ def ratio_str(hit: int, total: int) -> str:
         return f"[{ratio}%]"
     else:
         return ""
+
+
+@dataclass
+class TerecCallContext:
+    url: str
+    org: str
+    prj: str
+    user_req_id: str
+
+    @classmethod
+    def create(cls, org: str, prj: str, user_req_id: str = None):
+        terec_url = env_terec_url()
+        terec_org = not_none(
+            value_or_env(org, "TEREC_ORG"), "org not provided or not set via TEREC_ORG"
+        )
+        terec_prj = not_none(
+            value_or_env(prj, "TEREC_PRJ"),
+            "project not provided or not set via TEREC_PRJ",
+        )
+        user_req_id = user_req_id or str(uuid.uuid1())
+        return TerecCallContext(terec_url, terec_org, terec_prj, user_req_id)

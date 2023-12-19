@@ -261,8 +261,6 @@ def get_test_run_check(
     Return information if given test run is similar to any known test failures on given branch.
     If it is then a list of matching similar failures is also returned.
     We can assume here that provided test run is FAIL.
-
-    # TODO: at the moment it only works against same workflow, which... is not really good
     """
     validate_path(org_name, project_name, suite_name)
     if check_suite and not check_branch:
