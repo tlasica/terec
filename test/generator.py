@@ -121,7 +121,7 @@ def generate_suite_with_test_runs(org, project, branch="main"):
     suite_name = random_name("suite")
     suite = gen.suite(org, project, suite_name)
     suite_runs = [gen.suite_run(suite, branch, n) for n in range(1, 10)]
-    test_runs = []
+    test_runs: list[TestCaseRun] = []
     for r in suite_runs:
         test_runs += gen.test_case_runs(r)
     return suite, suite_runs, test_runs

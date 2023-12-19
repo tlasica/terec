@@ -6,6 +6,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
 
 from conftest import random_name
+from generator import generate_suite_with_test_runs
 from .random_data import (
     random_test_suite_info,
     random_test_suite_run_info,
@@ -13,7 +14,7 @@ from .random_data import (
 )
 from terec.api.core import create_app
 from terec.model.projects import Org, Project
-from terec.model.results import TestSuite, TestSuiteRun, TestCaseRun
+from terec.model.results import TestSuite, TestSuiteRun, TestCaseRun, TestCaseRunStatus
 
 
 def not_none(d: dict) -> dict:
@@ -121,6 +122,13 @@ class TestCaseResultsAPI:
         url = f"/tests/orgs/{org}/projects/{prj}/suites/{suite}/runs/{run}/tests"
         return self.api_client.post(url, content=body)
 
+    def get_test_results(
+        self, org: str, prj: str, suite: str, run: int, result: TestCaseRunStatus = None
+    ):
+        url = f"/tests/orgs/{org}/projects/{prj}/suites/{suite}/runs/{run}/tests"
+        params = {"result": result.upper()} if result else {}
+        return self.api_client.get(url, params=params)
+
     def test_should_fail_for_empty_list_of_tests(
         self, cassandra_model, test_project, test_suite_run
     ):
@@ -194,6 +202,42 @@ class TestCaseResultsAPI:
             run_id=test_suite_run.run_id,
         )
         assert len(loaded) == len(tests)
+
+    def test_should_get_test_results(self, cassandra_model, test_project):
+        org, project = test_project.org, test_project.name
+        suite, suite_runs, test_runs = generate_suite_with_test_runs(
+            org, project, branch="main"
+        )
+        run_id = suite_runs[0].run_id
+        resp = self.get_test_results(
+            suite.org, suite.project, suite.suite, suite_runs[0].run_id, result=None
+        )
+        assert resp.is_success, resp.text
+        run_tests = [x for x in test_runs if x.run_id == run_id]
+        assert len(run_tests) == len(resp.json())
+
+    def test_should_get_test_results_filtered_by_status(
+        self, cassandra_model, test_project
+    ):
+        org, project = test_project.org, test_project.name
+        suite, suite_runs, test_runs = generate_suite_with_test_runs(
+            org, project, branch="main"
+        )
+        run_id = suite_runs[0].run_id
+        resp = self.get_test_results(
+            suite.org,
+            suite.project,
+            suite.suite,
+            suite_runs[0].run_id,
+            result=TestCaseRunStatus.FAIL,
+        )
+        assert resp.is_success, resp.text
+        run_tests = [
+            x
+            for x in test_runs
+            if x.run_id == run_id and x.result == TestCaseRunStatus.FAIL
+        ]
+        assert len(run_tests) == len(resp.json())
 
 
 class TestIgnoreSuiteRunAPI:
