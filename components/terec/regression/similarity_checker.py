@@ -39,6 +39,8 @@ class SimilarityChecker:
 
     def __init__(self, test_case_run: TestCaseRun):
         self.test_case_run = test_case_run
+        self.stdout_seq_match = SequenceMatcher(a=test_case_run.stdout or '')
+        self.stderr_seq_match = SequenceMatcher(a=test_case_run.stderr or '')
 
     def is_similar(self, other: TestCaseRun):
         sim_error_details = self.is_error_details_similar(
@@ -49,8 +51,8 @@ class SimilarityChecker:
         )
         if sim_stack_trace is not None and sim_error_details in [True, None]:
             return sim_stack_trace
-        sim_stdout = self.is_out_stream_similar(self.test_case_run.stdout, other.stdout)
-        sim_stderr = self.is_out_stream_similar(self.test_case_run.stdout, other.stdout)
+        sim_stdout = self.is_out_stream_similar(self.stdout_seq_match, other.stdout)
+        sim_stderr = self.is_out_stream_similar(self.stderr_seq_match, other.stderr)
         if sim_stack_trace is None or (sim_stderr is None and sim_stdout is None):
             return None
         return sim_stderr and sim_stdout
@@ -107,14 +109,15 @@ class SimilarityChecker:
         stack_trace_line = re.sub(r"0x[0-9a-fA-F]+", "0xADDR", stack_trace_line)
         return stack_trace_line
 
-    def is_out_stream_similar(self, out_1: str, out_2: str) -> bool | None:
+    @classmethod
+    def is_out_stream_similar(cls, matcher: SequenceMatcher, other: str) -> bool | None:
         """
         Comparing two output streams is tricky due to
         1. dates or numbers changed
         2. potentially new log lines
         So we need to normalize it first and then measure similarity
         """
-        if not out_1 or not out_2:
+        if not other:
             return None
-        matcher = SequenceMatcher(a=out_1, b=out_2)
-        return matcher.ratio() >= 0.95
+        matcher.set_seq2(other)
+        return matcher.quick_ratio() >= 0.95

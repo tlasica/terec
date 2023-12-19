@@ -36,6 +36,7 @@ class TestCaseRunFailureAnalyser:
         return "\n".join(self.messages)
 
     def add_msg(self, msg: str):
+        logger.info(msg)
         self.messages.append(msg)
 
     def check_regression(self, depth: int = 16):
@@ -78,7 +79,7 @@ class TestCaseRunFailureAnalyser:
         )
 
     def _check(self, before_run_id: int = None, depth: int = 16):
-        self.add_msg(f"Using depth of ")
+        self.add_msg(f"Using depth of {depth}")
         self.depth = depth
         # collect relevant builds to check
         run_filter = None
@@ -144,6 +145,7 @@ class TestCaseRunFailureAnalyser:
         sim_checker = SimilarityChecker(self.failed_test)
         for other in self.test_runs_to_check:
             if other.result == "FAIL":
+                logger.info(f"checking {other}")
                 if sim_checker.is_similar(other):
                     self.similar_failures.append(other)
         return self.similar_failures
