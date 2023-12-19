@@ -13,7 +13,8 @@ from terec.status_cli.util import (
     get_terec_rest_api,
     typer_table_config,
     ratio_str,
-    collect_terec_rest_api_calls, TerecCallContext,
+    collect_terec_rest_api_calls,
+    TerecCallContext,
 )
 
 tests_app = typer.Typer()
@@ -247,7 +248,9 @@ def history(
     console.print(table)
 
 
-def get_test_run_check(terec: TerecCallContext, suite:str, run_id: int, test_run: TestCaseRunInfo):
+def get_test_run_check(
+    terec: TerecCallContext, suite: str, run_id: int, test_run: TestCaseRunInfo
+):
     url = f"{terec.url}/history/orgs/{terec.org}/projects/{terec.prj}/suites/{suite}/test-run-check"
     q_params = {
         "run_id": run_id,
@@ -282,11 +285,15 @@ def regression_check(
     with Timer("get-failed-tests"):
         failed_tests = get_suite_run_failed_tests(terec, suite, run_id)
     if not failed_tests:
-        print(f"No test failures for suite run {terec.org}/{terec.prj}/{suite}/{run_id} => no regression.")
+        print(
+            f"No test failures for suite run {terec.org}/{terec.prj}/{suite}/{run_id} => no regression."
+        )
         return 0
     # asynchronously check each failure
     console = Console()
-    console.print(f"Checking {len(failed_tests)} failed tests in suite run {terec.org}/{terec.prj}/{suite}/{run_id}.")
+    console.print(
+        f"Checking {len(failed_tests)} failed tests in suite run {terec.org}/{terec.prj}/{suite}/{run_id}."
+    )
     # TODO: make it asynchronous
     # TODO: use provided limit
     new_failures = []
@@ -305,6 +312,8 @@ def regression_check(
         return 0
 
     console.print("Regression detected")
-    console.print(f"{len(new_failures)}/{len(failed_tests)} are new (not known yet) test failures.")
+    console.print(
+        f"{len(new_failures)}/{len(failed_tests)} are new (not known yet) test failures."
+    )
     # print summary
     # print details

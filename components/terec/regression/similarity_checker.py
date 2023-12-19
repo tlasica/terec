@@ -39,8 +39,8 @@ class SimilarityChecker:
 
     def __init__(self, test_case_run: TestCaseRun):
         self.test_case_run = test_case_run
-        self.stdout_seq_match = SequenceMatcher(a=test_case_run.stdout or '')
-        self.stderr_seq_match = SequenceMatcher(a=test_case_run.stderr or '')
+        self.stdout_seq_match = SequenceMatcher(a=test_case_run.stdout or "")
+        self.stderr_seq_match = SequenceMatcher(a=test_case_run.stderr or "")
 
     def is_similar(self, other: TestCaseRun):
         sim_error_details = self.is_error_details_similar(
