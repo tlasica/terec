@@ -2,6 +2,7 @@ import plotext as plt
 import typer
 from rich import box
 from rich.console import Console
+from rich.pretty import pprint
 from rich.table import Table
 from terec.status_cli.util import (
     get_terec_rest_api,
@@ -19,6 +20,11 @@ def get_builds(org: str, project: str, suite: str, branch: str):
     url = f"{terec.url}/history/orgs/{terec.org}/projects/{terec.prj}/suites/{suite}/builds"
     query_params = {"branch": branch}
     return get_terec_rest_api(url, query_params)
+
+
+def get_build(terec: TerecCallContext, suite: str, run_id: int):
+    url = f"{terec.url}/tests/orgs/{terec.org}/projects/{terec.prj}/suites/{suite}/runs/{run_id}"
+    return get_terec_rest_api(url, {})
 
 
 @builds_app.command()
@@ -97,6 +103,20 @@ def history(
     console = Console()
     console.print()
     console.print(table)
+
+
+@builds_app.command()
+def show(
+    suite: str = params.ARG_SUITE,
+    run_id: int = params.ARG_RUN_ID,
+    org: str = params.OPT_ORG,
+    project: str = params.OPT_PRJ):
+    """
+    Print details of given suite run. [TODO: we need GET for /suite/runs/]
+    """
+    terec = TerecCallContext.create(org, project)
+    data = get_build(terec, suite, run_id)
+    pprint(data)
 
 
 def print_unusable_builds_note(field: str, builds) -> None:

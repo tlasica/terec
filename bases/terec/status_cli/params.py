@@ -19,6 +19,8 @@ ARG_SUITE = typer.Argument(help="which suite runs to plot")
 
 ARG_BRANCH = typer.Argument(help="branch to select suite runs")
 
+ARG_RUN_ID = typer.Argument(help="suite (build) run id")
+
 BUILD_FIELDS = [
     "fail_count",
     "skip_count",

@@ -61,12 +61,18 @@ def get_test_suite_run_or_raise(
     assert prj_name
     assert suite_name
     assert run_id > 0
-    suite = TestSuiteRun.objects(
+    suites = TestSuiteRun.objects(
         org=org_name, project=prj_name, suite=suite_name, run_id=run_id
-    ).allow_filtering()
-    if not suite:
+    ).allow_filtering().all()
+    if not suites:
         raise HTTPException(
             status_code=404,
             detail=f"Suite run not found {org_name}/{prj_name}/{suite_name}/{run_id}.",
         )
-    return suite
+    if len(suites) > 1:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Too many suite runs found for {org_name}/{prj_name}/{suite_name}/{run_id}. Only one is expected",
+        )
+
+    return suites[0]
