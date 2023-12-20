@@ -53,3 +53,27 @@ pytest-cov = "^4.1.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poe.tasks]
+test = "poetry run pytest --keepalive --benchmark-skip"
+benchmark = "poetry run pytest --keepalive test/bases/terec/api/test_benchmark_results_api.py"
+
+[tool.poe.tasks.build]
+shell = """
+poetry build-project
+pushd projects/terec_api
+poetry build-project
+docker build . -t terec/api:latest
+popd
+"""
+interpreter = "bash"
+
+[tool.poe.tasks.start-docker]
+shell = "docker compose --project-directory deploy/local/ up"
+
+[tool.poe.tasks.start-api]
+shell = """
+export CASSANDRA_HOSTS=localhost
+export CASSANDRA_KEYSPACE=terec
+poetry run uvicorn --host 0.0.0.0 --port 8001 --log-config ./projects/terec_api/log_conf.yaml terec.api.main:apptomek
+"""
