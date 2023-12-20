@@ -75,5 +75,5 @@ shell = "docker compose --project-directory deploy/local/ up"
 shell = """
 export CASSANDRA_HOSTS=localhost
 export CASSANDRA_KEYSPACE=terec
-poetry run uvicorn --host 0.0.0.0 --port 8001 --log-config ./projects/terec_api/log_conf.yaml terec.api.main:apptomek
+poetry run uvicorn --host 0.0.0.0 --port 8001 --log-config ./projects/terec_api/log_conf.yaml terec.api.main:app
 """
