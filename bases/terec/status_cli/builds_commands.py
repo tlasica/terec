@@ -32,7 +32,8 @@ def history(
     suite: str = params.ARG_SUITE,
     branch: str = params.ARG_BRANCH,
     org: str = params.OPT_ORG,
-    project: str = params.OPT_PRJ):
+    project: str = params.OPT_PRJ,
+):
     """
     Prints out the history of runs of given suite and on given branch.
     Requires TEREC_URL to be set and optionally TEREC_ORG, TEREC_PROJECT.
@@ -110,7 +111,8 @@ def show(
     suite: str = params.ARG_SUITE,
     run_id: int = params.ARG_RUN_ID,
     org: str = params.OPT_ORG,
-    project: str = params.OPT_PRJ):
+    project: str = params.OPT_PRJ,
+):
     """
     Print details of given suite run. [TODO: we need GET for /suite/runs/]
     """
@@ -218,4 +220,3 @@ def view(
     plt.theme("dark")
     plt.show()
     print_unusable_builds_note("pass_count", unusable_data)
-

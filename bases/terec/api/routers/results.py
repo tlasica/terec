@@ -251,9 +251,7 @@ def get_suite_run_tests(
     return resp
 
 
-@router.get(
-    "/orgs/{org_name}/projects/{prj_name}/suites/{suite_name}/runs/{run_id}/"
-)
+@router.get("/orgs/{org_name}/projects/{prj_name}/suites/{suite_name}/runs/{run_id}/")
 def get_suite_run_info(
     org_name: str,
     prj_name: str,

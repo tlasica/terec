@@ -61,9 +61,13 @@ def get_test_suite_run_or_raise(
     assert prj_name
     assert suite_name
     assert run_id > 0
-    suites = TestSuiteRun.objects(
-        org=org_name, project=prj_name, suite=suite_name, run_id=run_id
-    ).allow_filtering().all()
+    suites = (
+        TestSuiteRun.objects(
+            org=org_name, project=prj_name, suite=suite_name, run_id=run_id
+        )
+        .allow_filtering()
+        .all()
+    )
     if not suites:
         raise HTTPException(
             status_code=404,
