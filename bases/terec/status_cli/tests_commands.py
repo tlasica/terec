@@ -57,8 +57,6 @@ def get_test_history_api_call(
     return url, query_params
 
 
-
-
 class FailedTests:
     """
     Helper object to group test case -> [test runs] from a flat list of [(test_run, suite_run)] dicts:
@@ -156,7 +154,9 @@ def failed(
 
 def add_test_case_columns_to_table(table, fold: bool):
     if fold:
-        table.add_column("package::class::test::config", justify="left", overflow="fold")
+        table.add_column(
+            "package::class::test::config", justify="left", overflow="fold"
+        )
     else:
         table.add_column("package", justify="left")
         table.add_column("class(suite)", justify="left")
@@ -182,7 +182,9 @@ def history(
     limit: int = None,
     threshold: int = None,
     fold: bool = params.OPT_FOLD,
-    test_filter: str = typer.Option(None, help="filter for test cases pkg::class::case::config")
+    test_filter: str = typer.Option(
+        None, help="filter for test cases pkg::class::case::config"
+    ),
 ):
     """
     Prints out the list of tests that failed at least once given suite and branch.
@@ -346,7 +348,9 @@ def regression_check(
     table.add_column("Fail(diff) #", justify="right", style="red")
     for f in new_failures:
         tc = TestCaseRunInfo(**f["test_case"])
-        row_data = test_case_row_data(tc.test_package, tc.test_suite, tc.test_case, tc.test_config, fold)
+        row_data = test_case_row_data(
+            tc.test_package, tc.test_suite, tc.test_case, tc.test_config, fold
+        )
         summary = f["summary"]
         row_data += [
             str(summary["num_runs"]),

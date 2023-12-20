@@ -13,9 +13,7 @@ OPT_FOLD = typer.Option(
     False, help="if set test case will be presented in single column"
 )
 
-OPT_BUILDS_LIMIT = typer.Option(
-    16, help="number of past builds to use"
-)
+OPT_BUILDS_LIMIT = typer.Option(16, help="number of past builds to use")
 
 ARG_SUITE = typer.Argument(help="which suite runs to plot")
 
@@ -29,8 +27,8 @@ BUILD_FIELDS = [
     "duration_sec",
 ]
 
-ARG_BUILD_FIELD = typer.Option(
-    "fail_count", help=f"field to use from {BUILD_FIELDS}"
-),
+ARG_BUILD_FIELD = (
+    typer.Option("fail_count", help=f"field to use from {BUILD_FIELDS}"),
+)
 
 OPT_PROGRESS = typer.Option(False, help="show progress in stderr")
