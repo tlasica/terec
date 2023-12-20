@@ -151,7 +151,7 @@ def add_suite_run_tests(
     get_org_project_or_raise(org_name, prj_name)
     get_test_suite_or_raise(org_name, prj_name, suite_name)
     # FIXME: we have a problem with branch/run order - we do not want to require branch
-    get_test_suite_run_or_raise(org_name, prj_name, suite_name, run_id)
+    suite_run = get_test_suite_run_or_raise(org_name, prj_name, suite_name, run_id)
     # add test cases
     logger.info(
         "importing {} test case results for {}/{}/{}/{}",
@@ -183,7 +183,10 @@ def add_suite_run_tests(
         for test in chunk:
             attrs = test.model_dump()
             attrs["result"] = attrs["result"].value
-            timestamp = int(attrs["tstamp"].timestamp() * 1000)
+            # timestamp = suite_run.timestamp
+            # if attrs.get("tstamp", None):
+            #     timestamp = int(attrs["tstamp"].timestamp() * 1000)
+            timestamp = attrs.get("tstamp", suite_run.timestamp)
             test_data = (
                 org_name,
                 prj_name,
