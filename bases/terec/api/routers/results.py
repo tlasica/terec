@@ -76,6 +76,9 @@ class TestCaseRunInfo(BaseModel):
     skip_details: str | None = None
     # TODO: possibly there should be run_id here as well
 
+    def __str__(self):
+        return f"{self.test_package}::{self.test_suite}::{self.test_case}::{self.test_config}"
+
 
 @router.get("/orgs/{org_name}/suites")
 def get_org_suites(org_name: str) -> list[TestSuiteInfo]:

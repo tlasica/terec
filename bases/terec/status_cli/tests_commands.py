@@ -282,18 +282,19 @@ def regression_check(
         print("not implemented")
         return 0
     # collect all tests failed in this build
+    console = Console()
     with Timer("get-failed-tests"):
         failed_tests = get_suite_run_failed_tests(terec, suite, run_id)
     if not failed_tests:
-        print(
-            f"No test failures for suite run {terec.org}/{terec.prj}/{suite}/{run_id} => no regression."
+        console.print(
+            f"[green]No regression[green]: no test failures for suite run {terec.org}/{terec.prj}/{suite}/{run_id}."
         )
         return 0
     # asynchronously check each failure
-    console = Console()
     console.print(
         f"Checking {len(failed_tests)} failed tests in suite run {terec.org}/{terec.prj}/{suite}/{run_id}."
     )
+    # TODO: add --progress
     # TODO: make it asynchronous
     # TODO: use provided limit
     new_failures = []
@@ -306,14 +307,18 @@ def regression_check(
             if check["is_known_failure"] == False:
                 new_failures.append(check)
             progress.update(task, advance=1)
-    # create summary
+    # summary
     if not new_failures:
-        console.print("No regression detected (no new test failures)")
+        console.print("[green]No regression[green]: no new test failures.")
         return 0
 
-    console.print("Regression detected")
+    console.print("[red]Regression detected[red]")
     console.print(
         f"{len(new_failures)}/{len(failed_tests)} are new (not known yet) test failures."
     )
-    # print summary
     # print details
+    for f in new_failures:
+        test_case = TestCaseRunInfo(**f["test_case"])
+        console.print(str(test_case))
+        console.print(f["summary"])
+        console.print(f["message"])
