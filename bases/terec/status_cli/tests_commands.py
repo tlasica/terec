@@ -16,6 +16,7 @@ from terec.status_cli.util import (
     collect_terec_rest_api_calls,
     TerecCallContext,
 )
+from terec.status_cli import params
 
 tests_app = typer.Typer()
 
@@ -56,13 +57,6 @@ def get_test_history_api_call(
     return url, query_params
 
 
-def test_case_key(test: dict):
-    return (
-        test["test_run"]["test_package"],
-        test["test_run"]["test_suite"],
-        test["test_run"]["test_case"],
-        test["test_run"]["test_config"],
-    )
 
 
 class FailedTests:
@@ -73,13 +67,16 @@ class FailedTests:
     The key is a tuple(package, suite, case, config)
     """
 
-    def __init__(self, data):
+    def __init__(self, data, test_case_filter: str = None):
         self.data = data
+        self.test_case_filter = test_case_filter
 
     def unique_test_cases(self, limit: int = None, threshold: int = None):
         keys = {}
         for item in self.data:
-            k = test_case_key(item)
+            k = self.test_case_key(item)
+            if not self._key_matches_filter(k):
+                continue
             if k not in keys:
                 keys[k] = 0
             keys[k] = keys[k] + 1
@@ -89,18 +86,33 @@ class FailedTests:
         return sorted(keys, key=keys.get, reverse=True)[:limit]
 
     def runs_for_test_case(self, key):
-        return [x for x in self.data if test_case_key(x) == key]
+        return [x for x in self.data if self.test_case_key(x) == key]
+
+    @staticmethod
+    def test_case_key(test: dict):
+        return (
+            test["test_run"]["test_package"],
+            test["test_run"]["test_suite"],
+            test["test_run"]["test_case"],
+            test["test_run"]["test_config"],
+        )
+
+    def _key_matches_filter(self, test_case: tuple[str, str, str, str]) -> bool:
+        if not self.test_case_filter:
+            return True
+        else:
+            return "::".join(test_case).startswith(self.test_case_filter)
 
 
 @tests_app.command()
 def failed(
-    suite: str,
-    branch: str,
-    org: str = None,
-    project: str = None,
+    suite: str = params.ARG_SUITE,
+    branch: str = params.ARG_BRANCH,
+    org: str = params.OPT_ORG,
+    project: str = params.OPT_PRJ,
     limit: int = None,
     threshold: int = None,
-    fold: bool = False,
+    fold: bool = params.OPT_FOLD,
 ):
     """
     Prints out the list of test failures for given suite and branch.
@@ -163,13 +175,14 @@ def test_case_row_data(package, suite, case, config, fold: bool) -> list[str]:
 # TODO: use url links for builds if present
 @tests_app.command()
 def history(
-    suite: str,
-    branch: str,
-    org: str = None,
-    project: str = None,
+    suite: str = params.ARG_SUITE,
+    branch: str = params.ARG_BRANCH,
+    org: str = params.OPT_ORG,
+    project: str = params.OPT_PRJ,
     limit: int = None,
     threshold: int = None,
-    fold: bool = False,
+    fold: bool = params.OPT_FOLD,
+    test_filter: str = typer.Option(None, help="filter for test cases pkg::class::case::config")
 ):
     """
     Prints out the list of tests that failed at least once given suite and branch.
@@ -180,7 +193,7 @@ def history(
     # collect all failed tests
     with Timer("get-failed-tests"):
         data = get_failed_tests(terec, suite, branch)
-    grouped_data = FailedTests(data)
+    grouped_data = FailedTests(data, test_filter)
     uniq_test_cases = grouped_data.unique_test_cases(limit=limit, threshold=threshold)
     # collect history for all interesting tests [TODO: make it asynchttp]
     with Timer("collect-test-results"):
@@ -273,12 +286,13 @@ def get_test_run_check(
 
 @tests_app.command()
 def regression_check(
-    suite: str,
-    branch: str,
+    suite: str = params.ARG_SUITE,
+    org: str = params.OPT_ORG,
+    project: str = params.OPT_PRJ,
     run_id: int = None,
-    org: str = None,
-    project: str = None,
-    limit: int = typer.Option(16, help="number of past builds to use"),
+    limit: int = params.OPT_BUILDS_LIMIT,
+    fold: bool = params.OPT_FOLD,
+    progress: bool = params.OPT_PROGRESS,
 ):
     """
     Check suite run in terms of regression or known test failures.
@@ -303,15 +317,13 @@ def regression_check(
     console.print(
         f"Checking {len(failed_tests)} failed tests in suite run {terec.org}/{terec.prj}/{suite}/{run_id}."
     )
-    # TODO: add --progress
     # TODO: make it asynchronous
     # TODO: use provided limit
     new_failures = []
-    with Progress(console=Console(file=sys.stderr)) as progress:
+    with Progress(console=Console(file=sys.stderr), disable=not progress) as progress:
         task = progress.add_task("checking failed tests", total=len(failed_tests))
         for test_case in failed_tests:
             info = TestCaseRunInfo(**test_case)
-            console.print()
             check = get_test_run_check(terec, suite, run_id, info)
             if check["is_known_failure"] == False:
                 new_failures.append(check)
@@ -322,12 +334,28 @@ def regression_check(
         return 0
 
     console.print("[red]Regression detected[red]")
-    console.print(
-        f"{len(new_failures)}/{len(failed_tests)} are new (not known yet) test failures."
-    )
-    # print details
+    # print table with new test failures
+    title = f"New test failures in {terec.org}/{terec.prj}/{suite}/{run_id}."
+    caption = f"Limit: {limit}, Total failures in suite run: {len(failed_tests)} with {len(new_failures)} new."
+    table = Table(**typer_table_config(title, caption))
+    add_test_case_columns_to_table(table, fold)
+    table.add_column("Run #", justify="right")
+    table.add_column("Pass #", justify="right", style="green")
+    table.add_column("Skip #", justify="right", style="yellow")
+    table.add_column("Fail(same) #", justify="right", style="red")
+    table.add_column("Fail(diff) #", justify="right", style="red")
     for f in new_failures:
-        test_case = TestCaseRunInfo(**f["test_case"])
-        console.print(str(test_case))
-        console.print(f["summary"])
-        console.print(f["message"])
+        tc = TestCaseRunInfo(**f["test_case"])
+        row_data = test_case_row_data(tc.test_package, tc.test_suite, tc.test_case, tc.test_config, fold)
+        summary = f["summary"]
+        row_data += [
+            str(summary["num_runs"]),
+            str(summary["num_pass"]),
+            str(summary["num_skip"]),
+            str(summary["num_same_fail"]),
+            str(summary["num_diff_fail"]),
+        ]
+        table.add_row(*row_data)
+
+    console.print()
+    console.print(table)

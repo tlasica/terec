@@ -5,10 +5,11 @@ from rich import box
 from rich.console import Console
 from rich.table import Table
 from terec.status_cli.util import (
-    value_or_env,
     get_terec_rest_api,
     TerecCallContext,
 )
+from terec.status_cli import params
+
 
 builds_app = typer.Typer()
 
@@ -33,7 +34,7 @@ def history(suite: str, branch: str, org: str = None, project: str = None):
     """
     limit = None
     terec = TerecCallContext.create(org, project)
-    data = get_builds(terec.org, terec.project, suite, branch)
+    data = get_builds(terec.org, terec.prj, suite, branch)
     # print results
     title = f"History of builds of {terec.org}/{terec.prj}/{suite} on branch {branch}"
     caption = f"limit: {limit}"
@@ -114,28 +115,13 @@ def color_for_field(field: str) -> str:
     return colors.get(field, None)
 
 
-PLOT_BUILD_FIELDS = [
-    "fail_count",
-    "skip_count",
-    "pass_count",
-    "total_count",
-    "duration_sec",
-]
-
-
 @builds_app.command()
 def histogram(
-    suite: str = typer.Argument(help="which suite runs to plot"),
-    branch: str = typer.Argument(help="branch to select suite runs"),
-    field: str = typer.Option(
-        "fail_count", help=f"field to use from {PLOT_BUILD_FIELDS}"
-    ),
-    org: str = typer.Option(
-        None, help="org id, if not used then TEREC_ORG env var will be used"
-    ),
-    project: str = typer.Option(
-        None, help="project id, if not used then TEREC_PRJ env var will be used"
-    ),
+    suite: str = params.ARG_SUITE,
+    branch: str = params.ARG_BRANCH,
+    field: str = params.ARG_BUILD_FIELD,
+    org: str = params.OPT_ORG,
+    project: str = params.OPT_PRJ,
 ):
     """
     Prints out the histogram of number of test failures for runs of given suite and on given branch.
@@ -160,17 +146,11 @@ def histogram(
 
 @builds_app.command()
 def bar(
-    suite: str = typer.Argument(help="which suite runs to plot"),
-    branch: str = typer.Argument(help="branch to select suite runs"),
-    field: str = typer.Option(
-        "fail_count", help=f"field to use from {PLOT_BUILD_FIELDS}"
-    ),
-    org: str = typer.Option(
-        None, help="org id, if not used then TEREC_ORG env var will be used"
-    ),
-    project: str = typer.Option(
-        None, help="project id, if not used then TEREC_PRJ env var will be used"
-    ),
+    suite: str = params.ARG_SUITE,
+    branch: str = params.ARG_BRANCH,
+    field: str = params.ARG_BUILD_FIELD,
+    org: str = params.OPT_ORG,
+    project: str = params.OPT_PRJ,
 ):
     """
     Prints out the plot of number of values for runs of given suite and on given branch.
@@ -190,14 +170,10 @@ def bar(
 
 @builds_app.command()
 def view(
-    suite: str = typer.Argument(help="which suite runs to plot"),
-    branch: str = typer.Argument(help="branch to select suite runs"),
-    org: str = typer.Option(
-        None, help="org id, if not used then TEREC_ORG env var will be used"
-    ),
-    project: str = typer.Option(
-        None, help="project id, if not used then TEREC_PRJ env var will be used"
-    ),
+    suite: str = params.ARG_SUITE,
+    branch: str = params.ARG_BRANCH,
+    org: str = params.OPT_ORG,
+    project: str = params.OPT_PRJ,
 ):
     """
     Prints out the plot of passed/skipped/failed per build.
