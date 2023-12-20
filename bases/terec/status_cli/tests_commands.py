@@ -100,6 +100,7 @@ def failed(
     project: str = None,
     limit: int = None,
     threshold: int = None,
+    fold: bool = False,
 ):
     """
     Prints out the list of test failures for given suite and branch.
@@ -116,10 +117,7 @@ def failed(
     title = f"Failed tests of {terec.org}/{terec.prj}/{suite} on branch {branch}"
     caption = f"Limit: {limit}, Threshold: {threshold}"
     table = Table(**typer_table_config(title, caption))
-    table.add_column("package", justify="left")
-    table.add_column("class(suite)", justify="left")
-    table.add_column("test", justify="left")
-    table.add_column("config", style="dim", justify="left")
+    add_test_case_columns_to_table(table, fold)
     table.add_column("group", style="dim", justify="center")
     table.add_column("[red]Fail #[red]", justify="center", style="red")
     table.add_column("[red]Failed in[red]", justify="left", style="red")
@@ -131,19 +129,34 @@ def failed(
         failed_runs_ids = [f"#{run['suite_run']['run_id']}" for run in failed_runs]
         t_group = [x["test_run"]["test_group"] for x in failed_runs][0] or "---"
 
-        table.add_row(
-            str(package),
-            str(suite),
-            str(case),
-            str(config),
+        row_data = test_case_row_data(package, suite, case, config, fold)
+        row_data += [
             str(t_group),
             f"{len(failed_runs)}",
             " ".join(failed_runs_ids[:8]) + ("(...)" if len(failed_runs) > 8 else ""),
-        )
+        ]
+        table.add_row(*row_data)
 
     console = Console()
     console.print()
     console.print(table)
+
+
+def add_test_case_columns_to_table(table, fold: bool):
+    if fold:
+        table.add_column("package::class::test::config", justify="left", overflow="fold")
+    else:
+        table.add_column("package", justify="left")
+        table.add_column("class(suite)", justify="left")
+        table.add_column("test", justify="left")
+        table.add_column("config", justify="left", style="dim")
+
+
+def test_case_row_data(package, suite, case, config, fold: bool) -> list[str]:
+    if fold:
+        return [f"{package}::{suite}::{case}::{config}"]
+    else:
+        return [str(package), str(suite), str(case), str(config)]
 
 
 # TODO: add param flag to show ignored
@@ -156,6 +169,7 @@ def history(
     project: str = None,
     limit: int = None,
     threshold: int = None,
+    fold: bool = False,
 ):
     """
     Prints out the list of tests that failed at least once given suite and branch.
@@ -191,10 +205,7 @@ def history(
     caption = f"Limit: {limit}, Threshold: {threshold}"
     table = Table(**typer_table_config(title, caption))
     # configure columns
-    table.add_column("package", justify="left")
-    table.add_column("class(suite)", justify="left")
-    table.add_column("test", justify="left")
-    table.add_column("config", style="dim", justify="left")
+    add_test_case_columns_to_table(table, fold)
     table.add_column("group", style="dim", justify="center")
     table.add_column("[green]Pass#[green]", justify="right", style="green")
     table.add_column("[red]Fail#[red]", justify="right", style="red")
@@ -231,17 +242,15 @@ def history(
                 fail_count += 1
                 history_stream.append(f"[red]#{r_id}[red]")
         total_count = fail_count + pass_count + skip_count
-        table.add_row(
-            str(package),
-            str(suite),
-            str(case),
-            str(config),
+        row_data = test_case_row_data(package, suite, case, config, fold)
+        row_data += [
             str(t_group),
             " ".join([str(pass_count), ratio_str(pass_count, total_count)]),
             " ".join([str(fail_count), ratio_str(fail_count, total_count)]),
             str(skip_count),
             " ".join(history_stream),
-        )
+        ]
+        table.add_row(*row_data)
 
     console = Console()
     console.print()
