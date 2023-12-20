@@ -26,8 +26,9 @@ def parse_jenkins_report_suite(suite: dict) -> list[TestCaseRunInfo]:
     for case in suite["cases"]:
         test_package, test_suite = split_fq_class_name(case["className"])
         test_name, test_config = split_case_name_with_config(case["name"])
+        full_name = "::".join([test_package, test_suite, test_name])
         if not test_config:
-            test_config = "#" * (1 + names.get(test_name, 0))
+            test_config = "#" * (1 + names.get(full_name, 0))
         case_info = {
             "test_package": test_package or "#",
             "test_suite": test_suite,
@@ -46,7 +47,7 @@ def parse_jenkins_report_suite(suite: dict) -> list[TestCaseRunInfo]:
             "skip_details": case.get("skippedMessage", None),
         }
         ret.append(TestCaseRunInfo(**case_info))
-        names[test_name] = 1 + names.get(test_name, 0)
+        names[full_name] = 1 + names.get(full_name, 0)
 
     return ret
 
