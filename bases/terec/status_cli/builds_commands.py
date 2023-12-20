@@ -1,7 +1,6 @@
 import plotext as plt
 import typer
 from rich import box
-
 from rich.console import Console
 from rich.table import Table
 from terec.status_cli.util import (
@@ -23,14 +22,17 @@ def get_builds(org: str, project: str, suite: str, branch: str):
 
 
 @builds_app.command()
-def history(suite: str, branch: str, org: str = None, project: str = None):
+def history(
+    suite: str = params.ARG_SUITE,
+    branch: str = params.ARG_BRANCH,
+    org: str = params.OPT_ORG,
+    project: str = params.OPT_PRJ):
     """
     Prints out the history of runs of given suite and on given branch.
     Requires TEREC_URL to be set and optionally TEREC_ORG, TEREC_PROJECT.
 
     TODO: add param to limit number of results
     TODO: add param flag to show ignored
-    TODO: use url links for builds if present
     """
     limit = None
     terec = TerecCallContext.create(org, project)
@@ -74,16 +76,15 @@ def history(suite: str, branch: str, org: str = None, project: str = None):
             return f"{color}{num}{color}" if num > 0 else str(num)
 
     def chart(num: str) -> str:
-        if num is None:
-            return ""
-        elif int(num) < 50:
-            return "#" * int(num)
-        else:
-            return "#" * 50 + "(...)"
+        return "#" * int(num) if num else ""
 
     for build in data:
+        if build.get("url", ""):
+            build_id = f"[link={build['url']}]{build['run_id']}[/link]"
+        else:
+            build_id = f"{build['run_id']}"
         table.add_row(
-            str(build["run_id"]),
+            build_id,
             str(build["tstamp"])[:19],
             decorated_status(str(build["status"])),
             str(build["total_count"] or "---"),
@@ -197,3 +198,4 @@ def view(
     plt.theme("dark")
     plt.show()
     print_unusable_builds_note("pass_count", unusable_data)
+

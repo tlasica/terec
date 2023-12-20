@@ -183,9 +183,6 @@ def add_suite_run_tests(
         for test in chunk:
             attrs = test.model_dump()
             attrs["result"] = attrs["result"].value
-            # timestamp = suite_run.timestamp
-            # if attrs.get("tstamp", None):
-            #     timestamp = int(attrs["tstamp"].timestamp() * 1000)
             timestamp = attrs.get("tstamp", suite_run.timestamp)
             test_data = (
                 org_name,
