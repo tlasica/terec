@@ -101,6 +101,9 @@ class FailedTests:
         else:
             return "::".join(test_case).startswith(self.test_case_filter)
 
+    def suite_runs_ids(self) -> list[int]:
+        return sorted({int(x["suite_run"]["run_id"]) for x in self.data}, reverse=True)
+
 
 @tests_app.command()
 def failed(
@@ -227,6 +230,7 @@ def history(
     table.add_column("[yellow]Skip#[yellow]", justify="right", style="yellow")
     table.add_column("History", justify="left")
     # add rows
+    run_ids = grouped_data.suite_runs_ids()
     for test_case in uniq_test_cases:
         package, suite, case, config = test_case
         history = sorted(
@@ -243,20 +247,26 @@ def history(
             ),
             "---",
         )
-        history_stream = []
-        pass_count, fail_count, skip_count = 0, 0, 0
+        history_stream_data = {x: "_" for x in run_ids}
+
+        totals = {"FAIL": 0, "PASS": 0, "SKIP": 0}
         for r in history:
             r_id = r["suite_run"]["run_id"]
-            if r["test_run"]["result"] == "PASS":
-                pass_count += 1
-                history_stream.append(f"[green]#{r_id}[green]")
-            elif r["test_run"]["result"] == "SKIP":
-                skip_count += 1
-                history_stream.append(f"[yellow]#{r_id}[yellow]")
-            elif r["test_run"]["result"] == "FAIL":
-                fail_count += 1
-                history_stream.append(f"[red]#{r_id}[red]")
-        total_count = fail_count + pass_count + skip_count
+            res = r["test_run"]["result"]
+            totals[res] = 1 + totals.get(res, 0)
+            if res == "PASS":
+                history_stream_data[r_id] = "[green]P[/green]"
+            elif res == "SKIP":
+                history_stream_data[r_id] = "[yellow]s[/yellow]"
+            elif res == "FAIL":
+                history_stream_data[r_id] = "[red]F[/red]"
+        history_stream = history_stream_data.values()
+        pass_count, skip_count, fail_count = (
+            totals["PASS"],
+            totals["SKIP"],
+            totals["FAIL"],
+        )
+        total_count = totals["FAIL"] + totals["PASS"] + totals["SKIP"]
         row_data = test_case_row_data(package, suite, case, config, fold)
         row_data += [
             str(t_group),
