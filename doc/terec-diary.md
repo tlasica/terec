@@ -1,10 +1,43 @@
-
 ## BACKLOG
 
-run.sh should create test/test project and org
-check what is the source of branch for export-build
-add test mocking jenkins server to return expected json
+1. run.sh should create test/test project and org
+2. check what is the source of branch for export-build
+3. add test mocking jenkins server to return expected json
+4. add details to tests reg _ression-check e.g. failures
 
+### GET CALL for last run of suite and branch
+
+### FAILED_TEST_RUN with HASH
+
+I think we should add failure-hash to the list so that
+we can improve user experience e.g. to link issue to test failure.
+This means we should have a new table FAIlED_TEST_RUN.
+Hash can be generated based on suite run and test case run.
+
+### LINK ISSUE
+
+This should be quite easy if we have FAILED_TEST_RUN,
+we can add some link (like jira link or gh link).
+We should probably have some new table like:
+FAILED_TEST_RUN_ISSUE_LINK with link and timestamp.
+
+### REPORT ISSUE
+
+What we need is to create ticket (gh, jira) with proper content
+possibly also links etc. Each project has sspecial requirements
+for labeling, summary structure, project etc.
+
+This means we should live it to the caller how to report:
+- use templating engine
+- use jira lib or gh lib
+- maybe tests report-jira or tests report-gh commands?
+- with some config file as parameter?
+
+### BUILD URLS
+
+Console cannot show links, if they are cut it sucks.
+So if we have failure hash we can use show or open commands.
+```tests open xxx``
 
 ## 2023-12-01 Regression Detection
 
