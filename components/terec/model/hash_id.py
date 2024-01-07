@@ -21,5 +21,5 @@ def hash_id_test_case_run_dict(run: dict) -> str:
 def _hash_id(data: list[str]) -> str:
     m = sha1()
     for s in data:
-        m.update(bytes(s, 'utf-8'))
+        m.update(bytes(s, "utf-8"))
     return m.hexdigest()

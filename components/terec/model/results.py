@@ -84,6 +84,7 @@ class TestCaseRun(Model):
     def create(cls, **kwargs):
         if "hash_id" not in kwargs:
             from terec.model.hash_id import hash_id_test_case_run_dict
+
             kwargs["hash_id"] = hash_id_test_case_run_dict(kwargs)
         return super().create(**kwargs)
 
