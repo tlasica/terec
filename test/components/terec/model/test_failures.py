@@ -86,3 +86,18 @@ def test_load_test_case_runs_with_result(cassandra_model, test_project):
         if the_test.is_same_test_case_and_config(x) and x.result == "FAIL"
     ]
     assert len(loaded_test_runs) == len(generated_test_runs)
+
+
+def test_case_runs_have_hash_id_generated(cassandra_model, test_project):
+    # given some runs
+    suite, suite_runs, test_runs = generate_suite_with_test_runs(
+        test_project.org, test_project.name
+    )
+    # when we collect failed tests
+    failed_tests = load_failed_tests_for_suite_runs(suite_runs)
+    # then we get expected number of failures
+    expected_count = sum([x.fail_count for x in suite_runs])
+    assert len(failed_tests) == expected_count
+    # and every one has unique hash id
+    hash_ids = {f.hash_id for f in failed_tests}
+    assert len(hash_ids) == len(failed_tests)

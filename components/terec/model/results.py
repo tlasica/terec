@@ -80,6 +80,13 @@ class TestCaseRunStatus(str, Enum):
 
 
 class TestCaseRun(Model):
+    @classmethod
+    def create(cls, **kwargs):
+        if "hash_id" not in kwargs:
+            from terec.model.hash_id import hash_id_test_case_run_dict
+            kwargs["hash_id"] = hash_id_test_case_run_dict(kwargs)
+        return super().create(**kwargs)
+
     __test__ = False
     org = columns.Text(partition_key=True)
     project = columns.Text(partition_key=True)
@@ -98,6 +105,7 @@ class TestCaseRun(Model):
     error_stacktrace = columns.Text()
     error_details = columns.Text()
     skip_details = columns.Text()
+    hash_id = columns.Text(required=True)
 
     def test_suite_str(self) -> str:
         return f"{self.org}::{self.project}::{self.suite}"
