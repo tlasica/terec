@@ -9,7 +9,7 @@
 
 ## Architecture 
 
-This software is inspired by the [butler]() tool created by [Datastax]()
+This software is inspired by the [butler]() tool co-created by me while working for [Datastax]()
 and is aiming at more modular and modern architecture:
 
 1. Separate logic from the UI
