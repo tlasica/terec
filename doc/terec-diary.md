@@ -60,8 +60,28 @@ What we need to implement:
 6. check what happens if events are not read
 
 
+## 2025-03-19
 
+Get back to TEREC after 14 months of break (working for Snowflake).
 
+I have done some refreshements:
+- switch to Python 3.12.1
+- upgrade `poetry` to 1.8 (should be faster)
+
+### Plan for refreshment:
+
+1. remind myself how it is working / etc.
+2. update components / versions
+3. enhance documentation (links, how to do things etc)
+4. host somewhere? (docker compose likely)
+5. add gh actions for black and running tests
+6. why it takes so long to run all the tests?
+7. dogfooding - use terec for terec tests
+8. populate terec from spicedb or some other tool?
+9. speed things up?
+10. opentelemetry?
+11. allow easy import from gh actions?
+12. add labels for tests passing etc?
 
 ## 2023-11-22
 
