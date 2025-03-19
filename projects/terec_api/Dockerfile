@@ -1,4 +1,4 @@
-FROM python:3.12
+FROM python:3.12-slim
 
 ARG wheel=terec_api-0.1.0-py3-none-any.whl
 
