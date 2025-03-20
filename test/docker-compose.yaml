@@ -1,9 +1,10 @@
 version: '3'
 services:
   cassandra:
-    image: "cassandra:latest"
+    image: "cassandra:5.0.3"
     environment:
       - JVM_OPTS=-Dcassandra.skip_wait_for_gossip_to_settle=0
+      - CASSANDRA_CLUSTER_NAME=terec_test
     ports:
       - "9042:9042"
     healthcheck:

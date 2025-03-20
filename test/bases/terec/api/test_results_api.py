@@ -68,7 +68,7 @@ class TestSuiteRunsAPI:
         url = f"/tests/orgs/{org_name}/runs"
         return self.api_client.post(url, content=suite_run_info.model_dump_json())
 
-    def test_should_fail_create_on_non_existing_project(self):
+    def test_should_fail_create_on_non_existing_project(self, cassandra_model):
         org = Org.create(name=self.fake.company())
         project = random_name("non-existing-project")
         suite_run = random_test_suite_run_info(org.name, project, "ci", run_id=7)
