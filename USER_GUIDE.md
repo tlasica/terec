@@ -1,3 +1,28 @@
+# Operating TeReC
+
+Before starting `TeReC` it needs to be built:
+```commandline
+poe build
+```
+
+To start local deployment (single C* node) run:
+```bash
+docker compose -f ./deploy/local/docker-compose.yaml up -d
+```
+and to stop:
+```bash
+docker compose -f ./deploy/local/docker-compose.yaml down
+```
+
+# Importing data
+
+
+
+
+# Accessing data
+
+Accessing data is through terec `cli` commands.
+
 ## builds history
 
 ```bash

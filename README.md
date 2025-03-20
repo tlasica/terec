@@ -4,10 +4,14 @@
 
 1. Collect results from multiple builds/test runs in one place
 2. Allow/Block PR merging based on the test results even with flickering tests
-3. Automatically detect test regression early and inform project members
-4. Support developers with creating tickets (jira, gh issues) for failed tests  
+~~3. Automatically detect test regression early and inform project members~~
+~~4. Support developers with creating tickets (jira, gh issues) for failed tests~~  
 
-## Architecture 
+## User Guide
+
+See [USERGUIDE](./USER_GUIDE.md)
+
+## Architecture
 
 This software is inspired by the [butler]() tool co-created by me while working for [Datastax]()
 and is aiming at more modular and modern architecture:
@@ -23,6 +27,23 @@ and is aiming at more modular and modern architecture:
 2. with FastAPI for REST API calls
 3. with [RabbitMQ]() for events 
 4. using [Docker]() for deployments
+
+## Development
+
+### Project structure
+
+Project is organized using [polylith](https://polylith.gitbook.io/polylith) concept.
+
+### Build and tasks
+
+Build is done with [poetry] and [poe]
+
+To see all tasks (defined in [pyproject.toml](./pyproject.toml)) run `poe`.
+Most important task to run will be `poe build` and `poe test`.
+
+### Testing
+
+Running tests (including simple benchmarks) is described in [TESTING.md](./TESTING.md)
 
 ## Docs
 * The official Polylith documentation: [high-level documentation](https://polylith.gitbook.io/polylith)

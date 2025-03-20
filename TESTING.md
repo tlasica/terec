@@ -6,8 +6,14 @@
 
 ### Troubleshooting
 
+Check Cassandra logs:
+```commandline
+docker logs pytest-terec-cassandra-1
+```
+
+Common issues:
 1. If port 9042 is used stop docker `docker kill pytest-terec-cassandra-1` or run `docker ps` and kill test containers.
-2. In case of the `cqlengine` sync failure run `cqlsh` and `DROP KEYSPACE terec` to cleanup schema.
+2. In case of the `cqlengine` sync failure run `cqlsh` and `DROP KEYSPACE terec` to clean up the schema.
 
 ### Integration Tests
 
