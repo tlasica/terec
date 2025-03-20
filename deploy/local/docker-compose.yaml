@@ -1,27 +1,23 @@
 version: '3'
 
-x-common-variables: &common-variables
-  CASSANDRA_HOSTS: cassandra
-  CASSANDRA_KEYSPACE: terec
-
 services:
-  cassandra:
-    image: "cassandra:latest"
+  terec-cassandra:
+    image: "cassandra:5.0.3"
     environment:
-      - JVM_OPTS=-Dcassandra.skip_wait_for_gossip_to_settle=0
-    ports:
-      - "9042:9042"
+      JVM_OPTS: -Dcassandra.skip_wait_for_gossip_to_settle=0
+      CASSANDRA_CLUSTER_NAME: terec
     healthcheck:
       test: ["CMD", "cqlsh", "127.0.0.1", "-e", "SHOW VERSION;"]
-      interval: 60s
+      interval: 10s
       timeout: 10s
-      retries: 3
-      start_interval: 15s
-  terec_api:
+      retries: 5
+  terec-api:
     image: "terec/api:latest"
     ports:
       - "8000:8000"
     depends_on:
-      cassandra:
+      terec-cassandra:
         condition: service_healthy
-    environment: *common-variables
+    environment:
+      CASSANDRA_HOSTS: terec-cassandra
+      CASSANDRA_KEYSPACE: terec
