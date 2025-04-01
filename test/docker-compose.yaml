@@ -1,10 +1,12 @@
-version: '3'
+version: "3"
 services:
   cassandra:
     image: "cassandra:5.0.3"
     environment:
       - JVM_OPTS=-Dcassandra.skip_wait_for_gossip_to_settle=0
       - CASSANDRA_CLUSTER_NAME=terec_test
+      - MAX_HEAP_SIZE=512M
+      - HEAP_NEW_SIZE=512M
     ports:
       - "9042:9042"
     healthcheck:
@@ -12,3 +14,8 @@ services:
       interval: 60s
       timeout: 10s
       retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: "1024MB"
