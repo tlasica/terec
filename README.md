@@ -1,11 +1,13 @@
 # TeReC - the Test Result Collector
 
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 ## Key functions
 
 1. Collect results from multiple builds/test runs in one place
 2. Allow/Block PR merging based on the test results even with flickering tests
 ~~3. Automatically detect test regression early and inform project members~~
-~~4. Support developers with creating tickets (jira, gh issues) for failed tests~~  
+~~4. Support developers with creating tickets (jira, gh issues) for failed tests~~
 
 ## User Guide
 
@@ -25,7 +27,7 @@ and is aiming at more modular and modern architecture:
 
 1. implemented in [Python]
 2. with FastAPI for REST API calls
-3. with [RabbitMQ]() for events 
+3. with [RabbitMQ]() for events
 4. using [Docker]() for deployments
 
 ## Development
