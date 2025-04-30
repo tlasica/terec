@@ -42,11 +42,17 @@ def export_build(
 
 
 @pipeline_app.command()
-def export_tests(job: str, build: int) -> int:
+def export_tests(
+    job: str,
+    build: int,
+    limit: int = typer.Option(0, help="limit for number of suites exported"),
+) -> int:
     exported_cnt = 0
     server = jenkins_server()
     print("[")
-    for suite in server.suite_test_runs_for_build(job_name=job, build_num=build):
+    for suite in server.suite_test_runs_for_build(
+        job_name=job, build_num=build, limit=limit
+    ):
         data = jsonable_encoder(suite, exclude_none=True)
         for item in data:
             if exported_cnt > 0:
