@@ -1,5 +1,6 @@
 from jenkins import Jenkins
 from loguru import logger
+from requests import Session
 import requests
 from typing import List, Optional
 
@@ -14,6 +15,7 @@ class JenkinsServer:
         self.username = username
         self.password = password
         self.server = None
+        self.session = requests.Session()
 
     def connect(self) -> Jenkins:
         if not self.server:
@@ -24,13 +26,44 @@ class JenkinsServer:
     def server(self) -> Jenkins:
         return self.server
 
+    def auth(self):
+        has_auth = self.username and self.password
+        return (self.username, self.password) if has_auth else None
+
     def suite_run_for_build(self, job_name: str, build_num: int) -> TestSuiteRunInfo:
         j = self.connect()
         build_info = j.get_build_info(name=job_name, number=build_num)
         return parse_jenkins_build_info("org", "project", "suite", build_info)
 
+    def suite_test_runs_for_build(
+        self, job_name: str, build_num: int, limit: int = 0
+    ) -> List[TestCaseRunInfo]:
+        """
+        Efficiently collect test suite runs using optimized tree parameter and index-based collection
+        """
+        suite_count = self._get_suite_count(job_name, build_num)
+        suite_count = suite_count if limit <= 0 else min(limit, suite_count)
+        with Session() as session:
+            session.auth = self.auth()
+            batch_size = max(1, suite_count // 20)
+            batches = [
+                (i, min(i + batch_size, suite_count))
+                for i in range(0, suite_count, batch_size)
+            ]
+            for start_idx, end_idx in batches:
+                index = f"{{{start_idx},{end_idx}}}"
+                logger.debug("Getting suites {}..{}", start_idx, end_idx)
+                for suite_results in self._get_suites_test_runs(
+                    session, job_name, build_num, index
+                ):
+                    yield suite_results
+
     def _get_jenkins_api(
-        self, job_name: str, build_num: int, tree: Optional[str] = None
+        self,
+        session: Session,
+        job_name: str,
+        build_num: int,
+        tree: Optional[str] = None,
     ) -> dict:
         """
         Helper method to make direct requests to Jenkins API
@@ -38,44 +71,33 @@ class JenkinsServer:
         url = f"{self.url}/job/{job_name}/{build_num}/testReport/api/json"
         if tree:
             url += f"?tree={tree}"
-
-        auth = (
-            (self.username, self.password) if self.username and self.password else None
-        )
-        response = requests.get(url, auth=auth)
+        response = session.get(url)
         response.raise_for_status()
         return response.json()
 
-    def suite_test_runs_for_build(
-        self, job_name: str, build_num: int
-    ) -> List[TestCaseRunInfo]:
+    def _get_suite_count(self, job_name: str, build_num: int) -> int:
         """
-        Efficiently collect test suite runs by:
-        1. First getting all suite names using tree parameter
-        2. Then getting detailed results for each suite
+        Get the total number of suites using optimized tree parameter
         """
-        try:
-            # Try the new implementation with tree parameter
-            # First get all suite names
-            suite_names = self._get_jenkins_api(
-                job_name, build_num, tree="suites[name]{0}"
+        with Session() as session:
+            session.auth = self.auth()
+            suite_info = self._get_jenkins_api(
+                session, job_name, build_num, tree="suites[name]"
             )
+            logger.debug(
+                f"Found {len(suite_info['suites'])} suites in build {build_num}"
+            )
+            return len(suite_info["suites"])
 
-            # Then get detailed results for each suite
-            for suite_name in [s["name"] for s in suite_names["suites"]]:
-                test_report = self._get_jenkins_api(
-                    job_name,
-                    build_num,
-                    tree=f"suites[name={suite_name}][name,duration,timestamp,id,cases[className,name,skipped,skippedMessage,status,stderr,stdout,duration,errorDetails,errorStackTrace,properties],properties]{0}",
-                )
-                for suite in test_report["suites"]:
-                    yield parse_jenkins_report_suite(suite)
-        except Exception as e:
-            logger.warning(
-                f"Failed to use tree parameter: {e}. Falling back to full API call."
-            )
-            # Fallback to the old implementation if tree parameter fails
-            j = self.connect()
-            test_report = j.get_build_test_report(name=job_name, number=build_num)
-            for suite in test_report["suites"]:
-                yield parse_jenkins_report_suite(suite)
+    def _get_suites_test_runs(
+        self, session, job_name: str, build_num: int, suites: str
+    ) -> List[List[TestCaseRunInfo]]:
+        """
+        Get test runs for a specific suite using optimized tree parameter
+        """
+        suite_fields = "name,duration,timestamp,id"
+        case_fields = "className,name,skipped,skippedMessage,status,stderr,stdout,duration,errorDetails,errorStackTrace"
+        tree_param = f"suites[{suite_fields},cases[{case_fields}]]{suites}"
+        resp = self._get_jenkins_api(session, job_name, build_num, tree=tree_param)
+        suites = resp["suites"]
+        return [parse_jenkins_report_suite(s) for s in suites]
