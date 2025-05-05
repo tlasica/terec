@@ -94,6 +94,35 @@ These commands create two test suites:
 - `smoke` suite for quick verification tests
 - `full` suite for comprehensive testing
 
+## Creating Suite Runs
+
+To create a suite run, use:
+
+```bash
+curl -v -w "\nResponse code: %{response_code}\n" \
+  -X POST "http://localhost:8000/tests/orgs/myorg123/runs" \
+  -H "Content-Type: application/json" \
+  -d '{"org": "myorg123", "project": "myproject123", "suite": "smoke", "branch": "main", "run_id": 1, "status": "SUCCESS", "tstamp": "2025-05-05T15:42:00", "url": null, "commit": null, "pass_count": null, "fail_count": null, "skip_count": null, "total_count": null, "duration_sec": null, "ignore": false}'
+```
+
+## Adding Test Results
+
+To add test results for a suite run, use:
+
+```bash
+curl -v -w "\nResponse code: %{response_code}\n" \
+  -X POST "http://localhost:8000/tests/orgs/myorg123/projects/myproject123/suites/smoke/branches/main/runs/1/tests" \
+  -H "Content-Type: application/json" \
+  -d '[{"test_package": "com.example.test", "test_suite": "smoke", "test_case": "test_login_success", "test_config": "default", "result": "PASS", "test_group": "auth", "tstamp": "2025-05-05T15:42:01", "duration_ms": 2500, "stdout": "Login successful", "stderr": null, "error_stacktrace": null, "error_details": null, "skip_details": null},
+        {"test_package": "com.example.test", "test_suite": "smoke", "test_case": "test_dashboard_load", "test_config": "default", "result": "PASS", "test_group": "ui", "tstamp": "2025-05-05T15:42:02", "duration_ms": 3000, "stdout": "Dashboard loaded successfully", "stderr": null, "error_stacktrace": null, "error_details": null, "skip_details": null},
+        {"test_package": "com.example.test", "test_suite": "smoke", "test_case": "test_logout_success", "test_config": "default", "result": "PASS", "test_group": "auth", "tstamp": "2025-05-05T15:42:03", "duration_ms": 2000, "stdout": "Logout successful", "stderr": null, "error_stacktrace": null, "error_details": null, "skip_details": null}]'
+```
+
+The test results include:
+- `test_login_success` - auth group, 2.5s duration
+- `test_dashboard_load` - ui group, 3.0s duration
+- `test_logout_success` - auth group, 2.0s duration
+
 The command will:
 - `-v`: Enable verbose output to see the request/response details
 - `-w "\nResponse code: %{response_code}\n"`: Show the HTTP response code
