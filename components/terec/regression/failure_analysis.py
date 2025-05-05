@@ -46,7 +46,7 @@ class TestCaseRunFailureAnalyser:
         And only builds with run_id < failed_test.run_id will be checked.
         """
         self.check_suite = self.failed_test.suite
-        self.check_branch = self.get_failed_test_run_branch()
+        self.check_branch = self.failed_test.branch
         before_run = self.failed_test.run_id
         self.add_msg(
             f"Checking regression on {self.check_suite}::{self.check_branch} before run {before_run}"
@@ -63,20 +63,6 @@ class TestCaseRunFailureAnalyser:
         self.check_branch = branch
         self.add_msg(f"Checking regression vs upstream {suite}::{branch}")
         self._check(before_run_id=None, depth=depth)
-
-    def get_failed_test_run_branch(self):
-        return (
-            TestSuiteRun.objects(
-                org=self.failed_test.org,
-                project=self.failed_test.project,
-                suite=self.failed_test.suite,
-                run_id=self.failed_test.run_id,
-            )
-            .allow_filtering()
-            .limit(1)
-            .all()[0]
-            .branch
-        )
 
     def _check(self, before_run_id: int = None, depth: int = 16):
         self.add_msg(f"Using depth of {depth}")
@@ -126,6 +112,7 @@ class TestCaseRunFailureAnalyser:
             org_name=self.failed_test.org,
             project_name=self.failed_test.project,
             suite_name=self.check_suite,
+            branch=self.check_branch,
             runs=suite_runs_ids,
             test_package=self.failed_test.test_package,
             test_class=self.failed_test.test_suite,

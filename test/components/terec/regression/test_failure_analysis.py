@@ -4,7 +4,7 @@ from terec.model.results import TestSuiteRun
 from .text_samples import sample_npe_stack_trace
 
 from conftest import random_name
-from generator import generate_suite_with_test_runs, ResultsGenerator
+from generator import ResultsGenerator
 from terec.regression.failure_analysis import TestCaseRunFailureAnalyser
 
 

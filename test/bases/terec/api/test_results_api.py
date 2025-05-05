@@ -118,14 +118,22 @@ class TestCaseResultsAPI:
     api_app = create_app()
     api_client = TestClient(api_app)
 
-    def post_test_results(self, org: str, prj: str, suite: str, run: int, body: str):
-        url = f"/tests/orgs/{org}/projects/{prj}/suites/{suite}/runs/{run}/tests"
+    def post_test_results(
+        self, org: str, prj: str, suite: str, branch: str, run: int, body: str
+    ):
+        url = f"/tests/orgs/{org}/projects/{prj}/suites/{suite}/branches/{branch}/runs/{run}/tests"
         return self.api_client.post(url, content=body)
 
     def get_test_results(
-        self, org: str, prj: str, suite: str, run: int, result: TestCaseRunStatus = None
+        self,
+        org: str,
+        prj: str,
+        suite: str,
+        branch: str,
+        run: int,
+        result: TestCaseRunStatus = None,
     ):
-        url = f"/tests/orgs/{org}/projects/{prj}/suites/{suite}/runs/{run}/tests"
+        url = f"/tests/orgs/{org}/projects/{prj}/suites/{suite}/branches/{branch}/runs/{run}/tests"
         params = {"result": result.upper()} if result else {}
         return self.api_client.get(url, params=params)
 
@@ -136,6 +144,7 @@ class TestCaseResultsAPI:
             test_project.org,
             test_project.name,
             test_suite_run.suite,
+            test_suite_run.branch,
             test_suite_run.run_id,
             "[]",
         )
@@ -144,7 +153,7 @@ class TestCaseResultsAPI:
     def test_should_fail_for_non_existing_org(self, cassandra_model):
         body = jsonable_encoder([random_test_case_run_info()], exclude_none=True)
         resp = self.post_test_results(
-            "non-existing-org", "p", "suite", 3, json.dumps(body)
+            "non-existing-org", "p", "branch", "suite", 3, json.dumps(body)
         )
         assert 404 == resp.status_code, resp.text
         assert "Org not found" in resp.text
@@ -152,7 +161,12 @@ class TestCaseResultsAPI:
     def test_should_fail_for_non_existing_project(self, cassandra_model, test_project):
         body = jsonable_encoder([random_test_case_run_info()], exclude_none=True)
         resp = self.post_test_results(
-            test_project.org, "non-existing-project", "suite", 3, json.dumps(body)
+            test_project.org,
+            "non-existing-project",
+            "branch",
+            "suite",
+            3,
+            json.dumps(body),
         )
         assert 404 == resp.status_code, resp.text
         assert "Project not found" in resp.text
@@ -163,6 +177,7 @@ class TestCaseResultsAPI:
             test_project.org,
             test_project.name,
             random_name("non-existing-suite"),
+            "some-branch",
             3,
             json.dumps(body),
         )
@@ -174,7 +189,12 @@ class TestCaseResultsAPI:
     ):
         body = jsonable_encoder([random_test_case_run_info()], exclude_none=True)
         resp = self.post_test_results(
-            test_project.org, test_project.name, test_suite.suite, 1, json.dumps(body)
+            test_project.org,
+            test_project.name,
+            test_suite.suite,
+            "some-branch",
+            1,
+            json.dumps(body),
         )
         assert 404 == resp.status_code, resp.text
         assert "Suite run not found" in resp.text
@@ -190,6 +210,7 @@ class TestCaseResultsAPI:
             test_project.org,
             test_project.name,
             test_suite_run.suite,
+            test_suite_run.branch,
             test_suite_run.run_id,
             json.dumps(body),
         )
@@ -199,18 +220,25 @@ class TestCaseResultsAPI:
             org=test_project.org,
             project=test_project.name,
             suite=test_suite_run.suite,
+            branch=test_suite_run.branch,
             run_id=test_suite_run.run_id,
         )
         assert len(loaded) == len(tests)
 
     def test_should_get_test_results(self, cassandra_model, test_project):
         org, project = test_project.org, test_project.name
+        branch = "main"
         suite, suite_runs, test_runs = generate_suite_with_test_runs(
-            org, project, branch="main"
+            org, project, branch=branch
         )
         run_id = suite_runs[0].run_id
         resp = self.get_test_results(
-            suite.org, suite.project, suite.suite, suite_runs[0].run_id, result=None
+            suite.org,
+            suite.project,
+            suite.suite,
+            branch,
+            suite_runs[0].run_id,
+            result=None,
         )
         assert resp.is_success, resp.text
         run_tests = [x for x in test_runs if x.run_id == run_id]
@@ -220,14 +248,16 @@ class TestCaseResultsAPI:
         self, cassandra_model, test_project
     ):
         org, project = test_project.org, test_project.name
+        branch = "main"
         suite, suite_runs, test_runs = generate_suite_with_test_runs(
-            org, project, branch="main"
+            org, project, branch=branch
         )
         run_id = suite_runs[0].run_id
         resp = self.get_test_results(
             suite.org,
             suite.project,
             suite.suite,
+            branch,
             suite_runs[0].run_id,
             result=TestCaseRunStatus.FAIL,
         )

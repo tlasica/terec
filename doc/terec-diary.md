@@ -86,6 +86,20 @@ What we need to implement:
 5. some message queues solution
 6. check what happens if events are not read
 
+## 2025-05-04 run_id problem
+
+In `test_suite_run` run_id is unique within a branch name
+not globally. This kind of reflects reality in Jenkins,
+where for example PR builts have separate run_id numbers.
+
+But for test case run seems that `run_id` is considered
+enough to distinguish test suite run.
+Which is opposite to `TestSuiteRun` definition.
+
+We need to make a call:
+- make run_id unique within all branch runs
+- add branch to `TestCaseRun`
+
 
 ## 2025-03-19
 
@@ -142,7 +156,7 @@ proportionally from 0 to 100% of available space.
 * import performance is very low due to no asynchronous loading FIXED by unlogged batches
 * generate org and project names as alphanum with - or _ FIXED by using fake.domain_name()
 * check if resource name is valid when creating (org, project) FIXED by using pydantic field validators
-* 
+*
 
 ## 2023-10-18
 

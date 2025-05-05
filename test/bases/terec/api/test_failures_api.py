@@ -100,8 +100,9 @@ class TestFailuresGetTestRunsAPI:
 
     def test_should_return_single_test_history(self, cassandra_model, test_project):
         # given some generated data with failed tests
+        branch = "main"
         suite, suite_runs, test_runs = generate_suite_with_test_runs(
-            test_project.org, test_project.name, branch="main"
+            test_project.org, test_project.name, branch=branch
         )
         assert len(test_runs) > 0
         # when we get single test history
@@ -178,6 +179,7 @@ class TestFailuresCheckTestRunAPI:
         org,
         project,
         suite,
+        branch,
         run_id,
         t_package,
         t_class,
@@ -188,6 +190,7 @@ class TestFailuresCheckTestRunAPI:
     ):
         url = f"/history/orgs/{org}/projects/{project}/suites/{suite}/test-run-check"
         q_params = {
+            "branch": branch,
             "run_id": run_id,
             "test_package": t_package,
             "test_class": t_class,
@@ -236,6 +239,7 @@ class TestFailuresCheckTestRunAPI:
             failed_test.org,
             failed_test.project,
             failed_test.suite,
+            failed_test.branch,
             failed_test.run_id,
             failed_test.test_package,
             failed_test.test_suite,
@@ -264,6 +268,7 @@ class TestFailuresCheckTestRunAPI:
             the_test.org,
             the_test.project,
             the_test.suite,
+            the_test.branch,
             the_test.run_id,
             the_test.test_package,
             the_test.test_suite,

@@ -55,28 +55,34 @@ def get_test_suite_or_raise(org_name: str, prj_name: str, suite_name: str) -> Te
 
 
 def get_test_suite_run_or_raise(
-    org_name: str, prj_name: str, suite_name: str, run_id: int
+    org_name: str, prj_name: str, suite_name: str, branch: str, run_id: int
 ) -> TestSuiteRun:
     assert org_name
     assert prj_name
     assert suite_name
+    assert branch
     assert run_id > 0
-    suites = (
-        TestSuiteRun.objects(
-            org=org_name, project=prj_name, suite=suite_name, run_id=run_id
-        )
-        .allow_filtering()
-        .all()
-    )
+    suites = TestSuiteRun.objects(
+        org=org_name, project=prj_name, suite=suite_name, branch=branch, run_id=run_id
+    ).all()
+    params_str = f"{org_name}/{prj_name}/{suite_name}/{branch}/{run_id}"
     if not suites:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Suite run not found {org_name}/{prj_name}/{suite_name}/{run_id}.",
-        )
+        raise_not_found(f"Suite run not found {params_str}.")
     if len(suites) > 1:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Too many suite runs found for {org_name}/{prj_name}/{suite_name}/{run_id}. Only one is expected",
+        raise_server_error(
+            f"Too many suite runs found for {params_str}. Exactly one is expected"
         )
 
     return suites[0]
+
+
+def raise_not_found(detail: str):
+    raise HTTPException(status_code=404, detail=detail)
+
+
+def raise_bad_request(detail: str):
+    raise HTTPException(status_code=400, detail=detail)
+
+
+def raise_server_error(detail: str):
+    raise HTTPException(status_code=500, detail=detail)

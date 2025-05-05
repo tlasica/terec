@@ -3,6 +3,7 @@ import json
 from fastapi.encoders import jsonable_encoder
 from starlette.testclient import TestClient
 
+from assertions import raise_for_status
 from terec.ci_jenkins.build_info_parser import parse_jenkins_build_info
 from terec.ci_jenkins.report_parser import parse_jenkins_report_suite
 from terec.model.results import TestSuiteRun
@@ -15,8 +16,6 @@ class TestJenkinsImport:
     """
     Test importing jenkins data (exposed via jenkins API) into the database
     by using parsers and api calls. This is kind of integration test.
-
-    FIXME: I am not sure if this is valid place for this test
     """
 
     api_app = create_app()
@@ -52,22 +51,24 @@ class TestJenkinsImport:
         test_cases = parse_jenkins_report_suite(ci_test_report)
         # then it should be inserted via api calls
         self.add_test_suite_run(org, build_info)
-        self.add_test_results(org, project, suite, build_id, test_cases)
+        self.add_test_results(
+            org, project, suite, build_info.branch, build_id, test_cases
+        )
 
     def add_test_suite_run(self, org: str, build_info):
         build_info_d = build_info.model_dump(exclude_none=True)
         build_info_d["tstamp"] = str(build_info_d["tstamp"])
         url = f"/tests/orgs/{org}/runs"
         response = self.api_client.post(url, content=json.dumps(build_info_d))
-        assert response.is_success, response.text
+        raise_for_status(response)
 
     def add_test_results(
-        self, org: str, project: str, suite: str, run_id: int, test_cases
+        self, org: str, project: str, suite: str, branch: str, run_id: int, test_cases
     ):
         data = jsonable_encoder(test_cases, exclude_none=True)
-        url = f"/tests/orgs/{org}/projects/{project}/suites/{suite}/runs/{run_id}/tests"
+        url = f"/tests/orgs/{org}/projects/{project}/suites/{suite}/branches/{branch}/runs/{run_id}/tests"
         response = self.api_client.post(url, content=json.dumps(data))
-        assert response.is_success, response.text
+        raise_for_status(response)
 
     def check_suite_run_exists(self, org, project, suite, branch, run_id):
         runs_in_db = TestSuiteRun.objects(
