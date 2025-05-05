@@ -55,7 +55,7 @@ def parse_jenkins_build_info(
         branch_info = extras["hudson.plugins.git.util.BuildData"]["lastBuiltRevision"][
             "branch"
         ][0]
-        run["branch"] = branch_info["name"]
+        run["branch"] = branch_info["name"].replace("/", "--")
         run["commit"] = branch_info["SHA1"]
 
     return TestSuiteRunInfo(**run)

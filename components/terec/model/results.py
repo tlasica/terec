@@ -84,6 +84,7 @@ class TestCaseRun(Model):
     org = columns.Text(partition_key=True)
     project = columns.Text(partition_key=True)
     suite = columns.Text(partition_key=True)
+    branch = columns.Text(partition_key=True)
     run_id = columns.Integer(partition_key=True)
     test_package = columns.Text(primary_key=True, clustering_order="ASC")
     test_suite = columns.Text(primary_key=True, clustering_order="ASC")
@@ -108,7 +109,7 @@ class TestCaseRun(Model):
         return f"{self.test_suite_str()}::{case}"
 
     def __str__(self):
-        return f"{self.test_case_str()}@{self.run_id}"
+        return f"{self.test_case_str()}@{self.branch}/{self.run_id}"
 
     def test_case_run_id_tuple(self):
         return (

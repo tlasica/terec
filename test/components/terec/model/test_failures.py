@@ -18,8 +18,9 @@ def test_get_failed_tests_for_suite_runs(cassandra_model, test_project):
 
 def test_load_test_case_runs_without_config(cassandra_model, test_project):
     # given some runs
+    branch = "main"
     suite, suite_runs, test_runs = generate_suite_with_test_runs(
-        test_project.org, test_project.name
+        test_project.org, test_project.name, branch
     )
     # when we load all runs of selected test
     the_test: TestCaseRun = test_runs[0]
@@ -27,6 +28,7 @@ def test_load_test_case_runs_without_config(cassandra_model, test_project):
         test_project.org,
         test_project.name,
         suite.suite,
+        branch,
         [r.run_id for r in suite_runs],
         test_package=the_test.test_package,
         test_class=the_test.test_suite,
@@ -39,8 +41,9 @@ def test_load_test_case_runs_without_config(cassandra_model, test_project):
 
 def test_load_test_case_runs_with_config(cassandra_model, test_project):
     # given some runs
+    branch = "main"
     suite, suite_runs, test_runs = generate_suite_with_test_runs(
-        test_project.org, test_project.name
+        test_project.org, test_project.name, branch
     )
     # when we load all runs of selected test
     the_test: TestCaseRun = test_runs[0]
@@ -48,6 +51,7 @@ def test_load_test_case_runs_with_config(cassandra_model, test_project):
         test_project.org,
         test_project.name,
         suite.suite,
+        branch,
         [r.run_id for r in suite_runs],
         test_package=the_test.test_package,
         test_class=the_test.test_suite,
@@ -63,8 +67,9 @@ def test_load_test_case_runs_with_config(cassandra_model, test_project):
 
 def test_load_test_case_runs_with_result(cassandra_model, test_project):
     # given some runs
+    branch = "main"
     suite, suite_runs, test_runs = generate_suite_with_test_runs(
-        test_project.org, test_project.name
+        test_project.org, test_project.name, branch
     )
     the_test = next((x for x in test_runs if x.result == "FAIL"))
     # when we load all runs of selected test
@@ -72,6 +77,7 @@ def test_load_test_case_runs_with_result(cassandra_model, test_project):
         test_project.org,
         test_project.name,
         suite.suite,
+        branch,
         [r.run_id for r in suite_runs],
         test_package=the_test.test_package,
         test_class=the_test.test_suite,

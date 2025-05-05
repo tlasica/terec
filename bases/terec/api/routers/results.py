@@ -13,6 +13,7 @@ from terec.api.routers.util import (
     get_org_project_or_raise,
     get_test_suite_or_raise,
     get_test_suite_run_or_raise,
+    raise_bad_request,
 )
 from terec.model.results import (
     TestSuite,
@@ -39,10 +40,10 @@ class TestSuiteRunInfo(BaseModel):
     org: str
     project: str
     suite: str
+    branch: str
     run_id: int
     tstamp: datetime.datetime
     url: str | None = None
-    branch: str | None = None
     commit: str | None = None
     pass_count: int | None = None
     fail_count: int | None = None
@@ -116,7 +117,8 @@ def create_suite_run(org_name: str, body: TestSuiteRunInfo) -> None:
     # validate org
     org = get_org_or_raise(org_name)
     body.org = body.org or org.name
-    assert body.org == org_name, "org name in body does not match the one in path"
+    if body.org != org_name:
+        raise_bad_request("org name in body does not match the one in path")
     # validate project
     get_org_project_or_raise(org_name, body.project)
     # create or update suite
@@ -127,17 +129,24 @@ def create_suite_run(org_name: str, body: TestSuiteRunInfo) -> None:
     run_params = body.model_dump(exclude_none=True)
     if "status" in run_params:
         run_params["status"] = run_params["status"].value
+    if "branch" not in run_params:
+        raise_bad_request("branch is mandatory")
+    if "/" in run_params["branch"]:
+        raise_bad_request(
+            f"branch name {run_params['branch']} includes prohibited char: /"
+        )
     TestSuiteRun.create(**run_params)
 
 
 # TODO: maybe add something like "N test results added or updated" to the result?
 @router.post(
-    "/orgs/{org_name}/projects/{prj_name}/suites/{suite_name}/runs/{run_id}/tests"
+    "/orgs/{org_name}/projects/{prj_name}/suites/{suite_name}/branches/{branch}/runs/{run_id}/tests"
 )
-def add_suite_run_tests(
+def add_suite_run_test_results(
     org_name: str,
     prj_name: str,
     suite_name: str,
+    branch: str,
     run_id: int,
     body: list[TestCaseRunInfo],
 ) -> dict:
@@ -150,24 +159,45 @@ def add_suite_run_tests(
     get_org_or_raise(org_name)
     get_org_project_or_raise(org_name, prj_name)
     get_test_suite_or_raise(org_name, prj_name, suite_name)
-    # FIXME: we have a problem with branch/run order - we do not want to require branch
-    suite_run = get_test_suite_run_or_raise(org_name, prj_name, suite_name, run_id)
+    suite_run = get_test_suite_run_or_raise(
+        org_name, prj_name, suite_name, branch, run_id
+    )
     # add test cases
     logger.info(
-        "importing {} test case results for {}/{}/{}/{}",
+        "importing {} test case results for {}/{}/{}/{}/{}",
         len(body),
         org_name,
         prj_name,
         suite_name,
+        branch,
         run_id,
     )
     now = datetime.datetime.now()
 
-    # number of columns/values = 4 + 4 + 3 + 4 + 1 = 16
-    num_cols = 17
+    cols = [
+        "org",
+        "project",
+        "suite",
+        "branch",
+        "run_id",
+        "test_package",
+        "test_suite",
+        "test_case",
+        "test_config",
+        "result",
+        "test_group",
+        "tstamp",
+        "duration_ms",
+        "stdout",
+        "stderr",
+        "error_stacktrace",
+        "error_details",
+        "skip_details",
+    ]
+    num_cols = len(cols)
     insert_cql = (
         f"INSERT INTO {TestCaseRun.column_family_name(include_keyspace=True)} "
-        f"(org, project, suite, run_id, test_package, test_suite, test_case, test_config, result, test_group, tstamp, duration_ms, stdout, stderr, error_stacktrace, error_details, skip_details)"
+        f"({', '.join(cols)})"
         f"VALUES({','.join('?' * num_cols)})"
         f"USING TIMESTAMP ?"
     )
@@ -188,6 +218,7 @@ def add_suite_run_tests(
                 org_name,
                 prj_name,
                 suite_name,
+                branch,
                 run_id,
                 attrs.get("test_package", None),
                 attrs.get("test_suite", None),
@@ -202,8 +233,8 @@ def add_suite_run_tests(
                 limit_text_field(attrs.get("error_stacktrace", None)),
                 limit_text_field(attrs.get("error_details", None)),
                 limit_text_field(attrs.get("skip_details", None)),
-                int(now.timestamp() * 1000),
             )
+            assert len(test_data) == num_cols
             params.append(test_data)
         with Timer(
             logger=logger.info,
@@ -222,12 +253,13 @@ def add_suite_run_tests(
 
 
 @router.get(
-    "/orgs/{org_name}/projects/{prj_name}/suites/{suite_name}/runs/{run_id}/tests"
+    "/orgs/{org_name}/projects/{prj_name}/suites/{suite_name}/branches/{branch}/runs/{run_id}/tests"
 )
 def get_suite_run_tests(
     org_name: str,
     prj_name: str,
     suite_name: str,
+    branch: str,
     run_id: int,
     result: TestCaseRunStatus | None = None,
 ) -> list[TestCaseRunInfo]:
@@ -235,12 +267,13 @@ def get_suite_run_tests(
     get_org_or_raise(org_name)
     get_org_project_or_raise(org_name, prj_name)
     get_test_suite_or_raise(org_name, prj_name, suite_name)
-    get_test_suite_run_or_raise(org_name, prj_name, suite_name, run_id)
+    get_test_suite_run_or_raise(org_name, prj_name, suite_name, branch, run_id)
     # collect results
     query_params = {
         "org": org_name,
         "project": prj_name,
         "suite": suite_name,
+        "branch": branch,
         "run_id": run_id,
     }
     if result:
@@ -251,17 +284,22 @@ def get_suite_run_tests(
     return resp
 
 
-@router.get("/orgs/{org_name}/projects/{prj_name}/suites/{suite_name}/runs/{run_id}/")
+@router.get(
+    "/orgs/{org_name}/projects/{prj_name}/suites/{suite_name}/branches/{branch}/runs/{run_id}/"
+)
 def get_suite_run_info(
     org_name: str,
     prj_name: str,
     suite_name: str,
+    branch: str,
     run_id: int,
 ) -> TestSuiteRunInfo:
     # validate parameters
     get_org_or_raise(org_name)
     get_org_project_or_raise(org_name, prj_name)
     get_test_suite_or_raise(org_name, prj_name, suite_name)
-    suite_run = get_test_suite_run_or_raise(org_name, prj_name, suite_name, run_id)
+    suite_run = get_test_suite_run_or_raise(
+        org_name, prj_name, suite_name, branch, run_id
+    )
     # build response
     return TestSuiteRunInfo(**model_to_dict(suite_run))

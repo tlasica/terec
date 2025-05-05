@@ -35,11 +35,11 @@ def load_failed_tests_for_suite_runs(
     # prepare statement
     select_cql = (
         f"SELECT * FROM {TestCaseRun.column_family_name(include_keyspace=True)} "
-        f"WHERE org=? AND project=? AND suite=? AND run_id=? AND result=?"
+        f"WHERE org=? AND project=? AND suite=? AND branch=? AND run_id=? AND result=?"
     )
     stmt = session.prepare(select_cql)
     # create list of parameters for the queries
-    params = [(r.org, r.project, r.suite, r.run_id, "FAIL") for r in runs]
+    params = [(r.org, r.project, r.suite, r.branch, r.run_id, "FAIL") for r in runs]
     # run the query
     concurrency = 32
     results = execute_concurrent_with_args(
@@ -64,6 +64,7 @@ def load_test_case_runs(
     org_name: str,
     project_name: str,
     suite_name: str,
+    branch: str,
     runs: list[int],
     test_package: str,
     test_class: str,
@@ -73,16 +74,16 @@ def load_test_case_runs(
     limit: int = 10000,
 ) -> list[TestCaseRun]:
     """
-    Returns all runs of given test case in given list of suite runs.
+    Returns all runs of given test case in given list of suite runs on some branch.
+    We need to run it always on the same branch as run_id is unique within branch runs.
     test_config parameter is optional - if None then all configurations will be returned.
     result is also optional: if provided only test runs with given result are returned.
-    TODO: what is more efficient: run_id IN or maybe execute concurrent?
-    TODO: what about order?
     """
     query_params = {
         "org": org_name,
         "project": project_name,
         "suite": suite_name,
+        "branch": branch,
         "run_id__in": runs,
         "test_package": test_package,
     }
@@ -95,5 +96,4 @@ def load_test_case_runs(
     # collect failures for given runs history
     test_runs = TestCaseRun.objects().filter(**query_params).limit(limit).all()
     # filter by result
-    # TODO: it is not allowed to combine IN with index check => we need execute concurrent
     return [x for x in test_runs if (not result) or (x.result == result)]

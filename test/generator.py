@@ -72,6 +72,7 @@ class ResultsGenerator:
         params["org"] = run.org
         params["project"] = run.project
         params["suite"] = run.suite
+        params["branch"] = run.branch
         params["run_id"] = run.run_id
         params.update(update)
         return TestCaseRun.create(**params)
