@@ -123,6 +123,30 @@ The test results include:
 - `test_dashboard_load` - ui group, 3.0s duration
 - `test_logout_success` - auth group, 2.0s duration
 
+## Retrieving Test Run History
+
+To view the history of a specific test case across multiple runs, use:
+
+```bash
+curl -X GET "http://localhost:8000/history/orgs/myorg123/projects/myproject123/suites/smoke/test-runs?branch=main&test_package=com.example.test&test_class=smoke&test_case=test_login_success&test_config=default" | jq -c '.[] | {run_id: .suite_run.run_id, result: .test_run.result, duration: .test_run.duration_ms, timestamp: .test_run.tstamp}' | sort -r
+```
+
+This command will show the history of the `test_login_success` test case, including:
+- Run ID
+- Result (PASS/FAIL)
+- Duration in milliseconds
+- Timestamp of the test run
+
+The output will be sorted by timestamp in descending order (newest first). For example:
+
+```json
+{"run_id":3,"result":"PASS","duration":2500,"timestamp":"2025-05-05T15:44:01"}
+{"run_id":2,"result":"PASS","duration":2500,"timestamp":"2025-05-05T15:43:01"}
+{"run_id":1,"result":"PASS","duration":2500,"timestamp":"2025-05-05T15:42:01"}
+```
+
+This shows that the test has run 3 times, all with PASS status, and consistently taking 2.5 seconds to complete.
+
 The command will:
 - `-v`: Enable verbose output to see the request/response details
 - `-w "\nResponse code: %{response_code}\n"`: Show the HTTP response code
