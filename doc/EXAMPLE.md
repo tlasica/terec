@@ -69,3 +69,48 @@ curl -X GET "http://localhost:8000/admin/orgs/myorg123/projects"
 Replace `myorg123` with the name of your organization.
 
 This will return a JSON array of all projects in the specified organization.
+
+## Creating Test Suites
+
+To create a test suite within a project, use:
+
+```bash
+curl -v -w "\nResponse code: %{response_code}\n" \
+  -X POST "http://localhost:8000/tests/orgs/myorg123/suites" \
+  -H "Content-Type: application/json" \
+  -d '{"project": "myproject123", "suite": "smoke", "url": "http://myorg123.example.com/suites/smoke", "org": "myorg123"}'
+```
+
+To create another test suite, use:
+
+```bash
+curl -v -w "\nResponse code: %{response_code}\n" \
+  -X POST "http://localhost:8000/tests/orgs/myorg123/suites" \
+  -H "Content-Type: application/json" \
+  -d '{"project": "myproject123", "suite": "full", "url": "http://myorg123.example.com/suites/full", "org": "myorg123"}'
+```
+
+These commands create two test suites:
+- `smoke` suite for quick verification tests
+- `full` suite for comprehensive testing
+
+The command will:
+- `-v`: Enable verbose output to see the request/response details
+- `-w "\nResponse code: %{response_code}\n"`: Show the HTTP response code
+- `-X POST`: Use POST method for creating the suite
+- `-H "Content-Type: application/json"`: Set the content type to JSON
+- `-d`: Send the suite data as JSON
+
+Expected responses:
+- `200 OK`: Suite was successfully created (or updated)
+- `404 Not Found`: Organization or project does not exist
+
+## Listing Suites in a Project
+
+To list all suites in a specific project, use:
+
+```bash
+curl -X GET "http://localhost:8000/tests/orgs/myorg123/projects/myproject123/suites"
+```
+
+This will return a JSON array of all suites in the specified project.
