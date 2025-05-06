@@ -332,6 +332,57 @@ This output shows that:
 4. 2 failures were different
 5. Includes details of similar failures for reference
 
+## Test Run Check Examples
+
+Let's create a new run (4) on the dev branch with a similar failure to run 3:
+
+```bash
+curl "http://localhost:8000/tests/orgs/myorg123/runs" \
+  -H "Content-Type: application/json" \
+  -d '{"org": "myorg123", "project": "myproject123", "suite": "smoke", "branch": "dev", "run_id": 4, "status": "FAILURE", "tstamp": "2025-05-05T16:03:00", "url": null, "commit": null, "pass_count": 2, "fail_count": 1, "skip_count": 0, "total_count": 3, "duration_sec": null, "ignore": false}'
+```
+
+And add the test results:
+
+```bash
+curl "http://localhost:8000/tests/orgs/myorg123/projects/myproject123/suites/smoke/branches/dev/runs/4/tests" \
+  -H "Content-Type: application/json" \
+  -d '[{"test_package": "com.example.test", "test_suite": "smoke", "test_case": "test_login_success", "test_config": "default", "result": "PASS", "test_group": "auth", "tstamp": "2025-05-05T16:03:01", "duration_ms": 2500, "stdout": "Login successful", "stderr": null, "error_stacktrace": null, "error_details": null, "skip_details": null},
+        {"test_package": "com.example.test", "test_suite": "smoke", "test_case": "test_dashboard_load", "test_config": "default", "result": "FAIL", "test_group": "ui", "tstamp": "2025-05-05T16:03:02", "duration_ms": 3000, "stdout": "Dashboard loaded successfully", "stderr": "Error: Failed to load dashboard data", "error_stacktrace": "java.lang.RuntimeException: Failed to load dashboard data\n    at com.example.test.DashboardTest.testDashboardLoad(DashboardTest.java:42)", "error_details": "Failed to fetch dashboard data from API", "skip_details": null},
+        {"test_package": "com.example.test", "test_suite": "smoke", "test_case": "test_logout_success", "test_config": "default", "result": "PASS", "test_group": "auth", "tstamp": "2025-05-05T16:03:03", "duration_ms": 2000, "stdout": "Logout successful", "stderr": null, "error_stacktrace": null, "error_details": null, "skip_details": null}]'
+```
+
+Now let's analyze the failures:
+
+1. Check if the failure in run 3 is known (it's the first failure):
+
+```bash
+curl "http://localhost:8000/history/orgs/myorg123/projects/myproject123/suites/smoke/test-run-check?branch=dev&test_package=com.example.test&test_class=smoke&test_case=test_dashboard_load&test_config=default&run_id=3" | jq .
+```
+
+This will show that this is the first failure on dev branch (is_known_failure: false).
+
+2. Check if the failure in run 4 is similar to run 3:
+
+```bash
+curl "http://localhost:8000/history/orgs/myorg123/projects/myproject123/suites/smoke/test-run-check?branch=dev&test_package=com.example.test&test_class=smoke&test_case=test_dashboard_load&test_config=default&run_id=4" | jq .
+```
+
+This will show that the failure is now known on dev branch and similar to run 3 (is_known_failure: true).
+
+3. Check if this failure exists on main branch:
+
+```bash
+curl "http://localhost:8000/history/orgs/myorg123/projects/myproject123/suites/smoke/test-run-check?branch=dev&test_package=com.example.test&test_class=smoke&test_case=test_dashboard_load&test_config=default&run_id=4&check_branch=main&check_suite=smoke" | jq .
+```
+
+This will show that while the failure is known on dev branch, it's not present on main branch (is_known_failure: false).
+
+The test-run-check endpoint helps identify:
+1. Known failures within the same branch
+2. Similar failures across different runs
+3. Whether a failure exists in the upstream branch
+
 The command will:
 - `-v`: Enable verbose output to see the request/response details
 - `-w "\nResponse code: %{response_code}\n"`: Show the HTTP response code
