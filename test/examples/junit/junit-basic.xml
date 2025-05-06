@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<testsuites time="21.314">
+    <testsuite name="UserFlow.Registration" time="7.123">
+        <testcase name="register_valid_user" classname="UserFlow.Registration" time="2.789" />
+        <testcase name="register_duplicate_email" classname="UserFlow.Registration" time="1.201" />
+        <testcase name="register_invalid_password" classname="UserFlow.Registration" time="3.133" />
+    </testsuite>
+    <testsuite name="UserFlow.Authentication" time="14.191">
+        <testsuite name="UserFlow.Authentication.Login" time="5.002">
+            <testcase name="login_success" classname="UserFlow.Authentication.Login" time="2.501" />
+            <testcase name="login_wrong_password" classname="UserFlow.Authentication.Login" time="1.000" />
+            <testcase name="login_locked_account" classname="UserFlow.Authentication.Login" time="1.501" />
+        </testsuite>
+        <testcase name="logout_success" classname="UserFlow.Authentication" time="3.012" />
+        <testcase name="session_timeout" classname="UserFlow.Authentication" time="2.100" />
+        <testcase name="login_failure" classname="UserFlow.Authentication" time="1.077">
+            <failure message="Login failed due to invalid credentials" type="AuthError">
+                Stack trace here
+            </failure>
+        </testcase>
+    </testsuite>
+</testsuites>

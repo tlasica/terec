@@ -6,7 +6,7 @@ from pytest import fixture
 from starlette.testclient import TestClient
 
 from assertions import raise_for_status
-from .random_data import random_test_case_run_info
+from random_data import random_test_case_run_info
 from terec.api.core import create_app
 
 

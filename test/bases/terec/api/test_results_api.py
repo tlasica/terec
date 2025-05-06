@@ -7,7 +7,8 @@ from fastapi.testclient import TestClient
 
 from conftest import random_name
 from generator import generate_suite_with_test_runs
-from .random_data import (
+from terec_api_client import TerecApiClient
+from random_data import (
     random_test_suite_info,
     random_test_suite_run_info,
     random_test_case_run_info,
@@ -21,19 +22,17 @@ def not_none(d: dict) -> dict:
     return {k: v for k, v in d.items() if v is not None}
 
 
-def expect_error_404(api_client: TestClient, url: str) -> None:
-    response = api_client.get(url)
-    assert response.status_code == 404
-
-
 class TestResultsSuitesAPI:
     fake = Faker()
     api_app = create_app()
     api_client = TestClient(api_app)
+    terec_api_client = TerecApiClient(api_client)
 
     def test_should_raise_for_not_existing_org(self, cassandra_model) -> None:
-        expect_error_404(self.api_client, "/org/not-existing/suites")
-        expect_error_404(self.api_client, "/org/not-existing/projects/a/suites")
+        self.terec_api_client.expect_get_error_404("/org/not-existing/suites")
+        self.terec_api_client.expect_get_error_404(
+            "/org/not-existing/projects/a/suites"
+        )
 
     def test_create_suite_in_org(self, cassandra_model):
         # given an organization
@@ -63,23 +62,20 @@ class TestSuiteRunsAPI:
     fake = Faker()
     api_app = create_app()
     api_client = TestClient(api_app)
-
-    def post_suite_run(self, org_name, suite_run_info):
-        url = f"/tests/orgs/{org_name}/runs"
-        return self.api_client.post(url, content=suite_run_info.model_dump_json())
+    terec_api_client = TerecApiClient(api_client)
 
     def test_should_fail_create_on_non_existing_project(self, cassandra_model):
         org = Org.create(name=self.fake.company())
         project = random_name("non-existing-project")
         suite_run = random_test_suite_run_info(org.name, project, "ci", run_id=7)
-        response = self.post_suite_run(org.name, suite_run)
+        response = self.terec_api_client.post_suite_run(org.name, suite_run)
         assert not response.is_success
 
     def test_should_create_run_and_suite_if_not_exists(self):
         org = Org.create(name=self.fake.company())
         prj = Project.create(org=org.name, name=self.fake.domain_word())
         suite_run = random_test_suite_run_info(org.name, prj.name, "ci", run_id=7)
-        response = self.post_suite_run(org.name, suite_run)
+        response = self.terec_api_client.post_suite_run(org.name, suite_run)
         assert response.status_code == 200, response.text
         # then the suite is created
         suite = TestSuite.objects(org=org.name, project=prj.name, suite="ci")
@@ -97,7 +93,7 @@ class TestSuiteRunsAPI:
         # when we add some test suite runs
         for run_id in range(1, 6):
             run = random_test_suite_run_info(org.name, prj.name, "ci", run_id=run_id)
-            response = self.post_suite_run(org.name, run)
+            response = self.terec_api_client.post_suite_run(org.name, run)
             assert response.status_code == 200, response.text
         # then they can be found in the db in run_id decreasing order
         runs = TestSuiteRun.objects(org=org.name, project=prj.name, suite="ci")
@@ -117,12 +113,7 @@ class TestCaseResultsAPI:
     fake = Faker()
     api_app = create_app()
     api_client = TestClient(api_app)
-
-    def post_test_results(
-        self, org: str, prj: str, suite: str, branch: str, run: int, body: str
-    ):
-        url = f"/tests/orgs/{org}/projects/{prj}/suites/{suite}/branches/{branch}/runs/{run}/tests"
-        return self.api_client.post(url, content=body)
+    terec_api_client = TerecApiClient(api_client)
 
     def get_test_results(
         self,
@@ -140,7 +131,7 @@ class TestCaseResultsAPI:
     def test_should_fail_for_empty_list_of_tests(
         self, cassandra_model, test_project, test_suite_run
     ):
-        resp = self.post_test_results(
+        resp = self.terec_api_client.post_test_results(
             test_project.org,
             test_project.name,
             test_suite_run.suite,
@@ -152,7 +143,7 @@ class TestCaseResultsAPI:
 
     def test_should_fail_for_non_existing_org(self, cassandra_model):
         body = jsonable_encoder([random_test_case_run_info()], exclude_none=True)
-        resp = self.post_test_results(
+        resp = self.terec_api_client.post_test_results(
             "non-existing-org", "p", "branch", "suite", 3, json.dumps(body)
         )
         assert 404 == resp.status_code, resp.text
@@ -160,7 +151,7 @@ class TestCaseResultsAPI:
 
     def test_should_fail_for_non_existing_project(self, cassandra_model, test_project):
         body = jsonable_encoder([random_test_case_run_info()], exclude_none=True)
-        resp = self.post_test_results(
+        resp = self.terec_api_client.post_test_results(
             test_project.org,
             "non-existing-project",
             "branch",
@@ -173,7 +164,7 @@ class TestCaseResultsAPI:
 
     def test_should_fail_for_non_existing_suite(self, cassandra_model, test_project):
         body = jsonable_encoder([random_test_case_run_info()], exclude_none=True)
-        resp = self.post_test_results(
+        resp = self.terec_api_client.post_test_results(
             test_project.org,
             test_project.name,
             random_name("non-existing-suite"),
@@ -188,7 +179,7 @@ class TestCaseResultsAPI:
         self, cassandra_model, test_project, test_suite
     ):
         body = jsonable_encoder([random_test_case_run_info()], exclude_none=True)
-        resp = self.post_test_results(
+        resp = self.terec_api_client.post_test_results(
             test_project.org,
             test_project.name,
             test_suite.suite,
@@ -206,7 +197,7 @@ class TestCaseResultsAPI:
         tests = [random_test_case_run_info() for _ in range(7)]
         # when it is imported via api call
         body = jsonable_encoder(tests, exclude_none=True)
-        resp = self.post_test_results(
+        resp = self.terec_api_client.post_test_results(
             test_project.org,
             test_project.name,
             test_suite_run.suite,

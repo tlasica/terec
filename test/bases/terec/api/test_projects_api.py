@@ -1,10 +1,9 @@
-import json
-
 from faker import Faker
 from fastapi.testclient import TestClient
 from terec.api.core import create_app
 from terec.api.routers.projects import OrgInfo, is_valid_terec_name
 from terec.model.projects import Org, Project
+from terec_api_client import TerecApiClient
 
 
 def not_none(d: dict) -> dict:
@@ -15,6 +14,7 @@ class TestGetOrgProjectsApi:
     fake = Faker()
     api_app = create_app()
     api_client = TestClient(api_app)
+    terec_api_client = TerecApiClient(api_client)
 
     def test_should_raise_for_not_existing_org(self, cassandra_model):
         response = self.api_client.get("/admin/orgs/not-existing/projects")
@@ -53,7 +53,7 @@ class TestGetOrgProjectsApi:
         # when a new org is created with PUT
         org_name = self.fake.domain_name()
         assert org_name not in orgs_before
-        response = self._put_org(org_name)
+        response = self.terec_api_client.put_org(org_name)
         assert response.is_success, response.text
         assert response.status_code == 201
         # then it is listed in GET
@@ -63,16 +63,12 @@ class TestGetOrgProjectsApi:
 
     def test_create_org_should_fail_if_org_exists(self, cassandra_model):
         org_name = self.fake.domain_word()
-        response = self._put_org(org_name)
+        response = self.terec_api_client.put_org(org_name)
         assert response.is_success, response.text
         assert response.status_code == 201
-        response = self._put_org(org_name)
+        response = self.terec_api_client.put_org(org_name)
         assert not response.is_success, response.text
         assert response.status_code == 403
-
-    def _put_org(self, org_name: str):
-        org = {"name": org_name, "full_name": self.fake.word(), "url": "http://my.org"}
-        return self.api_client.put(f"/admin/orgs/", content=json.dumps(org))
 
     def _get_orgs(self) -> list[OrgInfo]:
         response = self.api_client.get(f"/admin/orgs/")

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+This is a JUnit-style XML example with commonly used tags and attributes.
+
+Example by Testmo. Copyright 2023 Testmo GmbH. All rights reserved.
+Testmo test management software - https://www.testmo.com/
+
+
+ <testsuites> Usually the root element of a JUnit XML file. Some tools leave out
+the <testsuites> element if there is only a single top-level <testsuite> element (which
+is then used as the root element).
+
+name        Name of the entire test run
+tests       Total number of tests in this file
+failures    Total number of failed tests in this file
+errors      Total number of errored tests in this file
+skipped     Total number of skipped tests in this file
+assertions  Total number of assertions for all tests in this file
+time        Aggregated time of all tests in this file in seconds
+timestamp   Date and time of when the test run was executed (in ISO 8601 format)
+
+<testsuites name="CI Pipeline Run" tests="9" failures="2" errors="1" skipped="2"
+    assertions="25" time="23.501" timestamp="2025-05-08T18:00:00">
+
+     <testsuite> A test suite usually represents a class, folder or group of tests.
+    There can be many test suites in an XML file, and there can be test suites under other
+    test suites.
+
+    name        Name of the test suite (e.g. class name or folder name)
+    tests       Total number of tests in this suite
+    failures    Total number of failed tests in this suite
+    errors      Total number of errored tests in this suite
+    skipped     Total number of skipped tests in this suite
+    assertions  Total number of assertions for all tests in this suite
+    time        Aggregated time of all tests in this file in seconds
+    timestamp   Date and time of when the test suite was executed (in ISO 8601 format)
+    file        Source code file of this test suite
+
+    <testsuite name="UserFlow.Account" tests="9" failures="2" errors="1" skipped="2"
+        assertions="25" time="23.501" timestamp="2025-05-08T18:00:00"
+        file="src/account.py">
+
+         <properties> Test suites (and test cases, see below) can have additional
+        properties such as environment variables or version numbers.
+        <properties>
+             <property> Each property has a name and value. Some tools also support
+            properties with text values instead of value attributes.
+            <property name="version" value="2.100" />
+            <property name="commit" value="a1b2c3d" />
+            <property name="browser" value="Mozilla Firefox" />
+            <property name="ci" value="https://gitlab.com/pipelines/5678" />
+            <property name="config">
+                ENV=prod
+                RETRIES=2
+                TIMEOUT=30
+            </property>
+        </properties>
+
+         <system-out> Optionally data written to standard out for the suite.
+        Also supported on a test case level, see below.
+        <system-out>Pipeline output: All services reachable.</system-out>
+
+         <system-err> Optionally data written to standard error for the suite.
+        Also supported on a test case level, see below.
+        <system-err>No errors reported during setup.</system-err>
+
+         <testcase> There are one or more test cases in a test suite. A test passed
+        if there isn't an additional result element (skipped, failure, error).
+
+        name        The name of this test case, often the method name
+        classname   The name of the parent class/folder, often the same as the suite's name
+        assertions  Number of assertions checked during test case execution
+        time        Execution time of the test in seconds
+        file        Source code file of this test case
+        line        Source code line number of the start of this test case
+
+        <testcase name="create_account_valid" classname="UserFlow.Account" assertions="3"
+            time="3.201" file="src/account.py" line="10" />
+        </testcase>
+
+        <testcase name="update_account_invalid_email" classname="UserFlow.Account 2" assertions="2"
+            time="2.111" file="src/account2.py" line="85">
+            <failure message="Email format validation failed." type="ValidationError">
+                ValueError: Invalid email format
+            </failure>
+        </testcase>
+
+        <testcase name="lock_account_error" classname="UserFlow.Account 2" assertions="0"
+            time="4.002" file="src/account2.py" line="104">
+            <error message="Database connection lost." type="DatabaseError">
+                psycopg2.OperationalError: connection lost
+            </error>
+        </testcase>
+
+        <testcase name="reset_password_success" classname="UserFlow.Account 2" assertions="3"
+            time="2.555" file="src/account2.py" line="125">
+            <system-out>Password reset email sent.</system-out>
+            <system-err>No error during password reset.</system-err>
+        </testcase>
+
+        <testcase name="deactivate_account_with_note" classname="UserFlow.Account" assertions="4"
+            time="1.800" file="src/account.py" line="150">
+            <properties>
+                <property name="priority" value="medium" />
+                <property name="language" value="polish" />
+                <property name="author" value="Tomek" />
+                <property name="attachment" value="attachments/account.png" />
+                <property name="attachment" value="attachments/settings.png" />
+                <property name="description">
+                    This test checks deactivation with a user note and verifies
+                    that the note is stored in the database.
+                </property>
+            </properties>
+        </testcase>
+    </testsuite>
+</testsuites>

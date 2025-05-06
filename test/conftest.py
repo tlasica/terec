@@ -17,6 +17,9 @@ from terec.model.util import cqlengine_init
 # from https://github.com/avast/pytest-docker/issues/46#issuecomment-887408396
 
 
+TEST_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
 def pytest_addoption(parser):
     """Add custom options to pytest.
     Add the --keepalive option for pytest.
@@ -36,6 +39,11 @@ def keepalive(request):
     """Check if user asked to keep Docker running after the test."""
 
     return request.config.option.keepalive
+
+
+@pytest.fixture(scope="session")
+def examples_dir() -> str:
+    return os.path.join(TEST_DIR, "examples")
 
 
 @pytest.fixture(scope="session")
