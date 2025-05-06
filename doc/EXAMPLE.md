@@ -145,7 +145,48 @@ The output will be sorted by timestamp in descending order (newest first). For e
 {"run_id":1,"result":"PASS","duration":2500,"timestamp":"2025-05-05T15:42:01"}
 ```
 
-This shows that the test has run 3 times, all with PASS status, and consistently taking 2.5 seconds to complete.
+This shows that the test has run 3 times on the main branch, all with PASS status, and consistently taking 2.5 seconds to complete.
+
+## Development Branch Test Runs
+
+To simulate a development flow, we can create test runs on a development branch. Here's how to create runs on the "dev" branch:
+
+```bash
+curl -v -w "\nResponse code: %{response_code}\n" \
+  -X POST "http://localhost:8000/tests/orgs/myorg123/runs" \
+  -H "Content-Type: application/json" \
+  -d '{"org": "myorg123", "project": "myproject123", "suite": "smoke", "branch": "dev", "run_id": 1, "status": "SUCCESS", "tstamp": "2025-05-05T16:00:00", "url": null, "commit": null, "pass_count": null, "fail_count": null, "skip_count": null, "total_count": null, "duration_sec": null, "ignore": false}'
+```
+
+And to add test results:
+
+```bash
+curl -v -w "\nResponse code: %{response_code}\n" \
+  -X POST "http://localhost:8000/tests/orgs/myorg123/projects/myproject123/suites/smoke/branches/dev/runs/1/tests" \
+  -H "Content-Type: application/json" \
+  -d '[{"test_package": "com.example.test", "test_suite": "smoke", "test_case": "test_login_success", "test_config": "default", "result": "PASS", "test_group": "auth", "tstamp": "2025-05-05T16:00:01", "duration_ms": 2500, "stdout": "Login successful", "stderr": null, "error_stacktrace": null, "error_details": null, "skip_details": null},
+        {"test_package": "com.example.test", "test_suite": "smoke", "test_case": "test_dashboard_load", "test_config": "default", "result": "PASS", "test_group": "ui", "tstamp": "2025-05-05T16:00:02", "duration_ms": 3000, "stdout": "Dashboard loaded successfully", "stderr": null, "error_stacktrace": null, "error_details": null, "skip_details": null},
+        {"test_package": "com.example.test", "test_suite": "smoke", "test_case": "test_logout_success", "test_config": "default", "result": "PASS", "test_group": "auth", "tstamp": "2025-05-05T16:00:03", "duration_ms": 2000, "stdout": "Logout successful", "stderr": null, "error_stacktrace": null, "error_details": null, "skip_details": null}]'
+```
+
+For the third run on dev branch, we can simulate a test failure:
+
+```bash
+curl -v -w "\nResponse code: %{response_code}\n" \
+  -X POST "http://localhost:8000/tests/orgs/myorg123/projects/myproject123/suites/smoke/branches/dev/runs/3/tests" \
+  -H "Content-Type: application/json" \
+  -d '[{"test_package": "com.example.test", "test_suite": "smoke", "test_case": "test_login_success", "test_config": "default", "result": "PASS", "test_group": "auth", "tstamp": "2025-05-05T16:02:01", "duration_ms": 2500, "stdout": "Login successful", "stderr": null, "error_stacktrace": null, "error_details": null, "skip_details": null},
+        {"test_package": "com.example.test", "test_suite": "smoke", "test_case": "test_dashboard_load", "test_config": "default", "result": "FAIL", "test_group": "ui", "tstamp": "2025-05-05T16:02:02", "duration_ms": 3000, "stdout": "Dashboard loaded successfully", "stderr": "Error: Failed to load dashboard data", "error_stacktrace": "java.lang.RuntimeException: Failed to load dashboard data\n    at com.example.test.DashboardTest.testDashboardLoad(DashboardTest.java:42)", "error_details": "Failed to fetch dashboard data from API", "skip_details": null},
+        {"test_package": "com.example.test", "test_suite": "smoke", "test_case": "test_logout_success", "test_config": "default", "result": "PASS", "test_group": "auth", "tstamp": "2025-05-05T16:02:03", "duration_ms": 2000, "stdout": "Logout successful", "stderr": null, "error_stacktrace": null, "error_details": null, "skip_details": null}]'
+```
+
+This shows a real-world scenario where:
+1. Initial runs on dev branch pass successfully
+2. A later run introduces a failure in the `test_dashboard_load` test case
+3. The failure includes detailed error information:
+   - Error message: "Failed to load dashboard data"
+   - Stack trace pointing to specific file and line
+   - Detailed error description
 
 The command will:
 - `-v`: Enable verbose output to see the request/response details
