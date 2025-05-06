@@ -1,0 +1,42 @@
+name: Run Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12.1'
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: '1.6.1'
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    - name: Install dependencies
+      run: |
+        poetry install
+
+    - name: Run tests
+      run: |
+        poetry run pytest --keepalive --benchmark-skip
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      if: ${{ always() }}
+      with:
+        file: .coverage
+        flags: unittests
+        name: codecov-umbrella
