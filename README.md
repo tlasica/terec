@@ -1,6 +1,14 @@
 # TeReC - the Test Result Collector
 
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Build Status](https://github.com/tlasica/terec/actions/workflows/test.yml/badge.svg)](https://github.com/tlasica/terec/actions/workflows/test.yml)
+[![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/downloads/release/python-3120/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Coverage](https://img.shields.io/badge/coverage-unknown-yellow.svg)](https://github.com/tlasica/terec/actions/workflows/test.yml)
+
+For detailed documentation, see [doc/EXAMPLE.md](./doc/EXAMPLE.md)
+
+## Key functions
 
 ## Key functions
 
