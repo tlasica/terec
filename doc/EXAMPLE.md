@@ -75,8 +75,7 @@ This will return a JSON array of all projects in the specified organization.
 To create a test suite within a project, use:
 
 ```bash
-curl -v -w "\nResponse code: %{response_code}\n" \
-  -X POST "http://localhost:8000/tests/orgs/myorg123/suites" \
+curl "http://localhost:8000/tests/orgs/myorg123/suites" \
   -H "Content-Type: application/json" \
   -d '{"project": "myproject123", "suite": "smoke", "url": "http://myorg123.example.com/suites/smoke", "org": "myorg123"}'
 ```
@@ -84,8 +83,7 @@ curl -v -w "\nResponse code: %{response_code}\n" \
 To create another test suite, use:
 
 ```bash
-curl -v -w "\nResponse code: %{response_code}\n" \
-  -X POST "http://localhost:8000/tests/orgs/myorg123/suites" \
+curl "http://localhost:8000/tests/orgs/myorg123/suites" \
   -H "Content-Type: application/json" \
   -d '{"project": "myproject123", "suite": "full", "url": "http://myorg123.example.com/suites/full", "org": "myorg123"}'
 ```
@@ -99,8 +97,7 @@ These commands create two test suites:
 To create a suite run, use:
 
 ```bash
-curl -v -w "\nResponse code: %{response_code}\n" \
-  -X POST "http://localhost:8000/tests/orgs/myorg123/runs" \
+curl "http://localhost:8000/tests/orgs/myorg123/runs" \
   -H "Content-Type: application/json" \
   -d '{"org": "myorg123", "project": "myproject123", "suite": "smoke", "branch": "main", "run_id": 1, "status": "SUCCESS", "tstamp": "2025-05-05T15:42:00", "url": null, "commit": null, "pass_count": null, "fail_count": null, "skip_count": null, "total_count": null, "duration_sec": null, "ignore": false}'
 ```
@@ -110,8 +107,7 @@ curl -v -w "\nResponse code: %{response_code}\n" \
 To add test results for a suite run, use:
 
 ```bash
-curl -v -w "\nResponse code: %{response_code}\n" \
-  -X POST "http://localhost:8000/tests/orgs/myorg123/projects/myproject123/suites/smoke/branches/main/runs/1/tests" \
+curl "http://localhost:8000/tests/orgs/myorg123/projects/myproject123/suites/smoke/branches/main/runs/1/tests" \
   -H "Content-Type: application/json" \
   -d '[{"test_package": "com.example.test", "test_suite": "smoke", "test_case": "test_login_success", "test_config": "default", "result": "PASS", "test_group": "auth", "tstamp": "2025-05-05T15:42:01", "duration_ms": 2500, "stdout": "Login successful", "stderr": null, "error_stacktrace": null, "error_details": null, "skip_details": null},
         {"test_package": "com.example.test", "test_suite": "smoke", "test_case": "test_dashboard_load", "test_config": "default", "result": "PASS", "test_group": "ui", "tstamp": "2025-05-05T15:42:02", "duration_ms": 3000, "stdout": "Dashboard loaded successfully", "stderr": null, "error_stacktrace": null, "error_details": null, "skip_details": null},
@@ -128,7 +124,7 @@ The test results include:
 To view the history of a specific test case across multiple runs, use:
 
 ```bash
-curl -X GET "http://localhost:8000/history/orgs/myorg123/projects/myproject123/suites/smoke/test-runs?branch=main&test_package=com.example.test&test_class=smoke&test_case=test_login_success&test_config=default" | jq -c '.[] | {run_id: .suite_run.run_id, result: .test_run.result, duration: .test_run.duration_ms, timestamp: .test_run.tstamp}' | sort -r
+curl "http://localhost:8000/history/orgs/myorg123/projects/myproject123/suites/smoke/test-runs?branch=main&test_package=com.example.test&test_class=smoke&test_case=test_login_success&test_config=default" | jq -c '.[] | {run_id: .suite_run.run_id, result: .test_run.result, duration: .test_run.duration_ms, timestamp: .test_run.tstamp}' | sort -r
 ```
 
 This command will show the history of the `test_login_success` test case, including:
@@ -146,6 +142,16 @@ The output will be sorted by timestamp in descending order (newest first). For e
 ```
 
 This shows that the test has run 3 times on the main branch, all with PASS status, and consistently taking 2.5 seconds to complete.
+
+To filter test runs by test group, use:
+
+```bash
+curl "http://localhost:8000/history/orgs/myorg123/projects/myproject123/suites/smoke/test-runs?branch=main&test_package=com.example.test&test_class=smoke&test_group=auth"
+```
+
+This will show all test runs from the auth group, including:
+- `test_login_success`
+- `test_logout_success`
 
 ## Development Branch Test Runs
 
