@@ -1,59 +1,65 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="Test run" tests="8" failures="1" errors="1" skipped="1"
-    assertions="20" time="16.082687" timestamp="2021-04-02T15:48:23">
-    <testsuite name="Tests.Registration" tests="8" failures="1" errors="1" skipped="1"
-        assertions="20" time="16.082687" timestamp="2021-04-02T15:48:23"
-        file="tests/registration.code">
+<testsuites name="User Flow Test Run" tests="8" failures="1" errors="1" skipped="1"
+    assertions="20" time="18.347821" timestamp="2025-05-08T10:15:42">
+    <testsuite name="Tests.UserSignup" tests="8" failures="1" errors="1" skipped="1"
+        assertions="20" time="18.347821" timestamp="2025-05-08T10:15:42"
+        file="tests/signup_flow.py">
 
         <properties>
-            <property name="version" value="1.774" />
-            <property name="commit" value="ef7bebf" />
-            <property name="browser" value="Google Chrome" />
-            <property name="ci" value="https://github.com/actions/runs/1234" />
+            <property name="version" value="2.109" />
+            <property name="commit" value="a1b2c3d" />
+            <property name="browser" value="Mozilla Firefox" />
+            <property name="ci" value="https://ci.example.com/builds/5678" />
             <property name="config">
-                Config line #1
-                Config line #2
-                Config line #3
+                Env: staging
+                Timeout: 30s
+                Retries: 2
             </property>
         </properties>
 
-        <system-out>Data written to standard out.</system-out>
+        <system-out>
+Test execution started at 2025-05-08 10:15:42
+Loading configuration from config/staging.yaml
+Initialized web driver for Mozilla Firefox
+Navigating to signup page at https://app.example.com/signup
+Test cases loaded: 8
+        </system-out>
 
-        <system-err>Data written to standard error.</system-err>
+        <system-err>Warning: Deprecation in used API endpoint.</system-err>
 
-        <testcase name="testCase1" classname="Tests.Registration" assertions="2"
-            time="2.436" file="tests/registration.code" line="24" />
-        <testcase name="testCase2" classname="Tests.Registration" assertions="6"
-            time="1.534" file="tests/registration.code" line="62" />
-        <testcase name="testCase3" classname="Tests.Registration" assertions="3"
-            time="0.822" file="tests/registration.code" line="102" />
+        <testcase name="testEmptyEmailField" classname="Tests.UserSignup" assertions="2"
+            time="2.008" file="tests/signup_flow.py" line="19" />
+        <testcase name="testWeakPasswordValidation" classname="Tests.UserSignup" assertions="6"
+            time="1.912" file="tests/signup_flow.py" line="48" />
+        <testcase name="testSuccessfulRegistration" classname="Tests.UserSignup" assertions="3"
+            time="1.183" file="tests/signup_flow.py" line="78" />
 
-        <testcase name="testCase4" classname="Tests.Registration" assertions="0"
-            time="0" file="tests/registration.code" line="164">
-            <skipped message="Test was skipped." />
+        <testcase name="testOptionalReferralCode" classname="Tests.UserSignup" assertions="0"
+            time="0" file="tests/signup_flow.py" line="105">
+            <skipped message="Feature not yet implemented." />
         </testcase>
 
-        <testcase name="testCase5" classname="Tests.Registration" assertions="2"
-            time="2.902412" file="tests/registration.code" line="202">
-            <failure message="Expected value did not match." type="AssertionError">
+        <testcase name="testEmailAlreadyUsed" classname="Tests.UserSignup" assertions="2"
+            time="3.124901" file="tests/signup_flow.py" line="133">
+            <failure message="Email duplication check failed." type="AssertionError">
             </failure>
         </testcase>
 
-        <testcase name="testCase6" classname="Tests.Registration" assertions="0"
-            time="3.819" file="tests/registration.code" line="235">
-            <error message="Division by zero." type="ArithmeticError">
-                some stack trace
+        <testcase name="testInvalidDateOfBirth" classname="Tests.UserSignup" assertions="0"
+            time="4.228" file="tests/signup_flow.py" line="167">
+            <error message="ValueError parsing date input." type="ValueError">
+                Traceback (most recent call last): ...
             </error>
         </testcase>
 
-        <testcase name="testCase7" classname="Tests.Registration" assertions="3"
-            time="2.944" file="tests/registration.code" line="287">
-            <system-out>Data written to standard out.</system-out>
-            <system-err>Data written to standard error.</system-err>
+        <testcase name="testUsernameLengthCheck" classname="Tests.UserSignup" assertions="3"
+            time="3.037" file="tests/signup_flow.py" line="210">
+            <system-out>Validated username constraints.</system-out>
+            <system-err>No errors encountered.</system-err>
         </testcase>
 
-        <testcase name="testCase8" classname="Tests.Registration" assertions="4"
-            time="1.625275" file="tests/registration.code" line="302">
+        <testcase name="testTermsAndConditionsAcceptance" classname="Tests.UserSignup" assertions="4"
+            time="2.854821" file="tests/signup_flow.py" line="245">
         </testcase>
     </testsuite>
 </testsuites>
