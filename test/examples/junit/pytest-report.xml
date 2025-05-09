@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="15" skipped="3" tests="81" time="19.019" timestamp="2025-05-04T14:27:36.615016" hostname="dell-e7440"><testcase classname="test.bases.terec.api.test_benchmark_results_api.TestBenchmarkResultsAPI" name="test_benchmark_adding_100_test_results" time="0.001"><skipped type="pytest.skip" message="Skipping benchmark (--benchmark-skip active).">/home/tomek/repos/terec/test/bases/terec/api/test_benchmark_results_api.py:20: Skipping benchmark (--benchmark-skip active).</skipped></testcase><testcase classname="test.bases.terec.api.test_benchmark_results_api.TestBenchmarkResultsAPI" name="test_benchmark_adding_1000_test_results" time="0.001"><skipped type="pytest.skip" message="Skipping benchmark (--benchmark-skip active).">/home/tomek/repos/terec/test/bases/terec/api/test_benchmark_results_api.py:38: Skipping benchmark (--benchmark-skip active).</skipped></testcase><testcase classname="test.bases.terec.api.test_core" name="test_sample" time="8.075" /><testcase classname="test.bases.terec.api.test_core" name="test_openapi_doc" time="0.071" /><testcase classname="test.bases.terec.api.test_failures_api.TestFailuresGetFailedTestsAPI" name="test_should_raise_for_not_existing_org" time="0.008" /><testcase classname="test.bases.terec.api.test_failures_api.TestFailuresGetFailedTestsAPI" name="test_should_fail_for_non_existing_project" time="0.016" /><testcase classname="test.bases.terec.api.test_failures_api.TestFailuresGetFailedTestsAPI" name="test_should_fail_for_non_existing_suite" time="0.013" /><testcase classname="test.bases.terec.api.test_failures_api.TestFailuresGetFailedTestsAPI" name="test_should_return_failed_tests" time="0.267" /><testcase classname="test.bases.terec.api.test_failures_api.TestFailuresGetTestRunsAPI" name="test_should_raise_for_not_existing_org" time="0.048" /><testcase classname="test.bases.terec.api.test_failures_api.TestFailuresGetTestRunsAPI" name="test_should_fail_for_non_existing_project" time="0.015" /><testcase classname="test.bases.terec.api.test_failures_api.TestFailuresGetTestRunsAPI" name="test_should_fail_for_non_existing_suite" time="0.014" /><testcase classname="test.bases.terec.api.test_failures_api.TestFailuresGetTestRunsAPI" name="test_should_return_single_test_history" time="0.315" /><testcase classname="test.bases.terec.api.test_failures_api.TestFailuresGetTestRunsAPI" name="test_should_return_class_history" time="0.221" /><testcase classname="test.bases.terec.api.test_failures_api.TestFailuresGetTestRunsAPI" name="test_should_return_package_history" time="0.249" /><testcase classname="test.bases.terec.api.test_failures_api.TestFailuresCheckTestRunAPI" name="test_check_regression" time="0.057" /><testcase classname="test.bases.terec.api.test_failures_api.TestFailuresCheckTestRunAPI" name="test_get_test_run_check" time="0.210" /><testcase classname="test.bases.terec.api.test_failures_api.TestFailuresCheckTestRunAPI" name="test_check_known_fail_on_same_branch" time="0.002" /><testcase classname="test.bases.terec.api.test_failures_api.TestFailuresCheckTestRunAPI" name="test_check_new_fail_on_same_branch" time="0.002" /><testcase classname="test.bases.terec.api.test_plots_api.TestPlotsAPI" name="test_should_raise_for_not_existing_org" time="0.010" /><testcase classname="test.bases.terec.api.test_plots_api.TestPlotsAPI" name="test_should_fail_for_non_existing_project" time="0.016" /><testcase classname="test.bases.terec.api.test_plots_api.TestPlotsAPI" name="test_should_fail_for_non_existing_suite" time="0.013" /><testcase classname="test.bases.terec.api.test_plots_api.TestPlotsAPI" name="test_should_return_build" time="0.008"><failure message="AssertionError: {&quot;detail&quot;:&quot;Not Found&quot;}&#10;assert 404 == 200&#10; +  where 404 = &lt;Response [404 Not Found]&gt;.status_code">self = &lt;api.test_plots_api.TestPlotsAPI object at 0x7fa58bb145c0&gt;, cassandra_model = &lt;cassandra.cluster.Session object at 0x7fa58a50c290&gt;
+test_suite = TestSuite(org='org-1746361670570', project='TestProject', suite='suite-1746361670601', url=None)
+
+    def test_should_return_build(self, cassandra_model, test_suite):
+        # given some test suite runs in 3 branches
+        branch_a, branch_b, branch_c = [
+            random_name(f"branch-{p}") for p in ["a", "b", "c"]
+        ]
+        runs = [
+&gt;           self.add_suite_run(test_suite, branch_a, 1),
+            self.add_suite_run(test_suite, branch_a, 2),
+            self.add_suite_run(test_suite, branch_b, 3),
+            self.add_suite_run(test_suite, branch_a, 4),
+            self.add_suite_run(test_suite, branch_b, 5),
+            self.add_suite_run(test_suite, branch_a, 6),
+        ]
+
+test/bases/terec/api/test_plots_api.py:65:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;api.test_plots_api.TestPlotsAPI object at 0x7fa58bb145c0&gt;
+test_suite = TestSuite(org='org-1746361670570', project='TestProject', suite='suite-1746361670601', url=None), branch = 'branch-a-1746361670604', run_id = 1
+
+    def add_suite_run(self, test_suite, branch, run_id):
+        run = random_test_suite_run_info(
+            test_suite.org, test_suite.project, test_suite.suite, run_id=run_id
+        )
+        run.branch = branch
+        response = self.api_client.post(
+            f"/tests/orgs/{test_suite.org}/branch/{branch}/runs", content=run.model_dump_json()
+        )
+&gt;       assert response.status_code == 200, response.text
+E       AssertionError: {"detail":"Not Found"}
+E       assert 404 == 200
+E        +  where 404 = &lt;Response [404 Not Found]&gt;.status_code
+
+test/bases/terec/api/test_plots_api.py:56: AssertionError</failure></testcase><testcase classname="test.bases.terec.api.test_projects_api.TestGetOrgProjectsApi" name="test_should_raise_for_not_existing_org" time="0.006" /><testcase classname="test.bases.terec.api.test_projects_api.TestGetOrgProjectsApi" name="test_get_all_org_projects" time="0.031" /><testcase classname="test.bases.terec.api.test_projects_api.TestGetOrgProjectsApi" name="test_create_org" time="0.038" /><testcase classname="test.bases.terec.api.test_projects_api.TestGetOrgProjectsApi" name="test_create_org_should_fail_if_org_exists" time="0.023" /><testcase classname="test.bases.terec.api.test_projects_api" name="test_valid_org_and_project_names" time="0.001" /><testcase classname="test.bases.terec.api.test_results_api.TestResultsSuitesAPI" name="test_should_raise_for_not_existing_org" time="0.007" /><testcase classname="test.bases.terec.api.test_results_api.TestResultsSuitesAPI" name="test_create_suite_in_org" time="0.054"><failure message="AssertionError: {&quot;detail&quot;:&quot;Method Not Allowed&quot;}&#10;assert 405 == 200&#10; +  where 405 = &lt;Response [405 Method Not Allowed]&gt;.status_code">self = &lt;api.test_results_api.TestResultsSuitesAPI object at 0x7fa58b91cd70&gt;, cassandra_model = &lt;cassandra.cluster.Session object at 0x7fa58a50c290&gt;
+
+    def test_create_suite_in_org(self, cassandra_model):
+        # given an organization
+        org = Org.create(name=self.fake.company())
+        # when 3 suites in project a and 2 in project b are created
+        url = f"/tests/orgs/{org.name}/suites"
+        for p in ["a", "b", "a", "a", "b"]:
+            suite = random_test_suite_info(org.name, p)
+            response = self.api_client.post(url, content=suite.model_dump_json())
+            assert response.status_code == 200, response.text
+        # then we can retrieve them
+&gt;       self._expect_get_to_return_n(url=f"/tests/orgs/{org.name}/suites", n=5)
+
+test/bases/terec/api/test_results_api.py:48:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;api.test_results_api.TestResultsSuitesAPI object at 0x7fa58b91cd70&gt;, url = '/tests/orgs/Mclaughlin, Anderson and Douglas/suites', n = 5
+
+    def _expect_get_to_return_n(self, url: str, n: int) -&gt; None:
+        response = self.api_client.get(url=url)
+&gt;       assert response.status_code == 200, response.text
+E       AssertionError: {"detail":"Method Not Allowed"}
+E       assert 405 == 200
+E        +  where 405 = &lt;Response [405 Method Not Allowed]&gt;.status_code
+
+test/bases/terec/api/test_results_api.py:58: AssertionError</failure></testcase><testcase classname="test.bases.terec.api.test_results_api.TestSuiteRunsAPI" name="test_should_fail_create_on_non_existing_project" time="0.007" /><testcase classname="test.bases.terec.api.test_results_api.TestSuiteRunsAPI" name="test_should_create_run_and_suite_if_not_exists" time="0.011"><failure message="AssertionError: {&quot;detail&quot;:&quot;Not Found&quot;}&#10;assert 404 == 200&#10; +  where 404 = &lt;Response [404 Not Found]&gt;.status_code">self = &lt;api.test_results_api.TestSuiteRunsAPI object at 0x7fa58b91e600&gt;, cassandra_model = &lt;cassandra.cluster.Session object at 0x7fa58a50c290&gt;
+
+    def test_should_create_run_and_suite_if_not_exists(self, cassandra_model):
+        org = Org.create(name=self.fake.company())
+        prj = Project.create(org=org.name, name=self.fake.domain_word())
+&gt;       self._add_suite_run(org.name, prj.name, "ci", 7)
+
+test/bases/terec/api/test_results_api.py:95:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;api.test_results_api.TestSuiteRunsAPI object at 0x7fa58b91e600&gt;, org_name = 'Cook Inc', prj_name = 'lee', suite_name = 'ci', run_id = 7
+
+    def _add_suite_run(self, org_name:str, prj_name: str, suite_name: str, run_id: int):
+        suite_run = random_test_suite_run_info(org_name, prj_name, suite_name, run_id)
+        response = self._post_suite_run(org_name, suite_run)
+&gt;       assert response.status_code == 200, response.text
+E       AssertionError: {"detail":"Not Found"}
+E       assert 404 == 200
+E        +  where 404 = &lt;Response [404 Not Found]&gt;.status_code
+
+test/bases/terec/api/test_results_api.py:82: AssertionError</failure></testcase><testcase classname="test.bases.terec.api.test_results_api.TestSuiteRunsAPI" name="test_should_create_runs_in_existing_suite" time="0.010"><failure message="AssertionError: {&quot;detail&quot;:&quot;Not Found&quot;}&#10;assert 404 == 200&#10; +  where 404 = &lt;Response [404 Not Found]&gt;.status_code">self = &lt;api.test_results_api.TestSuiteRunsAPI object at 0x7fa58b91e870&gt;, cassandra_model = &lt;cassandra.cluster.Session object at 0x7fa58a50c290&gt;
+
+    def test_should_create_runs_in_existing_suite(self, cassandra_model):
+        # given an existing suite
+        org = Org.create(name=self.fake.domain_name())
+        prj = Project.create(org=org.name, name=self.fake.domain_word())
+        TestSuite.create(org=org.name, project=prj.name, suite="ci")
+        # when we add some test suite runs
+        for run_id in range(1, 6):
+&gt;           self._add_suite_run(org.name, prj.name, "ci", run_id)
+
+test/bases/terec/api/test_results_api.py:111:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;api.test_results_api.TestSuiteRunsAPI object at 0x7fa58b91e870&gt;, org_name = 'hart.net', prj_name = 'davis', suite_name = 'ci', run_id = 1
+
+    def _add_suite_run(self, org_name:str, prj_name: str, suite_name: str, run_id: int):
+        suite_run = random_test_suite_run_info(org_name, prj_name, suite_name, run_id)
+        response = self._post_suite_run(org_name, suite_run)
+&gt;       assert response.status_code == 200, response.text
+E       AssertionError: {"detail":"Not Found"}
+E       assert 404 == 200
+E        +  where 404 = &lt;Response [404 Not Found]&gt;.status_code
+
+test/bases/terec/api/test_results_api.py:82: AssertionError</failure></testcase><testcase classname="test.bases.terec.api.test_results_api.TestSuiteRunsAPI" name="test_should_get_run_info" time="0.009"><failure message="AssertionError: {&quot;detail&quot;:&quot;Not Found&quot;}&#10;assert 404 == 200&#10; +  where 404 = &lt;Response [404 Not Found]&gt;.status_code">self = &lt;api.test_results_api.TestSuiteRunsAPI object at 0x7fa58b91eae0&gt;, cassandra_model = &lt;cassandra.cluster.Session object at 0x7fa58a50c290&gt;
+
+    def test_should_get_run_info(self, cassandra_model):
+        # give a suite with two runs: {1,2}
+        org = Org.create(name=self.fake.domain_name())
+        prj = Project.create(org=org.name, name=self.fake.domain_word())
+&gt;       self._add_suite_run(org.name, prj.name, "ci", 1)
+
+test/bases/terec/api/test_results_api.py:128:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;api.test_results_api.TestSuiteRunsAPI object at 0x7fa58b91eae0&gt;, org_name = 'nguyen.net', prj_name = 'koch', suite_name = 'ci', run_id = 1
+
+    def _add_suite_run(self, org_name:str, prj_name: str, suite_name: str, run_id: int):
+        suite_run = random_test_suite_run_info(org_name, prj_name, suite_name, run_id)
+        response = self._post_suite_run(org_name, suite_run)
+&gt;       assert response.status_code == 200, response.text
+E       AssertionError: {"detail":"Not Found"}
+E       assert 404 == 200
+E        +  where 404 = &lt;Response [404 Not Found]&gt;.status_code
+
+test/bases/terec/api/test_results_api.py:82: AssertionError</failure></testcase><testcase classname="test.bases.terec.api.test_results_api.TestCaseResultsAPI" name="test_should_fail_for_empty_list_of_tests" time="0.018"><failure message="AssertionError: {&quot;detail&quot;:&quot;Not Found&quot;}&#10;assert 400 == 404&#10; +  where 404 = &lt;Response [404 Not Found]&gt;.status_code">self = &lt;api.test_results_api.TestCaseResultsAPI object at 0x7fa58b91eab0&gt;, cassandra_model = &lt;cassandra.cluster.Session object at 0x7fa58a50c290&gt;
+test_project = Project(org='org-1746361671041', name='TestProject', full_name=None, description=None, url=None)
+test_suite_run = TestSuiteRun(org='org-1746361671041', project='TestProject', suite='suite-1746361671046', branch='main', run_id=174636... fail_count=None, skip_count=None, total_count=None, duration_sec=None, status=None, ignore=False, ignore_details=None)
+
+    def test_should_fail_for_empty_list_of_tests(
+        self, cassandra_model, test_project, test_suite_run
+    ):
+        resp = self.post_test_results(
+            test_project.org,
+            test_project.name,
+            test_suite_run.suite,
+            test_suite_run.run_id,
+            "[]",
+        )
+&gt;       assert 400 == resp.status_code, resp.text
+E       AssertionError: {"detail":"Not Found"}
+E       assert 400 == 404
+E        +  where 404 = &lt;Response [404 Not Found]&gt;.status_code
+
+test/bases/terec/api/test_results_api.py:173: AssertionError</failure></testcase><testcase classname="test.bases.terec.api.test_results_api.TestCaseResultsAPI" name="test_should_fail_for_non_existing_org" time="0.007"><failure message="assert 'Org not found' in '{&quot;detail&quot;:&quot;Not Found&quot;}'&#10; +  where '{&quot;detail&quot;:&quot;Not Found&quot;}' = &lt;Response [404 Not Found]&gt;.text">self = &lt;api.test_results_api.TestCaseResultsAPI object at 0x7fa58b91efc0&gt;, cassandra_model = &lt;cassandra.cluster.Session object at 0x7fa58a50c290&gt;
+
+    def test_should_fail_for_non_existing_org(self, cassandra_model):
+        body = jsonable_encoder([random_test_case_run_info()], exclude_none=True)
+        resp = self.post_test_results(
+            "non-existing-org", "p", "suite", 3, json.dumps(body)
+        )
+        assert 404 == resp.status_code, resp.text
+&gt;       assert "Org not found" in resp.text
+E       assert 'Org not found' in '{"detail":"Not Found"}'
+E        +  where '{"detail":"Not Found"}' = &lt;Response [404 Not Found]&gt;.text
+
+test/bases/terec/api/test_results_api.py:181: AssertionError</failure></testcase><testcase classname="test.bases.terec.api.test_results_api.TestCaseResultsAPI" name="test_should_fail_for_non_existing_project" time="0.007"><failure message="assert 'Project not found' in '{&quot;detail&quot;:&quot;Not Found&quot;}'&#10; +  where '{&quot;detail&quot;:&quot;Not Found&quot;}' = &lt;Response [404 Not Found]&gt;.text">self = &lt;api.test_results_api.TestCaseResultsAPI object at 0x7fa58b91f230&gt;, cassandra_model = &lt;cassandra.cluster.Session object at 0x7fa58a50c290&gt;
+test_project = Project(org='org-1746361671041', name='TestProject', full_name=None, description=None, url=None)
+
+    def test_should_fail_for_non_existing_project(self, cassandra_model, test_project):
+        body = jsonable_encoder([random_test_case_run_info()], exclude_none=True)
+        resp = self.post_test_results(
+            test_project.org, "non-existing-project", "suite", 3, json.dumps(body)
+        )
+        assert 404 == resp.status_code, resp.text
+&gt;       assert "Project not found" in resp.text
+E       assert 'Project not found' in '{"detail":"Not Found"}'
+E        +  where '{"detail":"Not Found"}' = &lt;Response [404 Not Found]&gt;.text
+
+test/bases/terec/api/test_results_api.py:189: AssertionError</failure></testcase><testcase classname="test.bases.terec.api.test_results_api.TestCaseResultsAPI" name="test_should_fail_for_non_existing_suite" time="0.008"><failure message="assert 'Suite not found' in '{&quot;detail&quot;:&quot;Not Found&quot;}'&#10; +  where '{&quot;detail&quot;:&quot;Not Found&quot;}' = &lt;Response [404 Not Found]&gt;.text">self = &lt;api.test_results_api.TestCaseResultsAPI object at 0x7fa58b91f4d0&gt;, cassandra_model = &lt;cassandra.cluster.Session object at 0x7fa58a50c290&gt;
+test_project = Project(org='org-1746361671041', name='TestProject', full_name=None, description=None, url=None)
+
+    def test_should_fail_for_non_existing_suite(self, cassandra_model, test_project):
+        body = jsonable_encoder([random_test_case_run_info()], exclude_none=True)
+        resp = self.post_test_results(
+            test_project.org,
+            test_project.name,
+            random_name("non-existing-suite"),
+            3,
+            json.dumps(body),
+        )
+        assert 404 == resp.status_code, resp.text
+&gt;       assert "Suite not found" in resp.text
+E       assert 'Suite not found' in '{"detail":"Not Found"}'
+E        +  where '{"detail":"Not Found"}' = &lt;Response [404 Not Found]&gt;.text
+
+test/bases/terec/api/test_results_api.py:201: AssertionError</failure></testcase><testcase classname="test.bases.terec.api.test_results_api.TestCaseResultsAPI" name="test_should_fail_for_non_existing_suite_run" time="0.011"><failure message="assert 'Suite run not found' in '{&quot;detail&quot;:&quot;Not Found&quot;}'&#10; +  where '{&quot;detail&quot;:&quot;Not Found&quot;}' = &lt;Response [404 Not Found]&gt;.text">self = &lt;api.test_results_api.TestCaseResultsAPI object at 0x7fa58b91f770&gt;, cassandra_model = &lt;cassandra.cluster.Session object at 0x7fa58a50c290&gt;
+test_project = Project(org='org-1746361671041', name='TestProject', full_name=None, description=None, url=None)
+test_suite = TestSuite(org='org-1746361671041', project='TestProject', suite='suite-1746361671178', url=None)
+
+    def test_should_fail_for_non_existing_suite_run(
+        self, cassandra_model, test_project, test_suite
+    ):
+        body = jsonable_encoder([random_test_case_run_info()], exclude_none=True)
+        resp = self.post_test_results(
+            test_project.org, test_project.name, test_suite.suite, 1, json.dumps(body)
+        )
+        assert 404 == resp.status_code, resp.text
+&gt;       assert "Suite run not found" in resp.text
+E       assert 'Suite run not found' in '{"detail":"Not Found"}'
+E        +  where '{"detail":"Not Found"}' = &lt;Response [404 Not Found]&gt;.text
+
+test/bases/terec/api/test_results_api.py:211: AssertionError</failure></testcase><testcase classname="test.bases.terec.api.test_results_api.TestCaseResultsAPI" name="test_should_write_test_results" time="0.013"><failure message="AssertionError: {&quot;detail&quot;:&quot;Not Found&quot;}&#10;assert False&#10; +  where False = &lt;Response [404 Not Found]&gt;.is_success">self = &lt;api.test_results_api.TestCaseResultsAPI object at 0x7fa58baf3e60&gt;, cassandra_model = &lt;cassandra.cluster.Session object at 0x7fa58a50c290&gt;
+test_project = Project(org='org-1746361671041', name='TestProject', full_name=None, description=None, url=None)
+test_suite_run = TestSuiteRun(org='org-1746361671041', project='TestProject', suite='suite-1746361671214', branch='main', run_id=174636... fail_count=None, skip_count=None, total_count=None, duration_sec=None, status=None, ignore=False, ignore_details=None)
+
+    def test_should_write_test_results(
+        self, cassandra_model, test_project, test_suite_run
+    ):
+        # given list of test results in some existing suite run
+        tests = [random_test_case_run_info() for _ in range(7)]
+        # when it is imported via api call
+        body = jsonable_encoder(tests, exclude_none=True)
+        resp = self.post_test_results(
+            test_project.org,
+            test_project.name,
+            test_suite_run.suite,
+            test_suite_run.run_id,
+            json.dumps(body),
+        )
+&gt;       assert resp.is_success, resp.text
+E       AssertionError: {"detail":"Not Found"}
+E       assert False
+E        +  where False = &lt;Response [404 Not Found]&gt;.is_success
+
+test/bases/terec/api/test_results_api.py:227: AssertionError</failure></testcase><testcase classname="test.bases.terec.api.test_results_api.TestCaseResultsAPI" name="test_should_get_test_results" time="0.197"><failure message="AssertionError: {&quot;detail&quot;:&quot;Not Found&quot;}&#10;assert False&#10; +  where False = &lt;Response [404 Not Found]&gt;.is_success">self = &lt;api.test_results_api.TestCaseResultsAPI object at 0x7fa58b91f740&gt;, cassandra_model = &lt;cassandra.cluster.Session object at 0x7fa58a50c290&gt;
+test_project = Project(org='org-1746361671041', name='TestProject', full_name=None, description=None, url=None)
+
+    def test_should_get_test_results(self, cassandra_model, test_project):
+        org, project = test_project.org, test_project.name
+        suite, suite_runs, test_runs = generate_suite_with_test_runs(
+            org, project, branch="main"
+        )
+        run_id = suite_runs[0].run_id
+        resp = self.get_test_results(
+            suite.org, suite.project, suite.suite, suite_runs[0].run_id, result=None
+        )
+&gt;       assert resp.is_success, resp.text
+E       AssertionError: {"detail":"Not Found"}
+E       assert False
+E        +  where False = &lt;Response [404 Not Found]&gt;.is_success
+
+test/bases/terec/api/test_results_api.py:246: AssertionError</failure></testcase><testcase classname="test.bases.terec.api.test_results_api.TestCaseResultsAPI" name="test_should_get_test_results_filtered_by_status" time="0.195"><failure message="AssertionError: {&quot;detail&quot;:&quot;Not Found&quot;}&#10;assert False&#10; +  where False = &lt;Response [404 Not Found]&gt;.is_success">self = &lt;api.test_results_api.TestCaseResultsAPI object at 0x7fa58b91e330&gt;, cassandra_model = &lt;cassandra.cluster.Session object at 0x7fa58a50c290&gt;
+test_project = Project(org='org-1746361671041', name='TestProject', full_name=None, description=None, url=None)
+
+    def test_should_get_test_results_filtered_by_status(
+        self, cassandra_model, test_project
+    ):
+        org, project = test_project.org, test_project.name
+        suite, suite_runs, test_runs = generate_suite_with_test_runs(
+            org, project, branch="main"
+        )
+        run_id = suite_runs[0].run_id
+        resp = self.get_test_results(
+            suite.org,
+            suite.project,
+            suite.suite,
+            suite_runs[0].run_id,
+            result=TestCaseRunStatus.FAIL,
+        )
+&gt;       assert resp.is_success, resp.text
+E       AssertionError: {"detail":"Not Found"}
+E       assert False
+E        +  where False = &lt;Response [404 Not Found]&gt;.is_success
+
+test/bases/terec/api/test_results_api.py:265: AssertionError</failure></testcase><testcase classname="test.bases.terec.api.test_results_api.TestIgnoreSuiteRunAPI" name="test_ignore_suite_run" time="0.005"><skipped type="pytest.skip" message="ignore api not implemented">/home/tomek/repos/terec/.venv/lib/python3.12/site-packages/_pytest/unittest.py:371: ignore api not implemented</skipped></testcase><testcase classname="test.bases.terec.jenkins_cli.test_pipeline_commands" name="test_build_export_fails_without_jenkins_url" time="0.008" /><testcase classname="test.bases.terec.jenkins_cli.test_pipeline_commands" name="test_tests_export_fails_without_jenkins_url" time="0.004" /><testcase classname="test.components.terec.ci_jenkins.test_build_info_parser" name="test_build_info_parser" time="0.001" /><testcase classname="test.components.terec.ci_jenkins.test_jenkins_import.TestJenkinsImport" name="test_should_import_build" time="0.011"><failure message="AssertionError: {&quot;detail&quot;:&quot;Not Found&quot;}&#10;assert False&#10; +  where False = &lt;Response [404 Not Found]&gt;.is_success">self = &lt;ci_jenkins.test_jenkins_import.TestJenkinsImport object at 0x7fa58b60b050&gt;, cassandra_model = &lt;cassandra.cluster.Session object at 0x7fa58a50c290&gt;
+test_project = Project(org='org-1746361671698', name='TestProject', full_name=None, description=None, url=None)
+
+    def test_should_import_build(self, cassandra_model, test_project):
+        # given some build info json from jenkins
+        ci_build_info = sample_build_info()
+        # when parsed
+        org, project = test_project.org, test_project.name
+        suite = "cassandra-3.11-ci"
+        build_info = parse_jenkins_build_info(org, project, suite, ci_build_info)
+        build_id = build_info.run_id
+        # and inserted via api call
+        self.check_suite_run_doesnt_exist(
+            org, test_project.name, suite, build_info.branch, build_id
+        )
+&gt;       self.add_test_suite_run(org, build_info)
+
+test/components/terec/ci_jenkins/test_jenkins_import.py:37:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;ci_jenkins.test_jenkins_import.TestJenkinsImport object at 0x7fa58b60b050&gt;, org = 'org-1746361671698'
+build_info = TestSuiteRunInfo(org='org-1746361671698', project='TestProject', suite='cassandra-3.11-ci', run_id=501, tstamp=datetim...tal_count=19019, duration_sec=29729, status=&lt;TestSuiteRunStatus.FAILURE: 'FAILURE'&gt;, ignore=False, ignore_details=None)
+
+    def add_test_suite_run(self, org: str, build_info):
+        build_info_d = build_info.model_dump(exclude_none=True)
+        build_info_d["tstamp"] = str(build_info_d["tstamp"])
+        url = f"/tests/orgs/{org}/branch/{build_info.branch}/runs"
+        response = self.api_client.post(url, content=json.dumps(build_info_d))
+&gt;       assert response.is_success, response.text
+E       AssertionError: {"detail":"Not Found"}
+E       assert False
+E        +  where False = &lt;Response [404 Not Found]&gt;.is_success
+
+test/components/terec/ci_jenkins/test_jenkins_import.py:62: AssertionError</failure></testcase><testcase classname="test.components.terec.ci_jenkins.test_jenkins_import.TestJenkinsImport" name="test_should_import_test_runs" time="0.004"><failure message="AssertionError: {&quot;detail&quot;:&quot;Not Found&quot;}&#10;assert False&#10; +  where False = &lt;Response [404 Not Found]&gt;.is_success">self = &lt;ci_jenkins.test_jenkins_import.TestJenkinsImport object at 0x7fa58b60b2f0&gt;, cassandra_model = &lt;cassandra.cluster.Session object at 0x7fa58a50c290&gt;
+test_project = Project(org='org-1746361671698', name='TestProject', full_name=None, description=None, url=None)
+
+    def test_should_import_test_runs(self, cassandra_model, test_project):
+        # given some build info json from jenkins
+        ci_build_info = sample_build_info()
+        ci_test_report = sample_build_test_report_suite()
+        # when parsed
+        org, project = test_project.org, test_project.name
+        suite = "cassandra-3.11-fastci"
+        build_info = parse_jenkins_build_info(org, project, suite, ci_build_info)
+        build_id = build_info.run_id
+        test_cases = parse_jenkins_report_suite(ci_test_report)
+        # then it should be inserted via api calls
+&gt;       self.add_test_suite_run(org, build_info)
+
+test/components/terec/ci_jenkins/test_jenkins_import.py:54:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;ci_jenkins.test_jenkins_import.TestJenkinsImport object at 0x7fa58b60b2f0&gt;, org = 'org-1746361671698'
+build_info = TestSuiteRunInfo(org='org-1746361671698', project='TestProject', suite='cassandra-3.11-fastci', run_id=501, tstamp=dat...tal_count=19019, duration_sec=29729, status=&lt;TestSuiteRunStatus.FAILURE: 'FAILURE'&gt;, ignore=False, ignore_details=None)
+
+    def add_test_suite_run(self, org: str, build_info):
+        build_info_d = build_info.model_dump(exclude_none=True)
+        build_info_d["tstamp"] = str(build_info_d["tstamp"])
+        url = f"/tests/orgs/{org}/branch/{build_info.branch}/runs"
+        response = self.api_client.post(url, content=json.dumps(build_info_d))
+&gt;       assert response.is_success, response.text
+E       AssertionError: {"detail":"Not Found"}
+E       assert False
+E        +  where False = &lt;Response [404 Not Found]&gt;.is_success
+
+test/components/terec/ci_jenkins/test_jenkins_import.py:62: AssertionError</failure></testcase><testcase classname="test.components.terec.ci_jenkins.test_jenkins_server" name="test_jenkins_server_connection" time="0.692" /><testcase classname="test.components.terec.ci_jenkins.test_jenkins_server" name="test_get_suite_test_runs" time="1.944" /><testcase classname="test.components.terec.ci_jenkins.test_report_parser" name="test_split_fq_class_name" time="0.001" /><testcase classname="test.components.terec.ci_jenkins.test_report_parser" name="test_split_case_name_with_config" time="0.001" /><testcase classname="test.components.terec.ci_jenkins.test_report_parser.TestParseReportSuite" name="test_parser_should_find_all_items" time="0.001" /><testcase classname="test.components.terec.ci_jenkins.test_report_parser.TestParseReportSuite" name="test_parser_should_handle_skipped_case" time="0.001" /><testcase classname="test.components.terec.ci_jenkins.test_report_parser.TestParseReportSuite" name="test_parser_should_set_error_details" time="0.001" /><testcase classname="test.components.terec.ci_jenkins.test_report_parser.TestParseReportSuite" name="test_parser_should_set_timestamp" time="0.001" /><testcase classname="test.components.terec.ci_jenkins.test_report_parser.TestParseReportSuite" name="test_parser_should_set_status_for_failed_case" time="0.001" /><testcase classname="test.components.terec.ci_jenkins.test_report_parser.TestParseReportSuite" name="test_parser_should_set_status_for_passed_case" time="0.001" /><testcase classname="test.components.terec.ci_jenkins.test_report_parser.TestParseReportSuite" name="test_parser_should_handle_duplicate_test_case_names" time="0.001" /><testcase classname="test.components.terec.ci_jenkins.test_report_parser.TestParseReportSuite" name="test_parser_should_set_default_config" time="0.001" /><testcase classname="test.components.terec.database.test_core" name="test_cassandra_connection_with_default_settings" time="0.001" /><testcase classname="test.components.terec.model.test_failures" name="test_get_failed_tests_for_suite_runs" time="0.209" /><testcase classname="test.components.terec.model.test_failures" name="test_load_test_case_runs_without_config" time="0.202" /><testcase classname="test.components.terec.model.test_failures" name="test_load_test_case_runs_with_config" time="0.194" /><testcase classname="test.components.terec.model.test_failures" name="test_load_test_case_runs_with_result" time="0.214" /><testcase classname="test.components.terec.model.test_projects" name="test_create_org" time="0.003" /><testcase classname="test.components.terec.model.test_projects" name="test_find_org_by_name" time="0.032" /><testcase classname="test.components.terec.model.test_projects" name="test_create_projects_in_org" time="0.036" /><testcase classname="test.components.terec.model.test_suites" name="test_get_test_suites_for_project" time="0.010" /><testcase classname="test.components.terec.model.test_suites" name="test_get_test_suites_for_org" time="0.014" /><testcase classname="test.components.terec.model.test_suites" name="test_create_test_suite_without_name_should_fail" time="0.007" /><testcase classname="test.components.terec.model.test_suites" name="test_create_test_suite_twice_should_override" time="0.010" /><testcase classname="test.components.terec.model.test_util" name="test_model_to_dict" time="0.001" /><testcase classname="test.components.terec.regression.test_failure_analysis.TestFailureAnalyser" name="test_check_regression_with_same_failure" time="0.042" /><testcase classname="test.components.terec.regression.test_failure_analysis.TestFailureAnalyser" name="test_check_regression_with_new_failure" time="0.035" /><testcase classname="test.components.terec.regression.test_failure_analysis.TestFailureAnalyser" name="test_check_regression_with_different_failure" time="0.034" /><testcase classname="test.components.terec.regression.test_failure_analysis.TestFailureAnalyser" name="test_check_regression_vs_upstream" time="0.042" /><testcase classname="test.components.terec.regression.test_similarity_checker.TestSimilarityChecker" name="test_similarity_check_on_same_object" time="0.005" /><testcase classname="test.components.terec.regression.test_similarity_checker.TestSimilarityChecker" name="test_similarity_check_on_completely_different_object" time="0.002" /><testcase classname="test.components.terec.regression.test_similarity_checker.TestSimilarityChecker" name="test_similarity_check_is_none_if_no_stacktrace" time="0.004" /><testcase classname="test.components.terec.regression.test_similarity_checker.TestSimilarityChecker" name="test_similarity_check_on_a_slightly_changed_stacktrace" time="0.008" /><testcase classname="test.components.terec.regression.test_similarity_checker.TestSimilarityChecker" name="test_similarity_check_on_similar_but_different_stacktrace" time="0.112" /></testsuite></testsuites>

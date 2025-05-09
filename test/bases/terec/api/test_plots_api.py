@@ -2,7 +2,7 @@ from faker import Faker
 from fastapi.testclient import TestClient
 
 from conftest import random_name
-from .random_data import (
+from random_data import (
     random_test_suite_run_info,
 )
 from terec.api.core import create_app
