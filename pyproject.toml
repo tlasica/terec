@@ -71,6 +71,10 @@ pushd projects/terec_api
 poetry build-project
 docker build . -t terec/api:latest
 popd
+pushd projects/terec_cli
+poetry build-project
+docker build . -t terec/cli:latest
+popd
 """
 interpreter = "bash"
 
