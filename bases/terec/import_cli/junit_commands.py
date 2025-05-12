@@ -89,12 +89,12 @@ def import_junit(
         if not suite_run.tstamp:
             suite_run.tstamp = datetime.now()
 
+        suite_run_str = f"{suite_run.org}/{suite_run.project}/{suite_run.suite}/{suite_run.branch}/{suite_run.run_id}"
+
+        typer.echo(f"Importing suite run {suite_run_str}...")
         try:
             # Create the suite run via API
             runs_url = f"{base_url}/tests/orgs/{suite_run.org}/runs"
-            typer.echo(
-                f"Creating suite run for {suite_run.org}/{suite_run.project}/{suite_run.suite}..."
-            )
             data = suite_run.model_dump()
             response = requests.post(runs_url, data=orjson.dumps(data), timeout=180)
             response.raise_for_status()
@@ -102,4 +102,36 @@ def import_junit(
             typer.echo(f"Error creating suite run: {e}", err=True)
             raise typer.Exit(code=1)
 
-        typer.echo("Suite run created successfully.")
+        typer.echo(f"Suite run {suite_run_str }created successfully.")
+
+        # Gather and upload test case run info
+        test_cases = converter.get_test_cases_for_suite(suite_run.suite)
+        if not test_cases:
+            typer.echo(
+                f"Warning: No test cases found for suite {suite_run_str}.", err=True
+            )
+            continue
+
+        try:
+            # Use the correct endpoint
+            test_cases_url = (
+                f"{base_url}/tests/orgs/{suite_run.org}/projects/{suite_run.project}"
+                f"/suites/{suite_run.suite}/branches/{suite_run.branch}"
+                f"/runs/{suite_run.run_id}/tests"
+            )
+            test_cases_data = [tc.model_dump() for tc in test_cases]
+            typer.echo(
+                f"Uploading {len(test_cases_data)} test case(s) for suite '{suite_run_str}'..."
+            )
+            response = requests.post(
+                test_cases_url,
+                data=orjson.dumps(test_cases_data),
+                timeout=180,
+            )
+            print(response.text)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            typer.echo(f"Error uploading test cases: {e}", err=True)
+            raise typer.Exit(code=1)
+
+        typer.echo("Test cases uploaded successfully.")
