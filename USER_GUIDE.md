@@ -16,8 +16,45 @@ docker compose -f ./deploy/local/docker-compose.yaml down
 
 # Importing data
 
+Importing data is currently supported:
+1. from terec-compatible json files via api endpoints
+2. from junix xml files
+3. from jenkins runs
 
+## Importing from json files
 
+To import data from json files it is required to make two api calls:
+- to import suite runs
+- to import test results for this run
+
+Please take a look at the [examples](./doc/EXAMPLE.md) or to exposed swagger / openapi docs.
+
+## Import from junit xml file
+
+Following command will import both suite run info and test results
+from the `pytest-report.xml` file.
+
+Data will be imported for org `terec` and project `terec`
+for branch `main` and run number 2.
+
+```bash
+poetry run python bases/terec/import_cli/main.py junit convert \
+./pytest-report.xml main 2 \
+--org terec --project terec
+```
+
+Note: suite name is taken from top level `testsuite` junit xml node.
+
+## Import from jenkins server
+
+Importing from jenkins server is done in two steps:
+1. export data from jenkins in the terec-compatible json format
+2. import (1) using api endpoints (mentioned earlier in this section)
+
+Please take a look at following command to export the data:
+```bash
+poetry run python bases/terec/jenkins_cli/main.py --help
+```
 
 # Accessing data
 
@@ -69,4 +106,3 @@ cassandra-3.11-ci --run-id 510
 ```
 
 ![output](doc/tests-regression-check.png)
-
