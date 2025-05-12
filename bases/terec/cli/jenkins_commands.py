@@ -1,15 +1,14 @@
 import json
 import os
 import typer
-from fastapi.encoders import jsonable_encoder
-
-from terec.ci_jenkins.jenkins_server import JenkinsServer
 
 
 jenkins_app = typer.Typer()
 
 
-def jenkins_server() -> JenkinsServer:
+def jenkins_server():
+    from terec.ci_jenkins.jenkins_server import JenkinsServer
+
     url = os.environ.get("JENKINS_URL", None)
     if not url:
         raise ValueError("JENKINS_URL is not set or empty.")
@@ -31,6 +30,8 @@ def export_build(
 
     TODO: what about branch and suite, we probably need to pass them as parameters as well
     """
+    from fastapi.encoders import jsonable_encoder
+
     server = jenkins_server()
     info = server.suite_run_for_build(job_name=job, build_num=build)
     info.org = value_or_env(org, "TEREC_ORG") or info.org
@@ -47,6 +48,8 @@ def export_tests(
     build: int,
     limit: int = typer.Option(0, help="limit for number of suites exported"),
 ) -> int:
+    from fastapi.encoders import jsonable_encoder
+
     exported_cnt = 0
     server = jenkins_server()
     print("[")
