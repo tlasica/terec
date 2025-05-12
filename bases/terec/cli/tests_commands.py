@@ -4,11 +4,7 @@ import sys
 import typer
 
 from codetiming import Timer
-from rich.console import Console
-from rich.progress import Progress
-from rich.table import Table
 
-from terec.api.routers.results import TestCaseRunInfo
 from terec.util.cli_util import (
     get_terec_rest_api,
     typer_table_config,
@@ -122,6 +118,9 @@ def failed(
     TODO: add param flag to show ignored
     TODO: use url links for builds if present
     """
+    from rich.console import Console
+    from rich.table import Table
+
     terec = TerecCallContext.create(org, project)
     data = get_failed_tests(terec, suite, branch)
     grouped_data = FailedTests(data)
@@ -194,6 +193,9 @@ def history(
     For each test it prints number of failures, skip and history of runs
     Requires TEREC_URL to be set and optionally TEREC_ORG, TEREC_PROJECT.
     """
+    from rich.console import Console
+    from rich.table import Table
+
     terec = TerecCallContext.create(org, project)
     # collect all failed tests
     with Timer("get-failed-tests"):
@@ -282,9 +284,7 @@ def history(
     console.print(table)
 
 
-def get_test_run_check(
-    terec: TerecCallContext, suite: str, run_id: int, test_run: TestCaseRunInfo
-):
+def get_test_run_check(terec: TerecCallContext, suite: str, run_id: int, test_run):
     url = f"{terec.url}/history/orgs/{terec.org}/projects/{terec.prj}/suites/{suite}/test-run-check"
     q_params = {
         "run_id": run_id,
@@ -310,6 +310,11 @@ def regression_check(
     Check suite run in terms of regression or known test failures.
     Takes given suite run and checks all failed tests against previous runs for same suite and branch.
     """
+    from rich.console import Console
+    from rich.progress import Progress
+    from rich.table import Table
+    from terec.api.routers.results import TestCaseRunInfo
+
     # validate input
     terec = TerecCallContext.create(org, project)
     # TODO: get recent build if run_id not provided

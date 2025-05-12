@@ -3,14 +3,8 @@ from pathlib import Path
 from typing import Optional
 
 import orjson
-import requests
 import typer
 
-from fastapi.encoders import jsonable_encoder
-
-
-from terec.api.routers.results import TestSuiteRunInfo
-from terec.converters.junit.converter import JunitXmlConverter
 from terec.util import cli_params as params
 from terec.util.cli_util import env_terec_url
 
@@ -28,6 +22,10 @@ def convert(
     run_id: int = params.ARG_RUN_ID,
 ):
     """Convert JUnit XML to JSON using the internal converter."""
+    from fastapi.encoders import jsonable_encoder
+    from terec.api.routers.results import TestSuiteRunInfo
+    from terec.converters.junit.converter import JunitXmlConverter
+
     xml_content = xml_file.read_text(encoding="utf-8")
     converter = JunitXmlConverter(xml_content)
     suite_runs = [s for s in converter.get_suite_runs()]
@@ -71,6 +69,10 @@ def import_junit(
         None, help="Test suite name (overrides xml content)"
     ),
 ):
+    import requests
+    from fastapi.encoders import jsonable_encoder
+    from terec.converters.junit.converter import JunitXmlConverter
+
     # Get API base URL
     try:
         base_url = env_terec_url()

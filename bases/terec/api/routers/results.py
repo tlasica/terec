@@ -1,8 +1,6 @@
 import datetime
 import more_itertools
 
-from cassandra.concurrent import execute_concurrent_with_args
-from cassandra.cqlengine.connection import get_session
 from codetiming import Timer
 from fastapi import APIRouter, HTTPException
 from loguru import logger
@@ -150,6 +148,9 @@ def add_suite_run_test_results(
     run_id: int,
     body: list[TestCaseRunInfo],
 ) -> dict:
+    from cassandra.concurrent import execute_concurrent_with_args
+    from cassandra.cqlengine.connection import get_session
+
     # empty list is not accepted
     if not body:
         raise HTTPException(

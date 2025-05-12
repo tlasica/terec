@@ -1,19 +1,13 @@
-import plotext as plt
 import typer
-from rich import box
-from rich.console import Console
-from rich.pretty import pprint
-from rich.table import Table
-from terec.util.cli_util import (
-    get_terec_rest_api,
-    TerecCallContext,
-)
+
 from terec.util import cli_params as params
 
 builds_app = typer.Typer()
 
 
 def get_builds(org: str, project: str, suite: str, branch: str):
+    from terec.util.cli_util import get_terec_rest_api, TerecCallContext
+
     terec = TerecCallContext.create(org, project)
     # collect response from terec server
     url = f"{terec.url}/history/orgs/{terec.org}/projects/{terec.prj}/suites/{suite}/builds"
@@ -21,7 +15,9 @@ def get_builds(org: str, project: str, suite: str, branch: str):
     return get_terec_rest_api(url, query_params)
 
 
-def get_build(terec: TerecCallContext, suite: str, run_id: int):
+def get_build(terec, suite: str, run_id: int):
+    from terec.util.cli_util import get_terec_rest_api, TerecCallContext
+
     url = f"{terec.url}/tests/orgs/{terec.org}/projects/{terec.prj}/suites/{suite}/runs/{run_id}"
     return get_terec_rest_api(url, {})
 
@@ -40,6 +36,11 @@ def history(
     TODO: add param to limit number of results
     TODO: add param flag to show ignored
     """
+    from rich import box
+    from rich.console import Console
+    from rich.table import Table
+    from terec.util.cli_util import TerecCallContext
+
     limit = None
     terec = TerecCallContext.create(org, project)
     data = get_builds(terec.org, terec.prj, suite, branch)
@@ -115,6 +116,9 @@ def show(
     """
     Print details of given suite run. [TODO: we need GET for /suite/runs/]
     """
+    from rich.pretty import pprint
+    from terec.util.cli_util import TerecCallContext
+
     terec = TerecCallContext.create(org, project)
     data = get_build(terec, suite, run_id)
     pprint(data)
@@ -149,6 +153,8 @@ def histogram(
     Prints out the histogram of number of test failures for runs of given suite and on given branch.
     Requires TEREC_URL to be set.
     """
+    import plotext as plt
+
     data = get_builds(org, project, suite, branch)
     usable_data = [b for b in data if b[field] is not None]
     unusable_data = [b for b in data if b[field] is None]
@@ -178,6 +184,8 @@ def bar(
     Prints out the plot of number of values for runs of given suite and on given branch.
     Requires TEREC_URL to be set.
     """
+    import plotext as plt
+
     data = get_builds(org, project, suite, branch)
     usable_data = [b for b in data if b[field] is not None]
     unusable_data = [b for b in data if b[field] is None]
@@ -201,6 +209,8 @@ def view(
     Prints out the plot of passed/skipped/failed per build.
     Requires TEREC_URL to be set.
     """
+    import plotext as plt
+
     data = get_builds(org, project, suite, branch)
     fields = ["pass_count", "skip_count", "fail_count"]
     usable_data = [b for b in data if b["pass_count"] is not None]

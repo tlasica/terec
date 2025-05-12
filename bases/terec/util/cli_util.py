@@ -5,7 +5,6 @@ from typing import Any
 
 import aiohttp
 import asyncio
-import requests
 from urllib.parse import urlparse
 
 
@@ -29,6 +28,8 @@ def value_or_env(val: str, env_var: str) -> str:
 
 
 def get_terec_rest_api(url: str, query_params: dict):
+    import requests
+
     resp = requests.get(url=url, params=query_params)
     if resp.ok:
         return resp.json()

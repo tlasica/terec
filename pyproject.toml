@@ -9,6 +9,11 @@ packages = [
     {include = "terec/api", from = "bases"},
     {include = "terec/database", from = "components"},
     {include = "terec/model", from = "components"},
+    {include = "terec/util",from = "bases"},
+    {include = "terec/converters",from = "bases"},
+    {include = "terec/ci_jenkins",from = "components"},
+    {include = "terec/regression",from = "components"},
+    {include = "terec/cli",from = "bases"},
 ]
 
 [tool.poetry.dependencies]
@@ -55,6 +60,9 @@ pytest-cov = "^4.1.0"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.poetry.scripts]
+cli = "bases.terec.cli.main:app"
+
 [tool.poe.tasks]
 test = "poetry run pytest --keepalive --benchmark-skip --cov --cov-report=html:coverage_report --junitxml=pytest-report.xml"
 benchmark = "poetry run pytest --keepalive test/bases/terec/api/test_benchmark_results_api.py"
@@ -65,6 +73,10 @@ poetry build-project
 pushd projects/terec_api
 poetry build-project
 docker build . -t terec/api:latest
+popd
+pushd projects/terec_cli
+poetry build-project
+docker build . -t terec/cli:latest
 popd
 """
 interpreter = "bash"

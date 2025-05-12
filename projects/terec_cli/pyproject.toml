@@ -1,0 +1,46 @@
+[tool.poetry]
+name = "terec_cli"
+version = "0.1.0"
+description = "Exposes terec-cli command"
+authors = ['Tomek Lasica <tlasica@life.pl>']
+license = "MIT"
+
+packages = [
+    {include = "terec/api", from = "../../bases"},
+    {include = "terec/converters", from = "../../bases"},
+    {include = "terec/cli", from = "../../bases"},
+    {include = "terec/regression",from = "../../components"},
+    {include = "terec/util",from = "../../bases"},
+    {include = "terec/model", from = "../../components"},
+    {include = "terec/ci_jenkins", from = "../../components"},
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+cassandra-driver = "^3.28.0"
+fastapi = "^0.103.2"
+pika = "^1.3.2"
+faker = "^19.10.0"
+tenacity = "^8.2.3"
+python-jenkins = "^1.8.1"
+codetiming = "^1.4.0"
+typer = {extras = ["all"], version = "^0.9.0"}
+click = "~8.1.7"
+more-itertools = "^10.1.0"
+validators = "^0.22.0"
+rich = "^13.7.0"
+plotille = "^5.0.0"
+termcharts = "^1.1.2"
+plotext = "^5.2.8"
+aiohttp = {extras = ["speedups"], version = "^3.9.1"}
+loguru = "^0.7.2"
+scikit-learn = "^1.3.2"
+python-levenshtein = "^0.23.0"
+nltk = "^3.8.1"
+orjson = "^3.10.18"
+
+[tool.poetry.group.dev.dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
