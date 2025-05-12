@@ -2,6 +2,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+import orjson
 import requests
 import typer
 
@@ -50,7 +51,11 @@ def convert(
             }
         )
 
-    print(jsonable_encoder(result).decode("utf-8"))
+    print(
+        orjson.dumps(jsonable_encoder(result), option=orjson.OPT_INDENT_2).decode(
+            "utf-8"
+        )
+    )
 
 
 @junit_app.command("import")
