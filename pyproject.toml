@@ -55,6 +55,11 @@ pytest-cov = "^4.1.0"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.poetry.scripts]
+terec-import = "bases.terec.import_cli.main:app"
+terec-status = "bases.terec.status_cli.main:app"
+terec-jenkins = "bases.terec.jenkins_cli.main:app"
+
 [tool.poe.tasks]
 test = "poetry run pytest --keepalive --benchmark-skip --cov --cov-report=html:coverage_report --junitxml=pytest-report.xml"
 benchmark = "poetry run pytest --keepalive test/bases/terec/api/test_benchmark_results_api.py"
