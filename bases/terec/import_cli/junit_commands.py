@@ -2,9 +2,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-import orjson
 import requests
 import typer
+
+from fastapi.encoders import jsonable_encoder
+
 
 from terec.api.routers.results import TestSuiteRunInfo
 from terec.converters.junit.converter import JunitXmlConverter
@@ -48,7 +50,7 @@ def convert(
             }
         )
 
-    print(orjson.dumps(result).decode("utf-8"))
+    print(jsonable_encoder(result).decode("utf-8"))
 
 
 @junit_app.command("import")
@@ -95,8 +97,8 @@ def import_junit(
         try:
             # Create the suite run via API
             runs_url = f"{base_url}/tests/orgs/{suite_run.org}/runs"
-            data = suite_run.model_dump()
-            response = requests.post(runs_url, data=orjson.dumps(data), timeout=180)
+            data = jsonable_encoder(suite_run)
+            response = requests.post(runs_url, json=data, timeout=180)
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             typer.echo(f"Error creating suite run: {e}", err=True)
@@ -119,13 +121,12 @@ def import_junit(
                 f"/suites/{suite_run.suite}/branches/{suite_run.branch}"
                 f"/runs/{suite_run.run_id}/tests"
             )
-            test_cases_data = [tc.model_dump() for tc in test_cases]
             typer.echo(
-                f"Uploading {len(test_cases_data)} test case(s) for suite '{suite_run_str}'..."
+                f"Uploading {len(test_cases)} test case(s) for suite '{suite_run_str}'..."
             )
             response = requests.post(
                 test_cases_url,
-                data=orjson.dumps(test_cases_data),
+                json=jsonable_encoder(test_cases),
                 timeout=180,
             )
             print(response.text)
