@@ -9,6 +9,11 @@ packages = [
     {include = "terec/api", from = "bases"},
     {include = "terec/database", from = "components"},
     {include = "terec/model", from = "components"},
+    {include = "terec/util",from = "bases"},
+    {include = "terec/converters",from = "bases"},
+    {include = "terec/ci_jenkins",from = "components"},
+    {include = "terec/regression",from = "components"},
+    {include = "terec/cli",from = "bases"},
 ]
 
 [tool.poetry.dependencies]
@@ -56,9 +61,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-terec-import = "bases.terec.import_cli.main:app"
-terec-status = "bases.terec.status_cli.main:app"
-terec-jenkins = "bases.terec.jenkins_cli.main:app"
+cli = "bases.terec.cli.main:app"
 
 [tool.poe.tasks]
 test = "poetry run pytest --keepalive --benchmark-skip --cov --cov-report=html:coverage_report --junitxml=pytest-report.xml"
