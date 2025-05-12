@@ -9,17 +9,17 @@ OPT_PRJ = typer.Option(
     None, help="project id, if not used then TEREC_PRJ env var will be used"
 )
 
-OPT_FOLD = typer.Option(
+OPT_FOLD: bool = typer.Option(
     False, help="if set test case will be presented in single column"
 )
 
-OPT_BUILDS_LIMIT = typer.Option(16, help="number of past builds to use")
+OPT_BUILDS_LIMIT: int = typer.Option(16, help="number of past builds to use")
 
-ARG_SUITE = typer.Argument(help="which suite runs to plot")
+ARG_SUITE: str = typer.Argument(help="which suite runs to plot")
 
-ARG_BRANCH = typer.Argument(help="branch to select suite runs")
+ARG_BRANCH: str = typer.Argument(help="branch to select suite runs")
 
-ARG_RUN_ID = typer.Argument(help="suite (build) run id")
+ARG_RUN_ID: int = typer.Argument(help="suite (build) run id")
 
 BUILD_FIELDS = [
     "fail_count",
@@ -33,4 +33,4 @@ ARG_BUILD_FIELD = (
     typer.Option("fail_count", help=f"field to use from {BUILD_FIELDS}"),
 )
 
-OPT_PROGRESS = typer.Option(False, help="show progress in stderr")
+OPT_PROGRESS: bool = typer.Option(False, help="show progress in stderr")

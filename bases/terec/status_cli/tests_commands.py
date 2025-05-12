@@ -9,14 +9,14 @@ from rich.progress import Progress
 from rich.table import Table
 
 from terec.api.routers.results import TestCaseRunInfo
-from terec.status_cli.util import (
+from terec.util.cli_util import (
     get_terec_rest_api,
     typer_table_config,
     ratio_str,
     collect_terec_rest_api_calls,
     TerecCallContext,
 )
-from terec.status_cli import params
+from terec.util import cli_params as params
 
 tests_app = typer.Typer()
 
