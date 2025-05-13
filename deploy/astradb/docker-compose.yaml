@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  terec-api:
+    image: "terec/api:latest"
+    ports:
+      - "8000:8000"
+    environment:
+      ASTRADB_TOKEN: ${ASTRADB_TOKEN}
+      ASTRADB_SCB_PATH: /app/secure_connect_bundle.zip
+    volumes:
+      - "${ASTRADB_SCB_PATH}:/app/secure_connect_bundle.zip:ro"
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: "256M"

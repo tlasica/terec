@@ -81,8 +81,17 @@ popd
 """
 interpreter = "bash"
 
-[tool.poe.tasks.start-docker]
+[tool.poe.tasks.start-local]
 shell = "docker compose --project-directory deploy/local/ up"
+
+[tool.poe.tasks.stop-local]
+shell = "docker compose --project-directory deploy/local/ down"
+
+[tool.poe.tasks.start-astradb]
+shell = "docker compose --project-directory deploy/astradb/ up"
+
+[tool.poe.tasks.stop-astradb]
+shell = "docker compose --project-directory deploy/astradb/ down"
 
 [tool.poe.tasks.start-api]
 shell = """
