@@ -1,0 +1,21 @@
+[buildkit]
+# Enable BuildKit
+docker buildx create --name mybuilder --driver docker-container --bootstrap --use
+docker buildx inspect --bootstrap
+
+# BuildKit configuration
+export DOCKER_BUILDKIT=1
+export COMPOSE_DOCKER_CLI_BUILD=1
+
+# Cache configuration
+export BUILDKIT_INLINE_CACHE=1
+export BUILDKIT_CACHE_TYPE=inline
+
+# Build arguments
+export DOCKER_BUILDKIT=1
+export COMPOSE_DOCKER_CLI_BUILD=1
+
+# Enable parallel builds
+export DOCKER_BUILDKIT=1
+export COMPOSE_DOCKER_CLI_BUILD=1
+export DOCKER_BUILD_PARALLEL=1
