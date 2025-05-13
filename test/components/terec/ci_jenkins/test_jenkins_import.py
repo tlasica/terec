@@ -1,7 +1,7 @@
 import json
 
 from fastapi.encoders import jsonable_encoder
-from starlette.testclient import TestClient
+from fastapi.testclient import TestClient
 
 from assertions import raise_for_status
 from terec.ci_jenkins.build_info_parser import parse_jenkins_build_info
