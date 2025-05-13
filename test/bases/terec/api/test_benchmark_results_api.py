@@ -2,8 +2,8 @@ import json
 
 from faker import Faker
 from fastapi.encoders import jsonable_encoder
+from fastapi.testclient import TestClient
 from pytest import fixture
-from starlette.testclient import TestClient
 
 from assertions import raise_for_status
 from .random_data import random_test_case_run_info
@@ -18,7 +18,7 @@ def random_100_test_runs():
 class TestBenchmarkResultsAPI:
     fake = Faker()
     api_app = create_app()
-    api_client = TestClient(api_app)
+    api_client = TestClient(app=api_app)
 
     def post_test_results(
         self, org: str, prj: str, suite: str, branch: str, run: int, body: str
