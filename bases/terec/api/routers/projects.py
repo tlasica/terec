@@ -1,7 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from loguru import logger
 from pydantic import BaseModel, field_validator
 
+from terec.api.auth import validate_org_token
 from terec.api.routers.util import (
     get_org_or_raise,
     raise_if_org_exists,
@@ -63,14 +64,12 @@ def create_org(org_info: OrgInfo) -> dict:
     raise_if_org_exists(org_info.name)
     params = org_info.model_dump(exclude_none=True)
     org = Org.create(**params)
-    org_tokens = []
+    org_tokens = {}
     if org.private:
         logger.info("Generating tokens for private org: {}", org.name)
         for token, token_data in generate_org_tokens(org.name):
             OrgToken.create(**model_to_dict(token_data))
-            org_tokens.append(
-                OrgTokenInfo(token_name=token_data.token_name, token=token)
-            )
+            org_tokens[token_data.token_name] = token
         return {
             "message": f"Private org {org.name} created. Please store tokens in a safe place.",
             "tokens": org_tokens,
@@ -95,7 +94,11 @@ def get_all_org_projects(org_name: str) -> list[ProjectInfo]:
 
 
 @router.put("/orgs/{org_name}/projects", status_code=201)
-def create_project(org_name: str, project_info: ProjectInfo) -> ProjectInfo:
+def create_project(
+    org_name: str,
+    project_info: ProjectInfo,
+    authz: str = Depends(validate_org_token),
+) -> ProjectInfo:
     """
     Create or update a project.
     If fields are not set then they are not updated.

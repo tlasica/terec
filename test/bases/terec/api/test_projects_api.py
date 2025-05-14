@@ -91,6 +91,29 @@ class TestGetOrgProjectsApi:
         assert not response.is_success, response.text
         assert response.status_code == 403
 
+    def test_create_project_in_public_org(self, cassandra_model):
+        org_name = self.fake.domain_name()
+        response = self._put_org(org_name, private=False)
+        assert response.is_success, response.text
+        response = self._put_project(org_name, "p")
+        assert response.is_success, response.text
+
+    def test_create_project_in_private_org(self, cassandra_model):
+        # given private org
+        org_name = self.fake.domain_name()
+        response = self._put_org(org_name, private=True)
+        assert response.is_success, response.text
+        admin_token = response.json()["tokens"]["admin"]
+        # when project request is sent without x-auth-token
+        response = self._put_project(org_name, "p")
+        assert response.status_code == 401
+        # when project request is sent with invalid api key
+        response = self._put_project(org_name, "p", headers={"X-API-KEY": "fake"})
+        assert response.status_code == 401
+        # when project request is sent with valid api key
+        response = self._put_project(org_name, "p", headers={"X-API-KEY": admin_token})
+        assert response.is_success, response.text
+
     def _put_org(self, org_name: str, private: bool = False):
         org = {
             "name": org_name,
@@ -107,6 +130,17 @@ class TestGetOrgProjectsApi:
         for item in response.json():
             res.append(OrgInfo(**item))
         return res
+
+    def _put_project(self, org_name: str, prj_name: str, headers: dict = None):
+        data = {
+            "org": org_name,
+            "name": prj_name,
+        }
+        return self.api_client.put(
+            f"/admin/orgs/{org_name}/projects",
+            content=json.dumps(data),
+            headers=headers,
+        )
 
 
 def test_valid_org_and_project_names():
