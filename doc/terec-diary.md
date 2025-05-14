@@ -82,6 +82,22 @@ http https://terec-api.fly.dev/admin/orgs
     }
 ]
 ```
+### AstraDB Storage (May 2025)
+
+Adding support for AstraDB makes cloud deployment way easier.
+
+Why AstraDB:
+- free plan up to 80G
+- I know the company / the system
+- easy integration (full Cassandra compatibility)
+
+Observations
+- account created on my gmail account
+- database created / keyspace created via dashboard
+- I was no able to find scb.zip using dashboard
+- so I used astra cli for this
+
+Code was generated with the support from AI Assistant in pycharm.
 
 ### API keys-based Authz (Apr 2025)
 
