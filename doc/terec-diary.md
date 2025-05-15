@@ -44,6 +44,45 @@ So if we have failure hash we can use show or open commands.
 1. create org
 2. create project
 
+### FLY.IO DEPLOYMENT
+
+I have considered heroku (as I already have some eco-dynos) but it seemed more complicated than fly.io.
+Eventually it worked and looks very similar to heroku.
+
+Steps needed / caveats:
+1. download cli
+2. docker tag, docker push 'registry.fly.io/terec-api'
+3. launch . deploy using --image registry.fly.io/terec-api
+4. to place scb I have tried volumes - but I was not able to make it...
+5. .. there is --local-file flag for "fly deploy" and I copy scb.zip using this
+6. fly secrets set ASTRADB_TOKEN=.. ASTRADB_SCP_PATH=.. to set req env vars
+
+Notes / Unpleasant
+- trial works only for 5 min, then app is stopped (!)
+- astradb is hibernated if not used for 48h
+
+
+```bash
+http https://terec-api.fly.dev/admin/orgs
+```
+
+```json
+[
+    {
+        "full_name": "terec application",
+        "name": "terec",
+        "private": true,
+        "url": "https://github.com/tlasica/terec"
+    },
+    {
+        "full_name": "Test org for public experiments",
+        "name": "public",
+        "private": false,
+        "url": null
+    }
+]
+```
+
 ### API keys-based Authz (Apr 2025)
 
 To support multitenancy or hosting we need to have some way of Authz.
@@ -64,7 +103,6 @@ Basic functional design:
 
 Notes:
 - it would be good to switch security as mandatory via env variable
-- security is not required / not returned if not enabled e.g. for tests
 
 ## 2023-12-01 Regression Detection
 
