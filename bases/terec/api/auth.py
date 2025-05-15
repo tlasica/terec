@@ -15,6 +15,10 @@ header_scheme = APIKeyHeader(
 )
 
 
+def api_key_headers(api_key: str) -> dict:
+    return {"X-API-KEY": api_key}
+
+
 def req_admin_perm(
     org_name: str = Path(..., description="Organization identifier in the path"),
     api_key: str | None = Depends(header_scheme),

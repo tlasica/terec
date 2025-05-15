@@ -20,10 +20,10 @@ class TestFailureAnalyser:
     }
 
     @pytest.fixture()
-    def gen_with_suite_runs(self, cassandra_model, test_project):
+    def gen_with_suite_runs(self, cassandra_model, public_project):
         suite_name = random_name("suite")
         gen = ResultsGenerator(num_tests=4)
-        suite = gen.suite(test_project.org, test_project.name, suite_name)
+        suite = gen.suite(public_project.org, public_project.name, suite_name)
         suite_runs = [gen.suite_run(suite, "main", n) for n in range(1, 5)]
         assert len(suite_runs) == 4
         assert suite_runs[0].run_id == 1 and suite_runs[-1].run_id == 4

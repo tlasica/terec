@@ -21,30 +21,30 @@ class TestJenkinsImport:
     api_app = create_app()
     api_client = TestClient(api_app)
 
-    def test_should_import_build(self, cassandra_model, test_project):
+    def test_should_import_build(self, cassandra_model, public_project):
         # given some build info json from jenkins
         ci_build_info = sample_build_info()
         # when parsed
-        org, project = test_project.org, test_project.name
+        org, project = public_project.org, public_project.name
         suite = "cassandra-3.11-ci"
         build_info = parse_jenkins_build_info(org, project, suite, ci_build_info)
         build_id = build_info.run_id
         # and inserted via api call
         self.check_suite_run_doesnt_exist(
-            org, test_project.name, suite, build_info.branch, build_id
+            org, public_project.name, suite, build_info.branch, build_id
         )
         self.add_test_suite_run(org, build_info)
         # then it should be persisted in the database
         self.check_suite_run_exists(
-            org, test_project.name, suite, build_info.branch, build_id
+            org, public_project.name, suite, build_info.branch, build_id
         )
 
-    def test_should_import_test_runs(self, cassandra_model, test_project):
+    def test_should_import_test_runs(self, cassandra_model, public_project):
         # given some build info json from jenkins
         ci_build_info = sample_build_info()
         ci_test_report = sample_build_test_report_suite()
         # when parsed
-        org, project = test_project.org, test_project.name
+        org, project = public_project.org, public_project.name
         suite = "cassandra-3.11-fastci"
         build_info = parse_jenkins_build_info(org, project, suite, ci_build_info)
         build_id = build_info.run_id
