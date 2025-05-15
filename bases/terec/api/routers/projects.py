@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from loguru import logger
 from pydantic import BaseModel, field_validator
 
-from terec.api.auth import req_admin_perm
+from terec.api.auth import req_admin_perm, req_read_perm
 from terec.api.routers.util import (
     get_org_or_raise,
     raise_if_org_exists,
@@ -82,7 +82,9 @@ def create_org(org_info: OrgInfo) -> dict:
 
 
 @router.get("/orgs/{org_name}/projects")
-def get_all_org_projects(org_name: str) -> list[ProjectInfo]:
+def get_all_org_projects(
+    org_name: str, authz=Depends(req_read_perm)
+) -> list[ProjectInfo]:
     """
     Gets all projects defined for given organisation or empty list.
     If the organisation does not exist it throws exception.

@@ -118,6 +118,19 @@ class TestGetOrgProjectsApi:
         response = self._put_project(org_name, "p", headers={"X-API-KEY": write_token})
         assert response.status_code == 401
 
+    def test_get_projects_in_private_org(self, cassandra_model):
+        # given private org
+        org_name = self.fake.domain_name()
+        response = self._put_org(org_name, private=True)
+        assert response.is_success, response.text
+        read_token = response.json()["tokens"]["read"]
+        # when no token is provided it fails
+        response = self._get_projects(org_name)
+        assert response.status_code == 401
+        # when read-only token is provided it works
+        response = self._get_projects(org_name, headers={"X-API-KEY": read_token})
+        assert response.is_success
+
     def _put_org(self, org_name: str, private: bool = False):
         org = {
             "name": org_name,
@@ -145,6 +158,9 @@ class TestGetOrgProjectsApi:
             content=json.dumps(data),
             headers=headers,
         )
+
+    def _get_projects(self, org_name: str, headers: dict = None):
+        return self.api_client.get(f"/admin/orgs/{org_name}/projects", headers=headers)
 
 
 def test_valid_org_and_project_names():
