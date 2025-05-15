@@ -2,10 +2,11 @@ import datetime
 import more_itertools
 
 from codetiming import Timer
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
 from pydantic import BaseModel, field_validator
 
+from terec.api.auth import req_read_perm, req_write_perm
 from terec.api.routers.util import (
     get_org_or_raise,
     get_org_project_or_raise,
@@ -80,20 +81,27 @@ class TestCaseRunInfo(BaseModel):
 
 
 @router.get("/orgs/{org_name}/suites")
-def get_org_suites(org_name: str) -> list[TestSuiteInfo]:
+def get_org_suites(
+    org_name: str, authz: str = Depends(req_read_perm)
+) -> list[TestSuiteInfo]:
     get_org_or_raise(org_name)
     return TestSuite.objects(org=org_name)
 
 
 @router.get("/orgs/{org_name}/projects/{project_name}/suites")
-def get_project_suites(org_name: str, project_name: str) -> list[TestSuiteInfo]:
+def get_project_suites(
+    org_name: str, project_name: str, authz: str = Depends(req_read_perm)
+) -> list[TestSuiteInfo]:
     get_org_or_raise(org_name)
     return TestSuite.objects(org=org_name, project=project_name)
 
 
 @router.get("/orgs/{org_name}/projects/{project_name}/suites/{suite_name}")
 def get_project_suite(
-    org_name: str, project_name: str, suite_name: str
+    org_name: str,
+    project_name: str,
+    suite_name: str,
+    authz: str = Depends(req_read_perm),
 ) -> TestSuiteInfo:
     get_org_or_raise(org_name)
     ret = TestSuite.objects(org=org_name, project=project_name, suite=suite_name)
@@ -102,7 +110,9 @@ def get_project_suite(
 
 
 @router.post("/orgs/{org_name}/suites")
-def create_suite(org_name: str, body: TestSuiteInfo) -> TestSuiteInfo:
+def create_suite(
+    org_name: str, body: TestSuiteInfo, authz: str = Depends(req_write_perm)
+) -> TestSuiteInfo:
     org = get_org_or_raise(org_name)
     body.org = body.org or org.name
     assert body.org == org_name, "org name in body does not match the one in path"
@@ -111,7 +121,9 @@ def create_suite(org_name: str, body: TestSuiteInfo) -> TestSuiteInfo:
 
 
 @router.post("/orgs/{org_name}/runs")
-def create_suite_run(org_name: str, body: TestSuiteRunInfo) -> None:
+def create_suite_run(
+    org_name: str, body: TestSuiteRunInfo, authz: str = Depends(req_write_perm)
+) -> None:
     # validate org
     org = get_org_or_raise(org_name)
     body.org = body.org or org.name
@@ -147,6 +159,7 @@ def add_suite_run_test_results(
     branch: str,
     run_id: int,
     body: list[TestCaseRunInfo],
+    authz: str = Depends(req_write_perm),
 ) -> dict:
     from cassandra.concurrent import execute_concurrent_with_args
     from cassandra.cqlengine.connection import get_session
@@ -263,6 +276,7 @@ def get_suite_run_tests(
     branch: str,
     run_id: int,
     result: TestCaseRunStatus | None = None,
+    authz: str = Depends(req_read_perm),
 ) -> list[TestCaseRunInfo]:
     # validate parameters
     get_org_or_raise(org_name)
@@ -294,6 +308,7 @@ def get_suite_run_info(
     suite_name: str,
     branch: str,
     run_id: int,
+    authz: str = Depends(req_read_perm),
 ) -> TestSuiteRunInfo:
     # validate parameters
     get_org_or_raise(org_name)
