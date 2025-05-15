@@ -104,15 +104,19 @@ class TestGetOrgProjectsApi:
         response = self._put_org(org_name, private=True)
         assert response.is_success, response.text
         admin_token = response.json()["tokens"]["admin"]
+        write_token = response.json()["tokens"]["write"]
         # when project request is sent without x-auth-token
         response = self._put_project(org_name, "p")
         assert response.status_code == 401
         # when project request is sent with invalid api key
         response = self._put_project(org_name, "p", headers={"X-API-KEY": "fake"})
         assert response.status_code == 401
-        # when project request is sent with valid api key
+        # when project request is sent with valid api key and admin permissions
         response = self._put_project(org_name, "p", headers={"X-API-KEY": admin_token})
         assert response.is_success, response.text
+        # when project request is sent with valid api key without admin permissions
+        response = self._put_project(org_name, "p", headers={"X-API-KEY": write_token})
+        assert response.status_code == 401
 
     def _put_org(self, org_name: str, private: bool = False):
         org = {

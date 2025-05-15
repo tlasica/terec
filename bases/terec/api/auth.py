@@ -15,10 +15,31 @@ header_scheme = APIKeyHeader(
 )
 
 
-# TODO: later add permission: admin, read, write
-def validate_org_token(
+def req_admin_perm(
     org_name: str = Path(..., description="Organization identifier in the path"),
     api_key: str | None = Depends(header_scheme),
+):
+    return _validate_org_token(org_name, api_key, OrgToken.PERM_ADMIN)
+
+
+def req_write_perm(
+    org_name: str = Path(..., description="Organization identifier in the path"),
+    api_key: str | None = Depends(header_scheme),
+):
+    return _validate_org_token(org_name, api_key, OrgToken.PERM_WRITE)
+
+
+def req_read_perm(
+    org_name: str = Path(..., description="Organization identifier in the path"),
+    api_key: str | None = Depends(header_scheme),
+):
+    return _validate_org_token(org_name, api_key, OrgToken.PERM_READ)
+
+
+def _validate_org_token(
+    org_name: str = Path(..., description="Organization identifier in the path"),
+    api_key: str | None = Depends(header_scheme),
+    permission: str | None = None,
 ):
     """
     Validates the token if the organization requires it.
@@ -34,6 +55,9 @@ def validate_org_token(
     org_token = _check_token(org_name, api_key)
     if not org_token:
         _raise_unauthorized("Invalid token")
+
+    if not org_token.has_permission(permission):
+        _raise_unauthorized("Token does not have required permission")
 
     return org_token.token_name or org_token.token_id
 

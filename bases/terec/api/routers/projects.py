@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from loguru import logger
 from pydantic import BaseModel, field_validator
 
-from terec.api.auth import validate_org_token
+from terec.api.auth import req_admin_perm
 from terec.api.routers.util import (
     get_org_or_raise,
     raise_if_org_exists,
@@ -97,7 +97,7 @@ def get_all_org_projects(org_name: str) -> list[ProjectInfo]:
 def create_project(
     org_name: str,
     project_info: ProjectInfo,
-    authz: str = Depends(validate_org_token),
+    authz: str = Depends(req_admin_perm),
 ) -> ProjectInfo:
     """
     Create or update a project.

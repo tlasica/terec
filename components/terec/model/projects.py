@@ -59,6 +59,9 @@ class OrgToken(Model):
     expire_at = columns.DateTime()
     permissions = columns.Set(columns.Text)
 
+    def has_permission(self, perm: str) -> bool:
+        return perm in self.permissions
+
 
 def generate_org_tokens(org_name: str) -> list[tuple[str, OrgToken]]:
     tokens = [
@@ -67,8 +70,8 @@ def generate_org_tokens(org_name: str) -> list[tuple[str, OrgToken]]:
             "admin",
             [OrgToken.PERM_READ, OrgToken.PERM_WRITE, OrgToken.PERM_ADMIN],
         ),
-        _org_token(org_name, "read-write", [OrgToken.PERM_READ, OrgToken.PERM_WRITE]),
-        _org_token(org_name, "read-only", [OrgToken.PERM_READ]),
+        _org_token(org_name, "write", [OrgToken.PERM_READ, OrgToken.PERM_WRITE]),
+        _org_token(org_name, "read", [OrgToken.PERM_READ]),
     ]
     return tokens
 

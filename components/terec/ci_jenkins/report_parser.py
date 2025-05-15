@@ -37,9 +37,9 @@ def parse_jenkins_report_suite(suite: dict) -> list[TestCaseRunInfo]:
             "result": case_run_status(case["status"]),
             "test_group": None,  # should be decided later
             "tstamp": tstamp,
-            "duration_ms": int(float(case["duration"]) * 1000)
-            if "duration" in case
-            else None,
+            "duration_ms": (
+                int(float(case["duration"]) * 1000) if "duration" in case else None
+            ),
             "stdout": str_or_none(case, "stdout"),
             "stderr": str_or_none(case, "stderr"),
             "error_stacktrace": str_or_none(case, "errorStackTrace"),

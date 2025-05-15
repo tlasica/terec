@@ -213,7 +213,9 @@ class TestCaseRunCheckResponse(BaseModel):
     summary: Summary
     similar_failures: list[TestCaseSuiteRunInfo]
     message: str | None
-    is_known_failure: bool | None  # T (known failure), F (new failure), None (cannot say)
+    is_known_failure: (
+        bool | None
+    )  # T (known failure), F (new failure), None (cannot say)
 
     @classmethod
     def from_analyser_result(cls, ar: TestCaseRunFailureAnalyser):
