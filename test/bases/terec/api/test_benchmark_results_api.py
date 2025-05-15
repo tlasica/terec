@@ -29,8 +29,8 @@ class TestBenchmarkResultsAPI:
     def test_benchmark_adding_100_test_results(
         self,
         cassandra_model,
-        test_project,
-        test_suite_run,
+        public_project,
+        public_project_suite_run,
         benchmark,
         random_100_test_runs,
     ):
@@ -41,17 +41,17 @@ class TestBenchmarkResultsAPI:
         # benchmark calling the api
         resp = benchmark(
             self.post_test_results,
-            test_project.org,
-            test_project.name,
-            test_suite_run.suite,
-            test_suite_run.branch,
-            test_suite_run.run_id,
+            public_project.org,
+            public_project.name,
+            public_project_suite_run.suite,
+            public_project_suite_run.branch,
+            public_project_suite_run.run_id,
             json_body,
         )
         raise_for_status(resp)
 
     def test_benchmark_adding_1000_test_results(
-        self, cassandra_model, test_project, test_suite_run, benchmark
+        self, cassandra_model, public_project, public_project_suite_run, benchmark
     ):
         # prepare random data encoded as json
         tests = [random_test_case_run_info() for _ in range(1000)]
@@ -60,11 +60,11 @@ class TestBenchmarkResultsAPI:
         # benchmark calling the api
         resp = benchmark(
             self.post_test_results,
-            test_project.org,
-            test_project.name,
-            test_suite_run.suite,
-            test_suite_run.branch,
-            test_suite_run.run_id,
+            public_project.org,
+            public_project.name,
+            public_project_suite_run.suite,
+            public_project_suite_run.branch,
+            public_project_suite_run.run_id,
             json_body,
         )
         raise_for_status(resp)

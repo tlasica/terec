@@ -44,11 +44,13 @@ class JunitXmlConverter:
                 skip_count=int(suite.attrib.get("skipped", 0)),
                 total_count=int(suite.attrib.get("tests", 0)),
                 duration_sec=int(float(suite.attrib.get("time", 0))),
-                status=TestSuiteRunStatus.FAILURE
-                if int(suite.attrib.get("failures", 0))
-                + int(suite.attrib.get("errors", 0))
-                > 0
-                else TestSuiteRunStatus.SUCCESS,
+                status=(
+                    TestSuiteRunStatus.FAILURE
+                    if int(suite.attrib.get("failures", 0))
+                    + int(suite.attrib.get("errors", 0))
+                    > 0
+                    else TestSuiteRunStatus.SUCCESS
+                ),
                 ignore=False,
                 ignore_details=None,
             )
@@ -105,15 +107,15 @@ class JunitXmlConverter:
                     duration_ms=duration_ms,
                     stdout=stdout,
                     stderr=stderr,
-                    error_stacktrace=error_stacktrace
-                    if status == TestCaseRunStatus.FAIL
-                    else None,
-                    error_details=error_details
-                    if status == TestCaseRunStatus.FAIL
-                    else None,
-                    skip_details=skip_text
-                    if status == TestCaseRunStatus.SKIP
-                    else None,
+                    error_stacktrace=(
+                        error_stacktrace if status == TestCaseRunStatus.FAIL else None
+                    ),
+                    error_details=(
+                        error_details if status == TestCaseRunStatus.FAIL else None
+                    ),
+                    skip_details=(
+                        skip_text if status == TestCaseRunStatus.SKIP else None
+                    ),
                 )
                 cases.append(case)
             self.test_cases_by_suite[suite_name] = cases

@@ -4,10 +4,11 @@ import uuid
 from functools import lru_cache
 
 from codetiming import Timer
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
 from pydantic.main import BaseModel
 
+from terec.api.auth import req_read_perm
 from terec.api.routers.results import TestSuiteRunInfo, TestCaseRunInfo
 from terec.api.routers.util import (
     get_org_or_raise,
@@ -104,6 +105,7 @@ def get_suite_branch_run_failed_tests(
     limit: int = 32,
     threshold: int | None = None,
     user_req_id: str | None = None,
+    authz: str = Depends(req_read_perm),
 ) -> list[TestCaseSuiteRunInfo]:
     """
     Return list of all failed tests for given suite and branch.
@@ -149,6 +151,7 @@ def get_suite_branch_test_runs_history(
     test_config: str | None = None,
     run_limit: int = 32,
     user_req_id: str | None = None,
+    authz: str = Depends(req_read_perm),
 ) -> list[TestCaseSuiteRunInfo]:
     """
     Return history of tests - identified by {package, class, testname} in runs of given suite on given branch.
@@ -213,7 +216,9 @@ class TestCaseRunCheckResponse(BaseModel):
     summary: Summary
     similar_failures: list[TestCaseSuiteRunInfo]
     message: str | None
-    is_known_failure: bool | None  # T (known failure), F (new failure), None (cannot say)
+    is_known_failure: (
+        bool | None
+    )  # T (known failure), F (new failure), None (cannot say)
 
     @classmethod
     def from_analyser_result(cls, ar: TestCaseRunFailureAnalyser):
@@ -258,6 +263,7 @@ def get_test_run_check(
     check_branch: str | None = None,
     depth: int = 32,
     user_req_id: str | None = None,
+    authz: str = Depends(req_read_perm),
 ) -> TestCaseRunCheckResponse:
     """
     Return information if given test run is similar to any known test failures on given branch.

@@ -13,6 +13,7 @@ def cqlengine_init(cassandra):
         os.environ["CQLENG_ALLOW_SCHEMA_MANAGEMENT"] = "1"
     connection.set_session(cassandra)
     sync_table(projects.Org)
+    sync_table(projects.OrgToken)
     sync_table(projects.Project)
     sync_table(results.TestSuite)
     sync_table(results.TestSuiteRun)

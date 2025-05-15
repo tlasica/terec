@@ -9,9 +9,10 @@ from cassandra.cluster import Session
 from loguru import logger
 
 from terec.database import cassandra_session
-from terec.model.projects import Org, Project
+from terec.model.projects import Org, Project, generate_org_tokens, OrgToken
 from terec.model.results import TestSuiteRun, TestSuite
-from terec.model.util import cqlengine_init
+from terec.model.util import cqlengine_init, model_to_dict
+
 
 # This is to add --keepalive flag when running pytests so that we do not start docker again
 # from https://github.com/avast/pytest-docker/issues/46#issuecomment-887408396
@@ -100,29 +101,43 @@ def cassandra_model(cassandra: Session) -> Session:
 
 
 @pytest.fixture(scope="class")
-def test_project(cassandra_model) -> Project:
+def public_project(cassandra_model) -> Project:
     org_name = random_name("org")
     org = Org.create(name=org_name, full_name="My Organisation", url="http://my.org")
     prj = Project.create(org=org.name, name="TestProject")
     return prj
 
 
+@pytest.fixture(scope="class")
+def private_project(cassandra_model) -> tuple[Project, dict[str, str]]:
+    org_name = random_name("org")
+    org = Org.create(
+        name=org_name, full_name="My Organisation", url="http://my.org", private=True
+    )
+    tokens = {}
+    for token, token_data in generate_org_tokens(org.name):
+        OrgToken.create(**model_to_dict(token_data))
+        tokens[token_data.token_name] = token
+    prj = Project.create(org=org.name, name="TestProject")
+    return prj, tokens
+
+
 @pytest.fixture
-def test_suite(test_project) -> TestSuite:
+def public_project_suite(public_project) -> TestSuite:
     suite_name = random_name("suite")
     suite = TestSuite.create(
-        org=test_project.org, project=test_project.name, suite=suite_name
+        org=public_project.org, project=public_project.name, suite=suite_name
     )
     return suite
 
 
 @pytest.fixture
-def test_suite_run(test_suite) -> TestSuiteRun:
+def public_project_suite_run(public_project_suite) -> TestSuiteRun:
     run_id = math.floor(time.time())
     run = TestSuiteRun.create(
-        org=test_suite.org,
-        project=test_suite.project,
-        suite=test_suite.suite,
+        org=public_project_suite.org,
+        project=public_project_suite.project,
+        suite=public_project_suite.suite,
         branch="main",
         run_id=run_id,
     )

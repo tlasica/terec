@@ -14,6 +14,7 @@ packages = [
     {include = "terec/ci_jenkins",from = "components"},
     {include = "terec/regression",from = "components"},
     {include = "terec/cli",from = "bases"},
+    {include = "terec/auth",from = "components"},
 ]
 
 [tool.poetry.dependencies]
@@ -42,6 +43,7 @@ scikit-learn = "^1.6.1"
 python-levenshtein = "^0.27.1"
 nltk = "^3.8.1"
 orjson = "^3.10.18"
+bcrypt = "^4.3.0"
 
 
 [tool.poetry.group.dev.dependencies]

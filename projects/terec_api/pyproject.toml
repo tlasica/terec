@@ -6,6 +6,7 @@ authors = ['Tomek Lasica <tlasica@life.pl>']
 license = "MIT"
 
 packages = [
+    {include = "terec/auth", from = "../../components"},
     {include = "terec/database", from = "../../components"},
     {include = "terec/model", from = "../../components"},
     {include = "terec/regression", from = "../../components"},
@@ -22,6 +23,8 @@ codetiming = "^1.4.0"
 loguru = "^0.7.2"
 python-levenshtein = "^0.27.1"
 scikit-learn = "^1.6.1"
+bcrypt = "^4.3.0"
+
 
 [tool.poetry.group.dev.dependencies]
 

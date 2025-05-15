@@ -1,15 +1,13 @@
-from fastapi import APIRouter
-from loguru import logger
+from fastapi import APIRouter, Depends
 
+from terec.api.auth import req_read_perm
 from terec.api.routers.results import TestSuiteRunInfo
 from terec.api.routers.util import (
     get_org_or_raise,
     get_org_project_or_raise,
     get_test_suite_or_raise,
 )
-from terec.model.results import (
-    TestSuiteRun,
-)
+from terec.model.results import TestSuiteRun
 from terec.model.util import model_to_dict
 
 router = APIRouter()
@@ -22,6 +20,7 @@ def get_suite_branch_run_history(
     suite_name: str,
     branch: str | None = None,
     limit: int = 32,
+    authz: str = Depends(req_read_perm),
 ) -> list[TestSuiteRunInfo]:
     """
     Return builds (runs) history for given suite on given branch starting from the most recent ones.
