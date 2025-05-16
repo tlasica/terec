@@ -9,8 +9,8 @@ OPT_ORG = typer.Option(
 
 OPT_PRJ = typer.Option(
     None,
-    envvar="TEREC_PRJ",
-    help="project id, if not used then TEREC_PRJ env var will be used",
+    envvar="TEREC_PROJECT",
+    help="project id, if not used then TEREC_PROJECT env var will be used",
 )
 
 OPT_FOLD: bool = typer.Option(

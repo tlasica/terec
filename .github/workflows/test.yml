@@ -41,8 +41,9 @@ jobs:
     - name: Store test results
       continue-on-error: true
       env:
-        API_KEY: ${{ secrets.TEREC_API_WRITE_KEY }}
+        TEREC_API_KEY: ${{ secrets.TEREC_API_WRITE_KEY }}
         TEREC_ORG: terec
-        TEREC_PRJ: terec
+        TEREC_PROJECT: terec
       run: |
+        cat ./pytest-report.xml | wc -l
         poetry run cli junit import ./pytest-report.xml ${GITHUB_REF_NAME} ${GITHUB_RUN_NUMBER}
