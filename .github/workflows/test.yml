@@ -36,8 +36,8 @@ jobs:
 
     - name: Run tests
       run: |
-        poetry run pytest --keepalive --benchmark-skip --cov=terec --cov-report=xml --junitxml=./pytest-report.xml
-        ls -l ./pytest-report.xml
+        poetry run pytest --keepalive --benchmark-skip --cov=terec --cov-report=xml --junitxml=pytest-report.xml
+        ls -l pytest-report.xml
 
     - name: Store test results
       continue-on-error: true
@@ -47,5 +47,7 @@ jobs:
         TEREC_ORG: terec
         TEREC_PROJECT: terec
       run: |
-        cat ./pytest-report.xml | wc -l
+        echo "gh ref name ${GITHUB_REF_NAME}"
+        echo "gh run number ${GITHUB_RUN_NUMBER"
+        ls -l pytest-report.xml
         poetry run cli junit import ./pytest-report.xml ${GITHUB_REF_NAME} ${GITHUB_RUN_NUMBER}
