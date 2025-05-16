@@ -73,6 +73,10 @@ def import_junit(
     from fastapi.encoders import jsonable_encoder
     from terec.converters.junit.converter import JunitXmlConverter
 
+    # check parameters
+    assert org, "--org parameter or TEREC_ORG environment variable required"
+    assert project, "--project parameter or TEREC_PROJECT environment variable required"
+
     # Get API base URL
     try:
         base_url = env_terec_url()
@@ -90,8 +94,8 @@ def import_junit(
         raise typer.Exit(code=1)
 
     for suite_run in suite_runs:
-        suite_run.org = org or suite_run.org or "imported"
-        suite_run.project = project or suite_run.project or "imported"
+        suite_run.org = org
+        suite_run.project = project
         suite_run.suite = suite or suite_run.suite
         suite_run.branch = branch
         suite_run.run_id = run_id

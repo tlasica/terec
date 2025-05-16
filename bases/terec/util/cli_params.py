@@ -2,11 +2,15 @@ import typer
 
 
 OPT_ORG = typer.Option(
-    None, help="org id, if not used then TEREC_ORG env var will be used"
+    None,
+    envvar="TEREC_ORG",
+    help="org id, if not used then TEREC_ORG env var will be used",
 )
 
 OPT_PRJ = typer.Option(
-    None, help="project id, if not used then TEREC_PRJ env var will be used"
+    None,
+    envvar="TEREC_PRJ",
+    help="project id, if not used then TEREC_PRJ env var will be used",
 )
 
 OPT_FOLD: bool = typer.Option(
