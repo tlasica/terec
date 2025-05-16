@@ -1,4 +1,6 @@
 import typer
+
+from terec.cli.admin_cli import admin_app
 from terec.cli.builds_commands import builds_app
 from terec.cli.tests_commands import tests_app
 from terec.cli.junit_commands import junit_app
@@ -8,6 +10,7 @@ from terec.cli.jenkins_commands import jenkins_app
 app = typer.Typer()
 
 # Add existing command groups
+app.add_typer(admin_app, name="admin")
 app.add_typer(
     builds_app, name="builds", short_help="Commands on builds (suite runs) history."
 )

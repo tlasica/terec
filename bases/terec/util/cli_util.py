@@ -40,6 +40,17 @@ def get_terec_rest_api(url: str, query_params: dict):
         raise Exception(f"Error when calling {url}: {resp.text}")
 
 
+def put_terec_rest_api(url: str, body: dict):
+    import requests
+
+    api_key = os.environ.get("TEREC_API_KEY")
+    resp = requests.put(url=url, data=body, headers=api_key_headers(api_key))
+    if resp.ok:
+        return resp.json()
+    else:
+        raise Exception(f"Error when calling {url}: {resp.text}")
+
+
 async def get_terec_rest_api_json_async(
     session: aiohttp.ClientSession, url: str, query_params: dict
 ):

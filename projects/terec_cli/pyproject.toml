@@ -15,6 +15,7 @@ packages = [
     {include = "terec/ci_jenkins", from = "../../components"},
     {include = "terec/database",from = "../../components"},
     {include = "terec/auth",from = "../../components"},
+    {include = "terec/lib",from = "../../bases"},
 ]
 
 [tool.poetry.dependencies]
