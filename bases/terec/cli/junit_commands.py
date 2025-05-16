@@ -5,6 +5,7 @@ from typing import Optional
 import orjson
 import typer
 
+from terec.api.auth import api_key_headers
 from terec.util import cli_params as params
 from terec.util.cli_util import env_terec_url
 
@@ -68,6 +69,7 @@ def import_junit(
     suite: Optional[str] = typer.Option(
         None, help="Test suite name (overrides xml content)"
     ),
+    api_key=params.OPT_API_KEY,
 ):
     import requests
     from fastapi.encoders import jsonable_encoder
@@ -109,7 +111,9 @@ def import_junit(
             # Create the suite run via API
             runs_url = f"{base_url}/tests/orgs/{suite_run.org}/runs"
             data = jsonable_encoder(suite_run)
-            response = requests.post(runs_url, json=data, timeout=180)
+            response = requests.post(
+                runs_url, json=data, timeout=180, headers=api_key_headers(api_key)
+            )
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             typer.echo(f"Error creating suite run: {e}", err=True)
@@ -139,6 +143,7 @@ def import_junit(
                 test_cases_url,
                 json=jsonable_encoder(test_cases),
                 timeout=180,
+                headers=api_key_headers(api_key),
             )
             print(response.text)
             response.raise_for_status()

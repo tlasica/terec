@@ -1,6 +1,12 @@
 import typer
 
 
+OPT_API_KEY = typer.Option(
+    default=None,
+    envvar="TEREC_API_KEY",
+    help="X-API-KEY token required for private orgs.",
+)
+
 OPT_ORG = typer.Option(
     None,
     envvar="TEREC_ORG",
