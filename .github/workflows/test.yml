@@ -46,8 +46,8 @@ jobs:
         TEREC_API_KEY: ${{ secrets.TEREC_API_WRITE_KEY }}
         TEREC_ORG: terec
         TEREC_PROJECT: terec
+        BRANCH_NAME: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
       run: |
-        echo "gh ref name ${GITHUB_REF_NAME}"
-        echo "gh run number ${GITHUB_RUN_NUMBER"
-        ls -l pytest-report.xml
-        poetry run cli junit import ./pytest-report.xml ${GITHUB_REF_NAME} ${GITHUB_RUN_NUMBER}
+        echo "branch name ${BRANCH_NAME} run number {GITHUB_RUN_NUMBER}"
+        ls -la
+        poetry run cli junit import ./pytest-report.xml ${BRANCH_NAME} ${GITHUB_RUN_NUMBER}
