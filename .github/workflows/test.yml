@@ -37,10 +37,12 @@ jobs:
     - name: Run tests
       run: |
         poetry run pytest --keepalive --benchmark-skip --cov=terec --cov-report=xml --junitxml=./pytest-report.xml
+        ls -l ./pytest-report.xml
 
     - name: Store test results
       continue-on-error: true
       env:
+        TEREC_URL: https://terec-api.fly.dev
         TEREC_API_KEY: ${{ secrets.TEREC_API_WRITE_KEY }}
         TEREC_ORG: terec
         TEREC_PROJECT: terec
