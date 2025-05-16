@@ -16,7 +16,7 @@ header_scheme = APIKeyHeader(
 
 
 def api_key_headers(api_key: str) -> dict:
-    return {"X-API-KEY": api_key}
+    return {"X-API-KEY": api_key} if api_key else {}
 
 
 def req_admin_perm(

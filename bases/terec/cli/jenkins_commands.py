@@ -35,7 +35,7 @@ def export_build(
     server = jenkins_server()
     info = server.suite_run_for_build(job_name=job, build_num=build)
     info.org = value_or_env(org, "TEREC_ORG") or info.org
-    info.project = value_or_env(project, "TEREC_PRJ") or info.project
+    info.project = value_or_env(project, "TEREC_PROJECT") or info.project
     info.suite = suite if suite else info.suite
     data = jsonable_encoder(info, exclude_none=True)
     json_data = json.dumps(data, indent=2)

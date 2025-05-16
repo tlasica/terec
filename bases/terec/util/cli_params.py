@@ -1,12 +1,22 @@
 import typer
 
 
+OPT_API_KEY = typer.Option(
+    default=None,
+    envvar="TEREC_API_KEY",
+    help="X-API-KEY token required for private orgs.",
+)
+
 OPT_ORG = typer.Option(
-    None, help="org id, if not used then TEREC_ORG env var will be used"
+    None,
+    envvar="TEREC_ORG",
+    help="org id, if not used then TEREC_ORG env var will be used",
 )
 
 OPT_PRJ = typer.Option(
-    None, help="project id, if not used then TEREC_PRJ env var will be used"
+    None,
+    envvar="TEREC_PROJECT",
+    help="project id, if not used then TEREC_PROJECT env var will be used",
 )
 
 OPT_FOLD: bool = typer.Option(

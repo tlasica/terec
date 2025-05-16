@@ -5,6 +5,7 @@ from typing import Optional
 import orjson
 import typer
 
+from terec.api.auth import api_key_headers
 from terec.util import cli_params as params
 from terec.util.cli_util import env_terec_url
 
@@ -68,10 +69,15 @@ def import_junit(
     suite: Optional[str] = typer.Option(
         None, help="Test suite name (overrides xml content)"
     ),
+    api_key=params.OPT_API_KEY,
 ):
     import requests
     from fastapi.encoders import jsonable_encoder
     from terec.converters.junit.converter import JunitXmlConverter
+
+    # check parameters
+    assert org, "--org parameter or TEREC_ORG environment variable required"
+    assert project, "--project parameter or TEREC_PROJECT environment variable required"
 
     # Get API base URL
     try:
@@ -90,8 +96,8 @@ def import_junit(
         raise typer.Exit(code=1)
 
     for suite_run in suite_runs:
-        suite_run.org = org or suite_run.org or "imported"
-        suite_run.project = project or suite_run.project or "imported"
+        suite_run.org = org
+        suite_run.project = project
         suite_run.suite = suite or suite_run.suite
         suite_run.branch = branch
         suite_run.run_id = run_id
@@ -105,7 +111,9 @@ def import_junit(
             # Create the suite run via API
             runs_url = f"{base_url}/tests/orgs/{suite_run.org}/runs"
             data = jsonable_encoder(suite_run)
-            response = requests.post(runs_url, json=data, timeout=180)
+            response = requests.post(
+                runs_url, json=data, timeout=180, headers=api_key_headers(api_key)
+            )
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             typer.echo(f"Error creating suite run: {e}", err=True)
@@ -135,6 +143,7 @@ def import_junit(
                 test_cases_url,
                 json=jsonable_encoder(test_cases),
                 timeout=180,
+                headers=api_key_headers(api_key),
             )
             print(response.text)
             response.raise_for_status()

@@ -103,8 +103,8 @@ class TerecCallContext:
             value_or_env(org, "TEREC_ORG"), "org not provided or not set via TEREC_ORG"
         )
         terec_prj = not_none(
-            value_or_env(prj, "TEREC_PRJ"),
-            "project not provided or not set via TEREC_PRJ",
+            value_or_env(prj, "TEREC_PROJECT"),
+            "project not provided or not set via TEREC_PROJECT",
         )
         user_req_id = user_req_id or str(uuid.uuid1())
         return TerecCallContext(terec_url, terec_org, terec_prj, user_req_id)
