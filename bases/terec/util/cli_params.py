@@ -39,8 +39,6 @@ BUILD_FIELDS = [
     "duration_sec",
 ]
 
-ARG_BUILD_FIELD = (
-    typer.Option("fail_count", help=f"field to use from {BUILD_FIELDS}"),
-)
+ARG_BUILD_FIELD = typer.Option("fail_count", help=f"field to use from {BUILD_FIELDS}")
 
 OPT_PROGRESS: bool = typer.Option(False, help="show progress in stderr")

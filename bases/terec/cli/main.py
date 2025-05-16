@@ -8,10 +8,24 @@ from terec.cli.jenkins_commands import jenkins_app
 app = typer.Typer()
 
 # Add existing command groups
-app.add_typer(builds_app, name="builds")
-app.add_typer(tests_app, name="tests")
+app.add_typer(
+    builds_app, name="builds", short_help="Commands on builds (suite runs) history."
+)
+app.add_typer(tests_app, name="tests", short_help="Commands on test cases history.")
 app.add_typer(junit_app, name="junit")
-app.add_typer(jenkins_app, name="jenkins")
+app.add_typer(
+    jenkins_app, name="jenkins", short_help="Export Jenkins CI builds and test reports."
+)
+
+
+@app.command(short_help="Prints common env variables to be set when using cli.")
+def env():
+    typer.echo("Common env variables:")
+    typer.echo("TEREC_URL - for the TeReC api url.")
+    typer.echo("TEREC_API_KEY - api key for private orgs.")
+    typer.echo("TEREC_ORG - org name (instead of --org)")
+    typer.echo("TEREC_PROJECT - project name (instead of --project)")
+
 
 # Entry point
 if __name__ == "__main__":
