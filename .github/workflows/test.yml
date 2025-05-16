@@ -36,4 +36,13 @@ jobs:
 
     - name: Run tests
       run: |
-        poetry run pytest --keepalive --benchmark-skip --cov=terec --cov-report=xml
+        poetry run pytest --keepalive --benchmark-skip --cov=terec --cov-report=xml --junitxml=./pytest-report.xml
+
+    - name: Store test results
+      continue-on-error: true
+      env:
+        API_KEY: ${{ secrets.TEREC_API_WRITE_KEY }}
+        TEREC_ORG: terec
+        TEREC_PRJ: terec
+      run: |
+        poetry run cli junit import ./pytest-report.xml ${GITHUB_REF_NAME} ${GITHUB_RUN_NUMBER}
