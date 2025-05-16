@@ -15,10 +15,10 @@ def get_builds(org: str, project: str, suite: str, branch: str):
     return get_terec_rest_api(url, query_params)
 
 
-def get_build(terec, suite: str, run_id: int):
+def get_build(terec, suite: str, branch: str, run_id: int):
     from terec.util.cli_util import get_terec_rest_api, TerecCallContext
 
-    url = f"{terec.url}/tests/orgs/{terec.org}/projects/{terec.prj}/suites/{suite}/runs/{run_id}"
+    url = f"{terec.url}/tests/orgs/{terec.org}/projects/{terec.prj}/suites/{suite}/branches/{branch}/runs/{run_id}"
     return get_terec_rest_api(url, {})
 
 
@@ -109,6 +109,7 @@ def history(
 @builds_app.command()
 def show(
     suite: str = params.ARG_SUITE,
+    branch: str = params.ARG_BRANCH,
     run_id: int = params.ARG_RUN_ID,
     org: str = params.OPT_ORG,
     project: str = params.OPT_PRJ,
@@ -120,7 +121,7 @@ def show(
     from terec.util.cli_util import TerecCallContext
 
     terec = TerecCallContext.create(org, project)
-    data = get_build(terec, suite, run_id)
+    data = get_build(terec, suite, branch, run_id)
     pprint(data)
 
 
@@ -186,6 +187,7 @@ def bar(
     """
     import plotext as plt
 
+    typer.echo(f"Using field: {field} for bar size.")
     data = get_builds(org, project, suite, branch)
     usable_data = [b for b in data if b[field] is not None]
     unusable_data = [b for b in data if b[field] is None]

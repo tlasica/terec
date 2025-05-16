@@ -7,6 +7,8 @@ import aiohttp
 import asyncio
 from urllib.parse import urlparse
 
+from terec.api.auth import api_key_headers
+
 
 def not_none(v: str, msg: str) -> str:
     if not v:
@@ -30,7 +32,8 @@ def value_or_env(val: str, env_var: str) -> str:
 def get_terec_rest_api(url: str, query_params: dict):
     import requests
 
-    resp = requests.get(url=url, params=query_params)
+    api_key = os.environ.get("TEREC_API_KEY")
+    resp = requests.get(url=url, params=query_params, headers=api_key_headers(api_key))
     if resp.ok:
         return resp.json()
     else:
