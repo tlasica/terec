@@ -15,6 +15,7 @@ packages = [
     {include = "terec/regression",from = "components"},
     {include = "terec/cli",from = "bases"},
     {include = "terec/auth",from = "components"},
+    {include = "terec/lib",from = "bases"},
 ]
 
 [tool.poetry.dependencies]
