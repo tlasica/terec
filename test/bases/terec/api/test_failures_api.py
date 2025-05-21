@@ -1,17 +1,18 @@
 import pytest
 from faker import Faker
-from fastapi.testclient import TestClient
 
 from generator import ResultsGenerator, generate_suite_with_test_runs
 from conftest import random_name
-from terec.api.core import create_app
 from terec.model.results import TestCaseRun
 
 
+@pytest.mark.usefixtures("api_client")
 class TestFailuresGetFailedTestsAPI:
     fake = Faker()
-    api_app = create_app()
-    api_client = TestClient(api_app)
+
+    @pytest.fixture(autouse=True)
+    def inject_client(self, api_client):
+        self.api_client = api_client
 
     def get_failed_tests(self, org, project, suite, branch, headers=None):
         url = f"/history/orgs/{org}/projects/{project}/suites/{suite}/failed-tests"
@@ -61,10 +62,13 @@ class TestFailuresGetFailedTestsAPI:
         assert resp.status_code == 401
 
 
+@pytest.mark.usefixtures("api_client")
 class TestFailuresGetTestRunsAPI:
     fake = Faker()
-    api_app = create_app()
-    api_client = TestClient(api_app)
+
+    @pytest.fixture(autouse=True)
+    def inject_client(self, api_client):
+        self.api_client = api_client
 
     def get_test_runs(
         self,
@@ -192,10 +196,13 @@ class TestFailuresGetTestRunsAPI:
         assert resp.status_code == 401
 
 
+@pytest.mark.usefixtures("api_client")
 class TestFailuresCheckTestRunAPI:
     fake = Faker()
-    api_app = create_app()
-    api_client = TestClient(api_app)
+
+    @pytest.fixture(autouse=True)
+    def inject_client(self, api_client):
+        self.api_client = api_client
 
     def get_test_run_check(
         self,

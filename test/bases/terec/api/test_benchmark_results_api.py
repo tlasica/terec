@@ -1,13 +1,12 @@
 import json
+import pytest
 
 from faker import Faker
 from fastapi.encoders import jsonable_encoder
-from fastapi.testclient import TestClient
 from pytest import fixture
 
 from assertions import raise_for_status
 from .random_data import random_test_case_run_info
-from terec.api.core import create_app
 
 
 @fixture(scope="module")
@@ -15,10 +14,9 @@ def random_100_test_runs():
     return [random_test_case_run_info() for _ in range(100)]
 
 
+@pytest.mark.usefixtures("api_client")
 class TestBenchmarkResultsAPI:
     fake = Faker()
-    api_app = create_app()
-    api_client = TestClient(app=api_app)
 
     def post_test_results(
         self, org: str, prj: str, suite: str, branch: str, run: int, body: str

@@ -1,9 +1,9 @@
+import pytest
 import json
 from unittest import SkipTest
 
 from faker import Faker
 from fastapi.encoders import jsonable_encoder
-from fastapi.testclient import TestClient
 
 from conftest import random_name
 from generator import generate_suite_with_test_runs
@@ -12,7 +12,6 @@ from .random_data import (
     random_test_suite_run_info,
     random_test_case_run_info,
 )
-from terec.api.core import create_app
 from terec.model.projects import Org, Project
 from terec.model.results import TestSuite, TestSuiteRun, TestCaseRun, TestCaseRunStatus
 
@@ -21,15 +20,18 @@ def not_none(d: dict) -> dict:
     return {k: v for k, v in d.items() if v is not None}
 
 
-def expect_error_404(api_client: TestClient, url: str) -> None:
+def expect_error_404(api_client, url: str) -> None:
     response = api_client.get(url)
     assert response.status_code == 404
 
 
+@pytest.mark.usefixtures("api_client")
 class TestResultsSuitesAPI:
     fake = Faker()
-    api_app = create_app()
-    api_client = TestClient(api_app)
+
+    @pytest.fixture(autouse=True)
+    def inject_client(self, api_client):
+        self.api_client = api_client
 
     def test_should_raise_for_not_existing_org(self, cassandra_model) -> None:
         expect_error_404(self.api_client, "/org/not-existing/suites")
@@ -59,10 +61,13 @@ class TestResultsSuitesAPI:
         assert len(response.json()) == n, response.json()
 
 
+@pytest.mark.usefixtures("api_client")
 class TestSuiteRunsAPI:
     fake = Faker()
-    api_app = create_app()
-    api_client = TestClient(api_app)
+
+    @pytest.fixture(autouse=True)
+    def inject_client(self, api_client):
+        self.api_client = api_client
 
     def post_suite_run(self, org_name, suite_run_info):
         url = f"/tests/orgs/{org_name}/runs"
@@ -113,10 +118,13 @@ class TestSuiteRunsAPI:
     # TODO: we need to add and test get methods
 
 
+@pytest.mark.usefixtures("api_client")
 class TestCaseResultsAPI:
     fake = Faker()
-    api_app = create_app()
-    api_client = TestClient(api_app)
+
+    @pytest.fixture(autouse=True)
+    def inject_client(self, api_client):
+        self.api_client = api_client
 
     def post_test_results(
         self, org: str, prj: str, suite: str, branch: str, run: int, body: str
@@ -272,7 +280,12 @@ class TestCaseResultsAPI:
         assert len(run_tests) == len(resp.json())
 
 
+@pytest.mark.usefixtures("api_client")
 class TestIgnoreSuiteRunAPI:
+    @pytest.fixture(autouse=True)
+    def inject_client(self, api_client):
+        self.api_client = api_client
+
     def test_ignore_suite_run(self, cassandra_model, public_project):
         # create suite run
         # should not be ignored by default

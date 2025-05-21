@@ -1,14 +1,14 @@
+import pytest
+
 from faker import Faker
 from fastapi.testclient import TestClient
 
 from conftest import random_name
 from terec.api.auth import api_key_headers
 from terec.api.routers.results import TestSuiteInfo
-from terec.model.results import TestSuite
 from .random_data import (
     random_test_suite_run_info,
 )
-from terec.api.core import create_app
 
 
 def not_none(d: dict) -> dict:
@@ -20,10 +20,13 @@ def expect_error_404(api_client: TestClient, url: str) -> None:
     assert response.status_code == 404
 
 
+@pytest.mark.usefixtures("api_client")
 class TestPlotsAPI:
     fake = Faker()
-    api_app = create_app()
-    api_client = TestClient(api_app)
+
+    @pytest.fixture(autouse=True)
+    def inject_client(self, api_client):
+        self.api_client = api_client
 
     def get_history(self, org, project, suite, branch, headers=None):
         url = f"history/orgs/{org}/projects/{project}/suites/{suite}/builds?branch={branch}"

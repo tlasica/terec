@@ -5,7 +5,7 @@ import time
 
 
 from cassandra.cluster import Session
-
+from fastapi.testclient import TestClient
 from loguru import logger
 
 from terec.database import cassandra_session
@@ -142,6 +142,14 @@ def public_project_suite_run(public_project_suite) -> TestSuiteRun:
         run_id=run_id,
     )
     return run
+
+
+@pytest.fixture(scope="session")
+def api_client() -> TestClient:
+    from terec.api.core import create_app
+
+    api_app = create_app()
+    return TestClient(api_app)
 
 
 def random_name(prefix: str) -> str:

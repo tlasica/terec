@@ -1,8 +1,7 @@
 import json
+import pytest
 
 from faker import Faker
-from fastapi.testclient import TestClient
-from terec.api.core import create_app
 from terec.api.routers.projects import OrgInfo, is_valid_terec_name
 from terec.model.projects import Org, Project, OrgToken
 
@@ -11,10 +10,13 @@ def not_none(d: dict) -> dict:
     return {k: v for k, v in d.items() if v is not None}
 
 
+@pytest.mark.usefixtures("api_client")
 class TestGetOrgProjectsApi:
     fake = Faker()
-    api_app = create_app()
-    api_client = TestClient(api_app)
+
+    @pytest.fixture(autouse=True)
+    def inject_client(self, api_client):
+        self.api_client = api_client
 
     def test_should_raise_for_not_existing_org(self, cassandra_model):
         response = self.api_client.get("/admin/orgs/not-existing/projects")
