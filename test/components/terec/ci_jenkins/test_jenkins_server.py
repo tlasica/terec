@@ -10,9 +10,16 @@ def cassandra_ci():
     return JenkinsServer(cassandra_jenkins_url)
 
 
-@pytest.mark.skip(reason="This test uses external CI that is not reliable.")
-def test_jenkins_server_connection(cassandra_ci):
-    version = cassandra_ci.connect().get_version().split(".")
+@fixture
+def jenkins_server(docker_services):
+    from terec.ci_jenkins.jenkins_server import JenkinsServer
+
+    return JenkinsServer("http://localhost:8083/")
+
+
+# @pytest.mark.skip(reason="This test uses external CI that is not reliable.")
+def test_jenkins_server_connection(jenkins_server):
+    version = jenkins_server.connect().get_version().split(".")
     assert len(version) >= 3
     assert all([v.isnumeric() for v in version])
 
