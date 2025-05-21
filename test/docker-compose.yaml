@@ -21,6 +21,23 @@ services:
           memory: "1024MB"
   jenkins:
     image: jenkins/jenkins:lts
+    user: root
     ports:
-      - 8080:8080
-      - 50000:50000
+      - "8083:8080"
+      - "50000:50000"
+    volumes:
+      - ./jenkins-config.xml:/tmp/config.xml:ro
+      - ./jenkins-entrypoint.sh:/entrypoint.sh
+    entrypoint: /entrypoint.sh
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: "256MB"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
