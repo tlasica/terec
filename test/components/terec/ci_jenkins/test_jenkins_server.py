@@ -10,6 +10,7 @@ def cassandra_ci():
     return JenkinsServer(cassandra_jenkins_url)
 
 
+@pytest.mark.skip(reason="This test uses external CI that is not reliable.")
 def test_jenkins_server_connection(cassandra_ci):
     version = cassandra_ci.connect().get_version().split(".")
     assert len(version) >= 3
