@@ -19,3 +19,8 @@ services:
         limits:
           cpus: "2"
           memory: "1024MB"
+  jenkins:
+    image: jenkins/jenkins:lts
+    ports:
+      - 8080:8080
+      - 50000:50000
