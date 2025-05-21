@@ -1,5 +1,5 @@
 import hashlib
-import Levenshtein
+from polyleven import levenshtein
 
 from nltk.util import ngrams
 from nltk.metrics.distance import jaccard_distance
@@ -50,7 +50,7 @@ print(f"Found {len(failed_tests)} failed tests")
 
 
 def levenshtein_similarity_ratio(str1, str2):
-    distance = Levenshtein.distance(str1, str2)
+    distance = levenshtein(str1, str2)
     normalized_distance = distance / max(len(str1), len(str2))
     similarity_ratio = 1 - normalized_distance
     return similarity_ratio
@@ -116,6 +116,3 @@ for p in failed_tests:
             )
             print(f"..p stacktrace:\n {p.error_stacktrace}")
             print(f"..q stacktrace:\n {q.error_stacktrace}")
-
-
-import Levenshtein

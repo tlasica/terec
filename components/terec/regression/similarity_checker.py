@@ -1,7 +1,7 @@
-import Levenshtein
 import re
 
 from difflib import SequenceMatcher
+from polyleven import levenshtein
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -10,7 +10,7 @@ from terec.model.results import TestCaseRun
 
 
 def levenshtein_sim_ratio(str1, str2):
-    distance = Levenshtein.distance(str1, str2)
+    distance = levenshtein(str1, str2)
     normalized_distance = distance / max(len(str1), len(str2))
     similarity_ratio = 1 - normalized_distance
     return similarity_ratio
