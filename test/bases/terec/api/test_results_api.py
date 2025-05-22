@@ -234,7 +234,7 @@ class TestCaseResultsAPI:
         org, project = public_project.org, public_project.name
         branch = "main"
         suite, suite_runs, test_runs = generate_suite_with_test_runs(
-            org, project, branch=branch
+            org, project, branch=branch, num_runs=3
         )
         run_id = suite_runs[0].run_id
         resp = self.get_test_results(
@@ -242,7 +242,7 @@ class TestCaseResultsAPI:
             suite.project,
             suite.suite,
             branch,
-            suite_runs[0].run_id,
+            run_id,
             result=None,
         )
         assert resp.is_success, resp.text
