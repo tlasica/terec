@@ -2,7 +2,7 @@ from jenkins import Jenkins
 from loguru import logger
 from requests import Session
 import requests
-from typing import List, Optional
+from typing import List, Optional, Generator
 
 from terec.api.routers.results import TestSuiteRunInfo, TestCaseRunInfo
 from terec.ci_jenkins.build_info_parser import parse_jenkins_build_info
@@ -11,7 +11,7 @@ from terec.ci_jenkins.report_parser import parse_jenkins_report_suite
 
 class JenkinsServer:
     def __init__(self, url: str, username: str = None, password: str = None):
-        self.url = url.rstrip("/")  # Remove trailing slash if present
+        self.url = url.rstrip("/")  # Remove a trailing slash if present
         self.username = username
         self.password = password
         self.server = None
@@ -35,9 +35,7 @@ class JenkinsServer:
         build_info = j.get_build_info(name=job_name, number=build_num)
         return parse_jenkins_build_info("org", "project", "suite", build_info)
 
-    def suite_test_runs_for_build(
-        self, job_name: str, build_num: int, limit: int = 0
-    ) -> List[TestCaseRunInfo]:
+    def suite_test_runs_for_build(self, job_name: str, build_num: int, limit: int = 0):
         """
         Efficiently collect test suite runs using optimized tree parameter and index-based collection
         """
@@ -53,10 +51,7 @@ class JenkinsServer:
             for start_idx, end_idx in batches:
                 index = f"{{{start_idx},{end_idx}}}"
                 logger.debug("Getting suites {}..{}", start_idx, end_idx)
-                for suite_results in self._get_suites_test_runs(
-                    session, job_name, build_num, index
-                ):
-                    yield suite_results
+                yield self._get_suites_test_runs(session, job_name, build_num, index)
 
     def _get_jenkins_api(
         self,

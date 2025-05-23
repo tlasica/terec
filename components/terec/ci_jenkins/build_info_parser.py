@@ -42,7 +42,12 @@ def parse_jenkins_build_info(
         "status": build_status(build["result"]),
     }
 
-    extras = {x["_class"]: x for x in build["actions"] if x and "_class" in x}
+    # some action may be included twice, e.g. if two repos are pulled
+    # in such a case we will favor the first one as more important
+    extras = {}
+    for x in build["actions"]:
+        if x and "_class" in x and x["_class"] not in extras:
+            extras[x["_class"]] = x
 
     if "hudson.tasks.junit.TestResultAction" in extras:
         results = extras["hudson.tasks.junit.TestResultAction"]
