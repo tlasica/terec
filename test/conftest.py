@@ -152,5 +152,10 @@ def api_client() -> TestClient:
     return TestClient(api_app)
 
 
+@pytest.fixture
+def org_name():
+    return random_name("org")
+
+
 def random_name(prefix: str) -> str:
     return f"{prefix}-{math.floor(1000 * time.time())}"

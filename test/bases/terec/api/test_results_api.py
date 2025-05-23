@@ -2,7 +2,6 @@ import pytest
 import json
 from unittest import SkipTest
 
-from faker import Faker
 from fastapi.encoders import jsonable_encoder
 
 from conftest import random_name
@@ -27,8 +26,6 @@ def expect_error_404(api_client, url: str) -> None:
 
 @pytest.mark.usefixtures("api_client")
 class TestResultsSuitesAPI:
-    fake = Faker()
-
     @pytest.fixture(autouse=True)
     def inject_client(self, api_client):
         self.api_client = api_client
@@ -37,9 +34,9 @@ class TestResultsSuitesAPI:
         expect_error_404(self.api_client, "/org/not-existing/suites")
         expect_error_404(self.api_client, "/org/not-existing/projects/a/suites")
 
-    def test_create_suite_in_org(self, cassandra_model):
+    def test_create_suite_in_org(self, cassandra_model, org_name):
         # given an organization
-        org = Org.create(name=self.fake.company())
+        org = Org.create(name=org_name)
         # when 3 suites in project a and 2 in project b are created
         url = f"/tests/orgs/{org.name}/suites"
         for p in ["a", "b", "a", "a", "b"]:
@@ -63,8 +60,6 @@ class TestResultsSuitesAPI:
 
 @pytest.mark.usefixtures("api_client")
 class TestSuiteRunsAPI:
-    fake = Faker()
-
     @pytest.fixture(autouse=True)
     def inject_client(self, api_client):
         self.api_client = api_client
@@ -73,16 +68,18 @@ class TestSuiteRunsAPI:
         url = f"/tests/orgs/{org_name}/runs"
         return self.api_client.post(url, content=suite_run_info.model_dump_json())
 
-    def test_should_fail_create_on_non_existing_project(self, cassandra_model):
-        org = Org.create(name=self.fake.company())
+    def test_should_fail_create_on_non_existing_project(
+        self, cassandra_model, org_name
+    ):
+        org = Org.create(name=org_name)
         project = random_name("non-existing-project")
         suite_run = random_test_suite_run_info(org.name, project, "ci", run_id=7)
         response = self.post_suite_run(org.name, suite_run)
         assert not response.is_success
 
-    def test_should_create_run_and_suite_if_not_exists(self):
-        org = Org.create(name=self.fake.company())
-        prj = Project.create(org=org.name, name=self.fake.domain_word())
+    def test_should_create_run_and_suite_if_not_exists(self, cassandra_model, org_name):
+        org = Org.create(name=org_name)
+        prj = Project.create(org=org.name, name="a")
         suite_run = random_test_suite_run_info(org.name, prj.name, "ci", run_id=7)
         response = self.post_suite_run(org.name, suite_run)
         assert response.status_code == 200, response.text
@@ -94,10 +91,10 @@ class TestSuiteRunsAPI:
         assert len(runs) == 1
         assert runs[0].run_id == 7, f"Expected run with id 7 but got: {runs[0]}"
 
-    def test_should_create_runs_in_existing_suite(self):
+    def test_should_create_runs_in_existing_suite(self, cassandra_model, org_name):
         # given an existing suite
-        org = Org.create(name=self.fake.domain_name())
-        prj = Project.create(org=org.name, name=self.fake.domain_word())
+        org = Org.create(name=org_name)
+        prj = Project.create(org=org.name, name="a")
         TestSuite.create(org=org.name, project=prj.name, suite="ci")
         # when we add some test suite runs
         for run_id in range(1, 6):
@@ -120,8 +117,6 @@ class TestSuiteRunsAPI:
 
 @pytest.mark.usefixtures("api_client")
 class TestCaseResultsAPI:
-    fake = Faker()
-
     @pytest.fixture(autouse=True)
     def inject_client(self, api_client):
         self.api_client = api_client
@@ -239,7 +234,7 @@ class TestCaseResultsAPI:
         org, project = public_project.org, public_project.name
         branch = "main"
         suite, suite_runs, test_runs = generate_suite_with_test_runs(
-            org, project, branch=branch
+            org, project, branch=branch, num_runs=3
         )
         run_id = suite_runs[0].run_id
         resp = self.get_test_results(
@@ -247,7 +242,7 @@ class TestCaseResultsAPI:
             suite.project,
             suite.suite,
             branch,
-            suite_runs[0].run_id,
+            run_id,
             result=None,
         )
         assert resp.is_success, resp.text

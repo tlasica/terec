@@ -117,11 +117,11 @@ class ResultsGenerator:
         return "\n".join(out)
 
 
-def generate_suite_with_test_runs(org, project, branch="main"):
+def generate_suite_with_test_runs(org, project, branch="main", num_runs=10):
     gen = ResultsGenerator()
     suite_name = random_name("suite")
     suite = gen.suite(org, project, suite_name)
-    suite_runs = [gen.suite_run(suite, branch, n) for n in range(1, 10)]
+    suite_runs = [gen.suite_run(suite, branch, n + 1) for n in range(num_runs)]
     test_runs: list[TestCaseRun] = []
     for r in suite_runs:
         test_runs += gen.test_case_runs(r)

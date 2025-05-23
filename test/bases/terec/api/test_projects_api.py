@@ -2,6 +2,8 @@ import json
 import pytest
 
 from faker import Faker
+
+from conftest import random_name
 from terec.api.routers.projects import OrgInfo, is_valid_terec_name
 from terec.model.projects import Org, Project, OrgToken
 
@@ -23,7 +25,7 @@ class TestGetOrgProjectsApi:
         assert response.status_code == 404
 
     def test_get_all_org_projects(self, cassandra_model):
-        org = Org.create(name=self.fake.domain_name())
+        org = Org.create(name=random_name("org"))
         response = self.api_client.get(f"/admin/orgs/{org.name}/projects")
         assert response.is_success
         assert response.json() == []
@@ -53,7 +55,7 @@ class TestGetOrgProjectsApi:
         # given some set of existing orgs
         orgs_before = [o.name for o in self._get_orgs()]
         # when a new org is created with PUT
-        org_name = self.fake.domain_name()
+        org_name = random_name("org")
         assert org_name not in orgs_before
         response = self._put_org(org_name)
         assert response.is_success, response.text
@@ -70,7 +72,7 @@ class TestGetOrgProjectsApi:
         # given some set of existing orgs
         orgs_before = [o.name for o in self._get_orgs()]
         # when a new org is created with PUT
-        org_name = self.fake.domain_name()
+        org_name = random_name("org")
         assert org_name not in orgs_before
         response = self._put_org(org_name, private=True)
         assert response.is_success, response.text
@@ -85,7 +87,7 @@ class TestGetOrgProjectsApi:
         assert len(org_tokens) == 3
 
     def test_create_org_should_fail_if_org_exists(self, cassandra_model):
-        org_name = self.fake.domain_word()
+        org_name = random_name("org")
         response = self._put_org(org_name)
         assert response.is_success, response.text
         assert response.status_code == 201
@@ -94,7 +96,7 @@ class TestGetOrgProjectsApi:
         assert response.status_code == 403
 
     def test_create_project_in_public_org(self, cassandra_model):
-        org_name = self.fake.domain_name()
+        org_name = random_name("org")
         response = self._put_org(org_name, private=False)
         assert response.is_success, response.text
         response = self._put_project(org_name, "p")
@@ -102,7 +104,7 @@ class TestGetOrgProjectsApi:
 
     def test_create_project_in_private_org(self, cassandra_model):
         # given private org
-        org_name = self.fake.domain_name()
+        org_name = random_name("org")
         response = self._put_org(org_name, private=True)
         assert response.is_success, response.text
         admin_token = response.json()["tokens"]["admin"]
@@ -122,7 +124,7 @@ class TestGetOrgProjectsApi:
 
     def test_get_projects_in_private_org(self, cassandra_model):
         # given private org
-        org_name = self.fake.domain_name()
+        org_name = random_name("org")
         response = self._put_org(org_name, private=True)
         assert response.is_success, response.text
         read_token = response.json()["tokens"]["read"]
