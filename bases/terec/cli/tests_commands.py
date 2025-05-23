@@ -24,9 +24,11 @@ def get_failed_tests(terec: TerecCallContext, suite: str, branch: str):
     return get_terec_rest_api(url, query_params)
 
 
-def get_suite_run_failed_tests(terec: TerecCallContext, suite: str, run_id: int):
+def get_suite_run_failed_tests(
+    terec: TerecCallContext, suite: str, branch: str, run_id: int
+):
     # collect response from terec server
-    url = f"{terec.url}/tests/orgs/{terec.org}/projects/{terec.prj}/suites/{suite}/runs/{run_id}/tests"
+    url = f"{terec.url}/tests/orgs/{terec.org}/projects/{terec.prj}/suites/{suite}/branches/{branch}/runs/{run_id}/tests"
     query_params = {"result": "FAIL"}
     return get_terec_rest_api(url, query_params)
 
@@ -297,18 +299,20 @@ def get_test_run_check(terec: TerecCallContext, suite: str, run_id: int, test_ru
 
 
 @tests_app.command()
-def regression_check(
+def check(
     suite: str = params.ARG_SUITE,
+    branch: str = params.ARG_BRANCH,
+    run_id: int = params.ARG_RUN_ID,
     org: str = params.OPT_ORG,
     project: str = params.OPT_PRJ,
-    run_id: int = None,
     limit: int = params.OPT_BUILDS_LIMIT,
     fold: bool = params.OPT_FOLD,
     progress: bool = params.OPT_PROGRESS,
 ):
     """
     Check suite run in terms of regression or known test failures.
-    Takes given suite run and checks all failed tests against previous runs for same suite and branch.
+    Takes a suite + branch + run and checks all failed tests against
+    previous runs for same suite and branch.
     """
     from rich.console import Console
     from rich.progress import Progress
@@ -317,22 +321,19 @@ def regression_check(
 
     # validate input
     terec = TerecCallContext.create(org, project)
-    # TODO: get recent build if run_id not provided
-    if not run_id:
-        print("not implemented")
-        return 0
     # collect all tests failed in this build
+    run_info_str = f"{terec.org}/{terec.prj}/{suite}/{branch}/{run_id}"
     console = Console()
     with Timer("get-failed-tests"):
-        failed_tests = get_suite_run_failed_tests(terec, suite, run_id)
+        failed_tests = get_suite_run_failed_tests(terec, suite, branch, run_id)
     if not failed_tests:
         console.print(
-            f"[green]No regression[green]: no test failures for suite run {terec.org}/{terec.prj}/{suite}/{run_id}."
+            f"[green]No regression[green]: no test failures for suite run {run_info_str}."
         )
         return 0
     # asynchronously check each failure
     console.print(
-        f"Checking {len(failed_tests)} failed tests in suite run {terec.org}/{terec.prj}/{suite}/{run_id}."
+        f"Checking {len(failed_tests)} failed tests in suite run {run_info_str}."
     )
     # TODO: make it asynchronous
     # TODO: use provided limit
@@ -342,7 +343,7 @@ def regression_check(
         for test_case in failed_tests:
             info = TestCaseRunInfo(**test_case)
             check = get_test_run_check(terec, suite, run_id, info)
-            if check["is_known_failure"] == False:
+            if check["is_known_failure"] is False:
                 new_failures.append(check)
             progress.update(task, advance=1)
     # summary
@@ -378,3 +379,5 @@ def regression_check(
 
     console.print()
     console.print(table)
+
+    return 1 if new_failures else 0
