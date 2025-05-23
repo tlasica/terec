@@ -1,7 +1,10 @@
 import json
 import os
 import typer
+from more_itertools import flatten
 
+from terec.lib.terec_api_client import TerecApiClient
+from terec.util import cli_params
 
 jenkins_app = typer.Typer()
 
@@ -40,6 +43,51 @@ def export_build(
     data = jsonable_encoder(info, exclude_none=True)
     json_data = json.dumps(data, indent=2)
     print(json_data)
+
+
+@jenkins_app.command()
+def import_run(
+    job: str,
+    build: int,
+    org: str = cli_params.OPT_ORG,
+    project: str = cli_params.OPT_PRJ,
+    suite: str = cli_params.ARG_SUITE,
+):
+    """
+    Import test data for a specific Jenkins build into the system.
+    """
+    from fastapi.encoders import jsonable_encoder
+
+    # download build info
+    typer.echo("Connecting to jenkins server")
+    server = jenkins_server()
+
+    typer.echo(f"Getting build from jenkins server {server.url}")
+    info = server.suite_run_for_build(job_name=job, build_num=build)
+    info.org = value_or_env(org, "TEREC_ORG") or info.org
+    info.project = value_or_env(project, "TEREC_PROJECT") or info.project
+    info.suite = suite if suite else info.suite
+
+    # import build info into terec
+    api_client = TerecApiClient()
+    typer.echo(f"Importing build info to terec at {api_client.terec_url}")
+    import_build_path = f"/tests/orgs/{org}/runs"
+    data = jsonable_encoder(info, exclude_none=True)
+    api_client.post(path=import_build_path, body=data)
+    typer.echo("Suite run info imported")
+
+    # now import test results in batches
+    branch = info.branch
+    limit = 0
+    typer.echo(f"Importing test results in batches. Branch: {branch}")
+    import_tests_path = f"/tests/orgs/{org}/projects/{project}/suites/{suite}/branches/{branch}/runs/{build}/tests"
+    for batch in server.suite_test_runs_for_build(
+        job_name=job, build_num=build, limit=limit
+    ):
+        typer.echo(f"Importing batch..")
+        data = jsonable_encoder(list(flatten(batch)), exclude_none=True)
+        resp = api_client.post(path=import_tests_path, body=data)
+        typer.echo(f"Imported {resp}")
 
 
 @jenkins_app.command()

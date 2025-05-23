@@ -51,10 +51,7 @@ class JenkinsServer:
             for start_idx, end_idx in batches:
                 index = f"{{{start_idx},{end_idx}}}"
                 logger.debug("Getting suites {}..{}", start_idx, end_idx)
-                for suite_results in self._get_suites_test_runs(
-                    session, job_name, build_num, index
-                ):
-                    yield suite_results
+                yield self._get_suites_test_runs(session, job_name, build_num, index)
 
     def _get_jenkins_api(
         self,
