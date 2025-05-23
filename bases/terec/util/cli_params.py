@@ -25,11 +25,11 @@ OPT_FOLD: bool = typer.Option(
 
 OPT_BUILDS_LIMIT: int = typer.Option(16, help="number of past builds to use")
 
-ARG_SUITE: str = typer.Argument(help="which suite runs to plot")
+ARG_SUITE: str = typer.Argument(help="which suite to select runs for")
 
-ARG_BRANCH: str = typer.Argument(help="branch to select suite runs")
+ARG_BRANCH: str = typer.Argument(help="branch to filter suite runs")
 
-ARG_RUN_ID: int = typer.Argument(help="suite (build) run id")
+ARG_RUN_ID: int = typer.Argument(help="suite (build) run id - within given branch")
 
 BUILD_FIELDS = [
     "fail_count",
