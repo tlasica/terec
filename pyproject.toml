@@ -58,6 +58,9 @@ pytest-mock = "^3.12.0"
 black = "^25.1.0"
 ipykernel = "^6.25.2"
 pre-commit = "^3.5.0"
+memray = "^1.17.2"
+pytest-memray = "^1.7.0"
+
 
 [build-system]
 requires = ["poetry-core"]
@@ -69,6 +72,7 @@ cli = "bases.terec.cli.main:app"
 [tool.poe.tasks]
 test = "poetry run pytest --keepalive --benchmark-skip --cov --cov-report=html:coverage_report --junitxml=pytest-report.xml"
 benchmark = "poetry run pytest --keepalive test/bases/terec/api/test_benchmark_results_api.py"
+benchmark-memray = "poetry run pytest --memray --keepalive test/bases/terec/api/test_benchmark_results_api.py"
 
 [tool.poe.tasks.build]
 shell = """
