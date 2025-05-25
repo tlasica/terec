@@ -18,6 +18,10 @@ def random_100_test_runs():
 class TestBenchmarkResultsAPI:
     fake = Faker()
 
+    @pytest.fixture(autouse=True)
+    def inject_client(self, api_client):
+        self.api_client = api_client
+
     def post_test_results(
         self, org: str, prj: str, suite: str, branch: str, run: int, body: str
     ):
