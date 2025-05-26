@@ -52,6 +52,7 @@ def import_run(
     org: str = cli_params.OPT_ORG,
     project: str = cli_params.OPT_PRJ,
     suite: str = cli_params.ARG_SUITE,
+    num_chunks: int = 100,
 ):
     """
     Import test data for a specific Jenkins build into the system.
@@ -82,7 +83,7 @@ def import_run(
     typer.echo(f"Importing test results in batches. Branch: {branch}")
     import_tests_path = f"/tests/orgs/{org}/projects/{project}/suites/{suite}/branches/{branch}/runs/{build}/tests"
     for batch in server.suite_test_runs_for_build(
-        job_name=job, build_num=build, limit=limit
+        job_name=job, build_num=build, limit=limit, num_chunks=num_chunks
     ):
         typer.echo(f"Importing batch..")
         data = jsonable_encoder(list(flatten(batch)), exclude_none=True)

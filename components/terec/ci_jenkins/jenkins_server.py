@@ -35,7 +35,9 @@ class JenkinsServer:
         build_info = j.get_build_info(name=job_name, number=build_num)
         return parse_jenkins_build_info("org", "project", "suite", build_info)
 
-    def suite_test_runs_for_build(self, job_name: str, build_num: int, limit: int = 0):
+    def suite_test_runs_for_build(
+        self, job_name: str, build_num: int, limit: int = 0, num_chunks: int = 100
+    ) -> Generator[List[List[TestCaseRunInfo]], None, None]:
         """
         Efficiently collect test suite runs using optimized tree parameter and index-based collection
         """
@@ -43,14 +45,16 @@ class JenkinsServer:
         suite_count = suite_count if limit <= 0 else min(limit, suite_count)
         with Session() as session:
             session.auth = self.auth()
-            batch_size = max(1, suite_count // 20)
+            batch_size = max(1, suite_count // num_chunks)
             batches = [
                 (i, min(i + batch_size, suite_count))
                 for i in range(0, suite_count, batch_size)
             ]
             for start_idx, end_idx in batches:
                 index = f"{{{start_idx},{end_idx}}}"
-                logger.debug("Getting suites {}..{}", start_idx, end_idx)
+                logger.debug(
+                    "Getting suites {}..{}/{}", start_idx, end_idx, suite_count
+                )
                 yield self._get_suites_test_runs(session, job_name, build_num, index)
 
     def _get_jenkins_api(

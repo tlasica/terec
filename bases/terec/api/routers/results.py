@@ -251,7 +251,7 @@ def add_suite_run_test_results(
             assert len(test_data) == num_cols
             params.append(test_data)
         with Timer(
-            logger=logger.info,
+            logger=logger.debug,
             initial_text=f"Inserting chunk of {len(params)} test case runs",
             text="Elapsed time for inserting chunk: {milliseconds:.0f} ms",
         ):
