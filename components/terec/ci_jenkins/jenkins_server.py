@@ -2,7 +2,7 @@ from jenkins import Jenkins
 from loguru import logger
 from requests import Session
 import requests
-from typing import List, Optional
+from typing import List, Optional, Generator
 
 from terec.api.routers.results import TestSuiteRunInfo, TestCaseRunInfo
 from terec.ci_jenkins.build_info_parser import parse_jenkins_build_info
@@ -11,7 +11,7 @@ from terec.ci_jenkins.report_parser import parse_jenkins_report_suite
 
 class JenkinsServer:
     def __init__(self, url: str, username: str = None, password: str = None):
-        self.url = url.rstrip("/")  # Remove trailing slash if present
+        self.url = url.rstrip("/")  # Remove a trailing slash if present
         self.username = username
         self.password = password
         self.server = None
@@ -36,8 +36,8 @@ class JenkinsServer:
         return parse_jenkins_build_info("org", "project", "suite", build_info)
 
     def suite_test_runs_for_build(
-        self, job_name: str, build_num: int, limit: int = 0
-    ) -> List[TestCaseRunInfo]:
+        self, job_name: str, build_num: int, limit: int = 0, num_chunks: int = 100
+    ) -> Generator[List[List[TestCaseRunInfo]], None, None]:
         """
         Efficiently collect test suite runs using optimized tree parameter and index-based collection
         """
@@ -45,18 +45,17 @@ class JenkinsServer:
         suite_count = suite_count if limit <= 0 else min(limit, suite_count)
         with Session() as session:
             session.auth = self.auth()
-            batch_size = max(1, suite_count // 20)
+            batch_size = max(1, suite_count // num_chunks)
             batches = [
                 (i, min(i + batch_size, suite_count))
                 for i in range(0, suite_count, batch_size)
             ]
             for start_idx, end_idx in batches:
                 index = f"{{{start_idx},{end_idx}}}"
-                logger.debug("Getting suites {}..{}", start_idx, end_idx)
-                for suite_results in self._get_suites_test_runs(
-                    session, job_name, build_num, index
-                ):
-                    yield suite_results
+                logger.debug(
+                    "Getting suites {}..{}/{}", start_idx, end_idx, suite_count
+                )
+                yield self._get_suites_test_runs(session, job_name, build_num, index)
 
     def _get_jenkins_api(
         self,

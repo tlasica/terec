@@ -219,39 +219,39 @@ def add_suite_run_test_results(
     p_stmt = session.prepare(insert_cql)
 
     def limit_text_field(text: str) -> str:
-        return text[:16384] if text else None
+        if text is None:
+            return None
+        return text[:16384] if len(text) > 16384 else text
 
-    concurrency = 16
-    for chunk in more_itertools.sliced(body, 1000):
+    concurrency = 32
+    for chunk in more_itertools.sliced(body, 2 * concurrency):
         params = []
         for test in chunk:
-            attrs = test.model_dump()
-            attrs["result"] = attrs["result"].value
-            timestamp = attrs.get("tstamp", suite_run.timestamp)
+            timestamp = test.tstamp or suite_run.timestamp
             test_data = (
                 org_name,
                 prj_name,
                 suite_name,
                 branch,
                 run_id,
-                attrs.get("test_package", None),
-                attrs.get("test_suite", None),
-                attrs.get("test_case", None),
-                attrs.get("test_config", None),
-                attrs.get("result"),
-                attrs.get("test_group", None),
+                test.test_package,
+                test.test_suite,
+                test.test_case,
+                test.test_config,
+                test.result.value,
+                test.test_group,
                 timestamp,
-                attrs.get("duration_ms", None),
-                limit_text_field(attrs.get("stdout", None)),
-                limit_text_field(attrs.get("stderr", None)),
-                limit_text_field(attrs.get("error_stacktrace", None)),
-                limit_text_field(attrs.get("error_details", None)),
-                limit_text_field(attrs.get("skip_details", None)),
+                test.duration_ms,
+                limit_text_field(test.stdout),
+                limit_text_field(test.stderr),
+                limit_text_field(test.error_stacktrace),
+                limit_text_field(test.error_details),
+                limit_text_field(test.skip_details),
             )
             assert len(test_data) == num_cols
             params.append(test_data)
         with Timer(
-            logger=logger.info,
+            logger=logger.debug,
             initial_text=f"Inserting chunk of {len(params)} test case runs",
             text="Elapsed time for inserting chunk: {milliseconds:.0f} ms",
         ):

@@ -61,6 +61,10 @@ Notes / Unpleasant
 - trial works only for 5 min, then app is stopped (!)
 - astradb is hibernated if not used for 48h
 
+```bash
+fly deploy --image registry.fly.io/terec-api:latest --file-local /app/astradb-terec-scb.zip={path to scb}
+```
+
 
 ```bash
 http https://terec-api.fly.dev/admin/orgs

@@ -21,7 +21,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.12"
 fastapi = "^0.115"
-uvicorn = {extras = ["standard"], version = "^0.34"}
+uvicorn = "^0.34"
 pika = "^1.3.2"
 faker = "^19.10.0"
 cassandra-driver = "^3.29.0"
@@ -58,6 +58,9 @@ pytest-mock = "^3.12.0"
 black = "^25.1.0"
 ipykernel = "^6.25.2"
 pre-commit = "^3.5.0"
+memray = "^1.17.2"
+pytest-memray = "^1.7.0"
+
 
 [build-system]
 requires = ["poetry-core"]
@@ -69,6 +72,7 @@ cli = "bases.terec.cli.main:app"
 [tool.poe.tasks]
 test = "poetry run pytest --keepalive --benchmark-skip --cov --cov-report=html:coverage_report --junitxml=pytest-report.xml"
 benchmark = "poetry run pytest --keepalive test/bases/terec/api/test_benchmark_results_api.py"
+benchmark-memray = "poetry run pytest --memray --keepalive test/bases/terec/api/test_benchmark_results_api.py"
 
 [tool.poe.tasks.build]
 shell = """
@@ -101,4 +105,13 @@ shell = """
 export CASSANDRA_HOSTS=localhost
 export CASSANDRA_KEYSPACE=terec
 poetry run uvicorn --host 0.0.0.0 --port 8001 --log-config ./projects/terec_api/log_conf.yaml terec.api.main:app
+"""
+
+[tool.poe.tasks.deploy-fly]
+shell = """
+poe build
+fly auth docker
+docker tag terec/api:latest registry.fly.io/terec-api:latest
+docker push registry.fly.io/terec-api:latest
+fly deploy --image registry.fly.io/terec-api:latest --file-local /app/astradb-terec-scb.zip=${ASTRADB_SCB_PATH}
 """
