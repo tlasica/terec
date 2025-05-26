@@ -223,7 +223,7 @@ def add_suite_run_test_results(
             return None
         return text[:16384] if len(text) > 16384 else text
 
-    concurrency = 16
+    concurrency = 32
     for chunk in more_itertools.sliced(body, 2 * concurrency):
         params = []
         for test in chunk:
